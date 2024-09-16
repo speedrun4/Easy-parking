@@ -1,0 +1,20 @@
+<header>
+  <nav>
+    <div class="hamburger-menu">
+      <button (click)="toggleMenu()">&#9776;</button>
+    </div>
+  </nav>
+  <span class="app-name">Easy Parking</span>
+  <div class="login-avatar">
+    <img src="assets//images/avatar.png" alt="Avatar">
+  </div>
+  <div [ngClass]="{'menu-open': menuOpen}" class="menu-list">
+    <ul>
+      <li><a href="#">Sobre o site</a></li>
+      <li><a href="#">Cadastro</a></li>
+      <li><a href="#">Login</a></li>
+      <li><a href="#">Contato</a></li>
+    </ul>
+  </div>
+</header>
+<div *ngIf="menuOpen" class="menu-overlay" (click)="closeMenu()"></div>

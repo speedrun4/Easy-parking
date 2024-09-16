@@ -1,0 +1,77 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #333;
+  color: white;
+  z-index: 1000;
+  position: relative;
+
+  .hamburger-menu {
+    button {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+    }
+  }
+
+  .app-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  .login-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+}
+
+/* Menu fechado inicialmente */
+.menu-list {
+  position: absolute; /* Posicionado logo abaixo do header */
+  top: 100%; /* Para ficar logo abaixo do header */
+  left: -250px; /* Fora da tela inicialmente */
+  width: 250px;
+  height: auto; /* Define altura dinâmica */
+  background-color: #444;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: left 0.4s ease; /* Animação suave ao deslizar */
+  z-index: 999; /* Abaixo do header, acima do conteúdo */
+
+  ul {
+    list-style-type: none;
+    padding: 20px 0;
+    margin: 0;
+    height: 100%;
+
+    li {
+      padding: 15px;
+      text-align: center;
+      border-bottom: 1px solid #555;
+
+      a {
+        text-decoration: none;
+        color: white;
+        font-size: 1.2rem;
+
+        &:hover {
+          background-color: #555;
+        }
+      }
+    }
+  }
+}
+
+/* Quando o menu estiver aberto */
+.menu-open {
+  left: 0; /* Move o menu para dentro da tela */
+}
+
+/* Se você quiser que o carousel ou conteúdo principal esteja logo abaixo */
+main {
+  margin-top: 20px; /* Espaçamento abaixo do header */
+}
