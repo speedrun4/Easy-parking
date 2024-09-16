@@ -6,14 +6,14 @@
   </nav>
   <span class="app-name">Easy Parking</span>
   <div class="login-avatar">
-    <img src="assets//images/avatar.png" alt="Avatar">
+    <img src="assets/images/avatar.png" alt="Avatar">
   </div>
   <div [ngClass]="{'menu-open': menuOpen}" class="menu-list">
     <ul>
-      <li><a href="#">Sobre o site</a></li>
-      <li><a href="#">Cadastro</a></li>
-      <li><a href="#">Login</a></li>
-      <li><a href="#">Contato</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/sobre']">Sobre o site</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/cadastro']">Cadastro</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/login']">Login</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/contato']">Contato</a></li>
     </ul>
   </div>
 </header>

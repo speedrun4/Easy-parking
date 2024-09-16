@@ -1,1 +1,43 @@
-<p>login works!</p>
+<div class="login-container">
+  <button class="back-button" [routerLink]="['/']">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 6L10 11L15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+  <h2 class="login-title">Login</h2>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" formControlName="email" placeholder="Digite seu email" />
+      <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error-message">
+        Email inválido
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Senha</label>
+      <input type="password" id="password" formControlName="password" placeholder="Digite sua senha" />
+      <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error-message">
+        A senha é obrigatória
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="loginForm.invalid">Entrar</button>
+    </div>
+  </form>
+
+  <!-- Links para recuperação de senha e cadastro -->
+  <div class="login-options">
+    <a href="#" class="forgot-password">Esqueci minha senha</a>
+    <a href="#" class="register">Cadastrar-se</a>
+  </div>
+
+  <!-- Botões de login social -->
+  <div class="social-login">
+    <p>Ou faça login com:</p>
+    <button (click)="loginWithGoogle()" class="google-login">Google</button>
+    <button (click)="loginWithFacebook()" class="facebook-login">Facebook</button>
+  </div>
+</div>
