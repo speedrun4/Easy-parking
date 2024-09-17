@@ -1,0 +1,107 @@
+<!-- cadastro.component.html -->
+<div class="cadastro-container">
+  <div class="toggle-buttons">
+    <button (click)="showUserForm = true" [class.active]="showUserForm">Cadastro de Usuário</button>
+    <button (click)="showUserForm = false" [class.active]="!showUserForm">Cadastro de Estacionamento</button>
+  </div>
+
+  <div *ngIf="showUserForm" class="form-container">
+    <h2>Cadastro de Usuário</h2>
+    <form [formGroup]="userForm" (ngSubmit)="onUserSubmit()">
+      <div>
+        <label for="name">Nome Completo</label>
+        <input id="name" formControlName="name">
+        <div *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">
+          Nome completo é obrigatório.
+        </div>
+      </div>
+      <div>
+        <label for="email">Email</label>
+        <input id="email" formControlName="email">
+        <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+          <div *ngIf="userForm.get('email')?.errors?.required">Email é obrigatório.</div>
+          <div *ngIf="userForm.get('email')?.errors?.email">Email inválido.</div>
+        </div>
+      </div>
+      <div>
+        <label for="phone">Telefone</label>
+        <input id="phone" formControlName="phone">
+        <div *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">
+          Telefone é obrigatório.
+        </div>
+      </div>
+      <div>
+        <label for="password">Senha</label>
+        <input type="password" id="password" formControlName="password">
+        <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+          <div *ngIf="userForm.get('password')?.errors?.required">Senha é obrigatória.</div>
+          <div *ngIf="userForm.get('password')?.errors?.pattern">Senha deve ter entre 8 e 11 caracteres e conter letras, números e caracteres especiais.</div>
+        </div>
+      </div>
+      <div>
+        <label for="cpf">CPF</label>
+        <input id="cpf" formControlName="cpf">
+        <div *ngIf="userForm.get('cpf')?.invalid && userForm.get('cpf')?.touched">
+          CPF é obrigatório.
+        </div>
+      </div>
+      <button type="submit" [disabled]="userForm.invalid">Cadastrar</button>
+    </form>
+  </div>
+
+  <div *ngIf="!showUserForm" class="form-container">
+    <h2>Cadastro de Estacionamento</h2>
+    <form [formGroup]="parkingForm" (ngSubmit)="onParkingSubmit()">
+      <div>
+        <label for="companyName">Nome da Empresa/Razão Social</label>
+        <input id="companyName" formControlName="companyName">
+        <div *ngIf="parkingForm.get('companyName')?.invalid && parkingForm.get('companyName')?.touched">
+          Nome da empresa é obrigatório.
+        </div>
+      </div>
+      <div>
+        <label for="cnpj">CNPJ</label>
+        <input id="cnpj" formControlName="cnpj">
+        <div *ngIf="parkingForm.get('cnpj')?.invalid && parkingForm.get('cnpj')?.touched">
+          CNPJ é obrigatório.
+        </div>
+      </div>
+      <div>
+        <label for="hourlyRate">Valor por Hora</label>
+        <input id="hourlyRate" formControlName="hourlyRate" type="number" step="0.01">
+        <div *ngIf="parkingForm.get('hourlyRate')?.invalid && parkingForm.get('hourlyRate')?.touched">
+          Valor por hora é obrigatório.
+        </div>
+      </div>
+      <div>
+        <label for="address">Endereço Completo</label>
+        <input id="address" formControlName="address">
+        <div *ngIf="parkingForm.get('address')?.invalid && parkingForm.get('address')?.touched">
+          Endereço é obrigatório.
+        </div>
+      </div>
+      <div>
+        <label for="cep">CEP</label>
+        <input id="cep" formControlName="cep">
+        <div *ngIf="parkingForm.get('cep')?.invalid && parkingForm.get('cep')?.touched">
+          CEP é obrigatório.
+        </div>
+      </div>
+      <div>
+        <label for="branchCeps">CEP Filiais</label>
+        <input id="branchCeps" formControlName="branchCeps">
+        <div *ngIf="parkingForm.get('branchCeps')?.invalid && parkingForm.get('branchCeps')?.touched">
+          CEP filiais é obrigatório.
+        </div>
+      </div>
+      <div>
+        <label for="phone">Telefone</label>
+        <input id="phone" formControlName="phone">
+        <div *ngIf="parkingForm.get('phone')?.invalid && parkingForm.get('phone')?.touched">
+          Telefone é obrigatório.
+        </div>
+      </div>
+      <button type="submit" [disabled]="parkingForm.invalid">Cadastrar</button>
+    </form>
+  </div>
+</div>
