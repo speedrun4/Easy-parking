@@ -1,0 +1,16 @@
+<div class="search-container">
+  <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+    <mat-form-field>
+      <mat-label>Buscar estacionamento</mat-label>
+      <input matInput formControlName="search">
+    </mat-form-field>
+    <button class="botao" mat-raised-button color="primary" type="submit">Buscar</button>
+  </form>
+</div>
+<mat-card appearance="outlined">
+  <agm-map [latitude]="latitude" [longitude]="longitude" [zoom]="zoom">
+    <agm-marker *ngFor="let marker of markers" [latitude]="marker.latitude" [longitude]="marker.longitude"
+      [label]="marker.label" [title]="marker.title">
+    </agm-marker>
+  </agm-map>
+</mat-card>
