@@ -3,7 +3,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  background-color: #333;
+  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
   color: white;
   z-index: 1000;
   position: relative;
@@ -13,7 +13,7 @@ header {
       background: none;
       border: none;
       font-size: 24px;
-      color: white;
+      color: rgb(98, 115, 123);;
       cursor: pointer;
     }
   }
@@ -21,6 +21,8 @@ header {
   .app-name {
     font-size: 1.5rem;
     font-weight: bold;
+    font-family:"open Sans" ;
+    color: rgb(98, 115, 123);
   }
 
   .login-avatar img {
@@ -37,7 +39,7 @@ header {
   left: -250px; /* Fora da tela inicialmente */
   width: 250px;
   height: auto; /* Define altura dinâmica */
-  background-color: #444;
+  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   transition: left 0.4s ease; /* Animação suave ao deslizar */
   z-index: 999; /* Abaixo do header, acima do conteúdo */
