@@ -24,11 +24,6 @@ export class HeaderComponent implements OnInit {
       this.isLoggedIn = !!user;
       this.userName = user?.name || '';
     });
-    this.isLoggedIn = this.authService.isAuthenticated();
-    if (this.isLoggedIn) {
-      const currentUser = this.authService.getCurrentUser();
-      this.userName = currentUser?.name || '';
-    }
   }
 
   // Alterna o estado do menu
