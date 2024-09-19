@@ -1,4 +1,8 @@
 import { Component, HostListener, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+
+import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -6,12 +10,25 @@ import { Component, HostListener, OnInit } from '@angular/core';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  menuOpen = false; // Estado do menu: aberto ou fechado
+  menuOpen = false;
+  avatarMenuOpen = false;
+  isLoggedIn = false; // Verifica se o usuário está logado
+  userName: string = ''; // Nome do usuário logado
+  private authSubscription: Subscription = new Subscription(); // Subscription para escutar as mudanças
 
-  constructor() {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit(): void {
-    // Inicialização do componente, se necessário
+    // Subscrição para detectar mudanças no estado de autenticação
+    this.authSubscription = this.authService.currentUser.subscribe(user => {
+      this.isLoggedIn = !!user;
+      this.userName = user?.name || '';
+    });
+    this.isLoggedIn = this.authService.isAuthenticated();
+    if (this.isLoggedIn) {
+      const currentUser = this.authService.getCurrentUser();
+      this.userName = currentUser?.name || '';
+    }
   }
 
   // Alterna o estado do menu
@@ -24,18 +41,40 @@ export class HeaderComponent implements OnInit {
     this.menuOpen = false;
   }
 
-  // Fecha o menu se clicar fora dele ou do botão do menu
+  toggleAvatarMenu() {
+    this.avatarMenuOpen = !this.avatarMenuOpen;
+  }
+
+  goToLogin() {
+    this.avatarMenuOpen = false; // Fecha o dropdown
+    this.router.navigate(['/login']);
+  }
+
+  goToProfile() {
+    this.avatarMenuOpen = false; // Fecha o dropdown
+    this.router.navigate(['/perfil']);
+  }
+
+  // Função de logout com redirecionamento para a página inicial
+  logout() {
+    this.authService.logout(); // Remove o usuário do localStorage e do serviço
+    this.isLoggedIn = false;
+    this.userName = '';
+    this.avatarMenuOpen = false; // Fecha o dropdown do avatar
+    this.router.navigate(['/']); // Redireciona para a página inicial (home)
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    const clickedInsideMenu = (event.target as HTMLElement).closest(
-      '.menu-list'
-    );
-    const clickedInsideButton = (event.target as HTMLElement).closest(
-      '.hamburger-menu'
-    );
+    const clickedInsideMenu = (event.target as HTMLElement).closest('.menu-list');
+    const clickedInsideButton = (event.target as HTMLElement).closest('.hamburger-menu');
 
     if (!clickedInsideMenu && !clickedInsideButton) {
       this.closeMenu();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.authSubscription.unsubscribe(); // Evitar memory leaks
   }
 }

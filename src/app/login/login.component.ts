@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-login',
@@ -8,8 +10,10 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
+  errorMessage: string = '';
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private router: Router,
+    private authService: AuthService) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
@@ -19,8 +23,23 @@ export class LoginComponent implements OnInit {
   onSubmit() {
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-      console.log('Login with email:', email, 'and password:', password);
-      // Lógica de autenticação aqui
+
+      this.authService.login(email, password).subscribe({
+        next: (response) => {
+          console.log('Login bem-sucedido', response);
+          // Armazena o token no localStorage
+          localStorage.setItem('token', response.token);
+
+          // Redireciona para a página welcome após o login
+          this.router.navigate(['/welcome']);
+        },
+        error: (error) => {
+          console.error('Erro no login', error);
+          this.errorMessage = 'Credenciais inválidas. Tente novamente.';
+        }
+      });
+    } else {
+      this.errorMessage = 'Por favor, preencha todos os campos corretamente.';
     }
   }
 

@@ -5,9 +5,34 @@
     </div>
   </nav>
   <span class="app-name">Easy Parking</span>
-  <div class="login-avatar">
+
+  <!-- Avatar com Dropdown -->
+  <div class="login-avatar" (click)="toggleAvatarMenu()">
     <img src="assets/images/avatar.png" alt="Avatar">
+    <!-- Nome do usuário -->
+    <div *ngIf="isLoggedIn" class="user-name">{{ userName }}</div>
   </div>
+
+  <!-- Dropdown Menu do Avatar -->
+  <div class="avatar-dropdown" *ngIf="avatarMenuOpen">
+    <ul>
+      <!-- Condicional para mostrar o Login ou opções do usuário -->
+      <li *ngIf="!isLoggedIn"><a (click)="goToLogin()">Login</a></li>
+      <li *ngIf="isLoggedIn"><a (click)="goToProfile()">Meu Perfil</a></li>
+      <li *ngIf="isLoggedIn"><a (click)="logout()">Sair</a></li>
+    </ul>
+  </div>
+
+  <div *ngIf="isLoggedIn" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
+    <ul>
+      <li><a (click)="closeMenu()" [routerLink]="['/adicionar-credito']">Adicionar Crédito</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/vagas-livres']">Vagas Livres</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/historico']">Histórico</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/consultar-irregularidades']">Consultar Irregularidades</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/meus-dados']">Meus Dados</a></li>
+    </ul>
+  </div>
+
   <div [ngClass]="{'menu-open': menuOpen}" class="menu-list">
     <ul>
       <li><a (click)="closeMenu()" [routerLink]="['/sobre']">Sobre o site</a></li>
@@ -17,4 +42,5 @@
     </ul>
   </div>
 </header>
+
 <div *ngIf="menuOpen" class="menu-overlay" (click)="closeMenu()"></div>

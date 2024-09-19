@@ -77,3 +77,42 @@ header {
 main {
   margin-top: 20px; /* Espaçamento abaixo do header */
 }
+
+.login-avatar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-dropdown {
+  position: absolute;
+  top: 60px; /* Ajuste conforme a posição do avatar */
+  right: 0;
+  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));;
+  border: 1px solid #ddd;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.avatar-dropdown ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.avatar-dropdown li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.avatar-dropdown li:hover {
+  background-color: rgba(0, 0, 0, 0.1);;
+}
+
+.user-name {
+  margin-top: 4px; // Espaço entre o avatar e o nome
+  font-size: 14px; // Tamanho da fonte
+  color: #333; // Cor do texto
+  text-align: center; // Centraliza o texto
+}
