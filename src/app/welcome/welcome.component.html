@@ -7,10 +7,15 @@
     <button class="botao" mat-raised-button color="primary" type="submit">Buscar</button>
   </form>
 </div>
+
 <mat-card appearance="outlined">
   <agm-map [latitude]="latitude" [longitude]="longitude" [zoom]="zoom">
-    <agm-marker *ngFor="let marker of markers" [latitude]="marker.latitude" [longitude]="marker.longitude"
-      [label]="marker.label" [title]="marker.title">
+    <agm-marker *ngFor="let marker of markers"
+                [latitude]="marker.latitude"
+                [longitude]="marker.longitude"
+                [label]="marker.label"
+                [title]="marker.title"
+                [iconUrl]="marker.iconUrl">
     </agm-marker>
   </agm-map>
 </mat-card>

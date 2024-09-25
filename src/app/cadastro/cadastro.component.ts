@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { EstacionamentoService } from '../services/estacionamento.service';
+import { GeocodingService } from '../services/geocoding.service';
 
 @Component({
   selector: 'app-cadastro',
@@ -12,13 +14,14 @@ export class CadastroComponent implements OnInit {
   userForm!: FormGroup;
   parkingForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder, private estacionamentoService: EstacionamentoService, private geocodingService: GeocodingService,) { }
 
   ngOnInit(): void {
     this.initializeUserForm();
     this.initializeParkingForm();
   }
 
+  // Inicializa o formulário de usuário com validações
   initializeUserForm() {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
@@ -31,14 +34,15 @@ export class CadastroComponent implements OnInit {
           Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,11}$/)
         ]
       ],
-      cpf: ['', Validators.required]
+      cpf: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],  // Aceita apenas 11 dígitos numéricos
     });
   }
 
+  // Inicializa o formulário de estacionamento com validações
   initializeParkingForm() {
     this.parkingForm = this.fb.group({
       companyName: ['', Validators.required],
-      cnpj: ['', Validators.required],
+      cnpj: ['', [Validators.required, Validators.pattern(/^\d{14}$/)]],  // Aceita apenas 14 dígitos numéricos
       hourlyRate: ['', Validators.required],
       address: ['', Validators.required],
       cep: ['', Validators.required],
@@ -47,17 +51,87 @@ export class CadastroComponent implements OnInit {
     });
   }
 
+
   onUserSubmit() {
     if (this.userForm.valid) {
-      // Lógica para envio do formulário de usuário
       console.log('Formulário de usuário enviado', this.userForm.value);
     }
   }
 
   onParkingSubmit() {
     if (this.parkingForm.valid) {
-      // Lógica para envio do formulário de estacionamento
-      console.log('Formulário de estacionamento enviado', this.parkingForm.value);
+      const address = this.parkingForm.get('address')?.value;
+
+      // Use o serviço de geocodificação para obter latitude e longitude
+      this.geocodingService.getCoordinates(address).subscribe(coordinates => {
+        if (coordinates) {
+          const estacionamento = {
+            ...this.parkingForm.value,
+            latitude: coordinates.latitude,  // Latitude obtida
+            longitude: coordinates.longitude  // Longitude obtida
+          };
+
+          // Adicionar o estacionamento ao serviço
+          this.estacionamentoService.adicionarEstacionamento(estacionamento);
+          console.log('Estacionamento cadastrado', estacionamento);
+        } else {
+          console.error('Endereço inválido');
+        }
+      });
     }
+  }
+
+  onCpfInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    let cpf = inputElement.value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+
+    // Limita a 11 dígitos
+    if (cpf.length > 11) {
+      cpf = cpf.substring(0, 11);
+    }
+
+    // Aplica a máscara CPF: XXX.XXX.XXX-XX
+    if (cpf.length > 9) {
+      cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    } else if (cpf.length > 6) {
+      cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
+    } else if (cpf.length > 3) {
+      cpf = cpf.replace(/(\d{3})(\d{3})/, '$1.$2');
+    } else {
+      cpf = cpf.replace(/(\d{3})/, '$1');
+    }
+
+    // Atualiza o valor do campo com a máscara aplicada
+    inputElement.value = cpf;
+
+    // Atualiza o valor do formulário com o CPF sem a máscara (só números)
+    this.userForm.get('cpf')?.setValue(cpf.replace(/\D/g, ''));
+  }
+
+  onCnpjInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    let cnpj = inputElement.value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
+
+    // Limita a 14 dígitos
+    if (cnpj.length > 14) {
+      cnpj = cnpj.substring(0, 14);
+    }
+
+    // Aplica a máscara CNPJ: XX.XXX.XXX/XXXX-XX
+    if (cnpj.length > 12) {
+      cnpj = cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    } else if (cnpj.length > 8) {
+      cnpj = cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})/, '$1.$2.$3/$4');
+    } else if (cnpj.length > 5) {
+      cnpj = cnpj.replace(/(\d{2})(\d{3})(\d{3})/, '$1.$2.$3');
+    } else if (cnpj.length > 2) {
+      cnpj = cnpj.replace(/(\d{2})(\d{3})/, '$1.$2');
+    }
+
+    // Atualiza o valor do campo com a máscara aplicada
+    inputElement.value = cnpj;
+
+    // Atualiza o valor do formulário com o CNPJ sem a máscara (só números)
+    this.parkingForm.get('cnpj')?.setValue(cnpj.replace(/\D/g, ''));
   }
 }
