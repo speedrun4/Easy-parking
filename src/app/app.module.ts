@@ -18,6 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AgmCoreModule } from '@agm/core';
 import {MatCardModule} from '@angular/material/card';
 import { HttpClientModule } from '@angular/common/http';
+import { ConfirmComponent } from './confirm/confirm.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { HttpClientModule } from '@angular/common/http';
     HomeComponent,
     CadastroComponent,
     WelcomeComponent,
+    ConfirmComponent,
   ],
   imports: [
     BrowserModule,
@@ -45,7 +47,7 @@ import { HttpClientModule } from '@angular/common/http';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    HttpClientModule
+    HttpClientModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
