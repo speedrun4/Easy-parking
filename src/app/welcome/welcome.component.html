@@ -15,9 +15,19 @@
                 [longitude]="marker.longitude"
                 [label]="marker.label"
                 [title]="marker.title"
-                [iconUrl]="marker.iconUrl">
+                [iconUrl]="marker.iconUrl"
+                (markerClick)="toggleParkingSelection(marker)">
     </agm-marker>
   </agm-map>
+</div>
+
+<!-- Estacionamentos selecionados -->
+<div *ngIf="selectedParkings.length > 0" class="selected-parkings-list">
+  <h3>Estacionamentos Selecionados:</h3>
+  <div *ngFor="let marker of selectedParkings" class="parking-list-item">
+    <h3>{{ marker.title }} - {{ marker.label }}</h3>
+    <p>{{ marker.address }}</p>
+  </div>
 </div>
 
 <div class="confirm-container" fxLayoutAlign="center center">

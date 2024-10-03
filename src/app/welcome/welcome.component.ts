@@ -15,42 +15,59 @@ export class WelcomeComponent implements OnInit {
   zoom = 12;
   markers: any[] = [];
   filteredMarkers: any[] = []; // Armazena os resultados da busca
-  selectedParking: any; // Variável para armazenar o estacionamento selecionado
+  selectedParkings: any[] = []; // Array para armazenar estacionamentos selecionados
 
   constructor(
     private fb: FormBuilder,
     private estacionamentoService: EstacionamentoService,
     private router: Router
   ) {
-    // Inicializando o formulário de busca
     this.searchForm = this.fb.group({
       search: [''],
     });
   }
 
   ngOnInit(): void {
-    // Carregando os estacionamentos e criando os marcadores para o mapa
     this.estacionamentoService.estacionamentos$.subscribe((estacionamentos) => {
       this.markers = estacionamentos.map((estacionamento) => ({
         latitude: estacionamento.latitude,
         longitude: estacionamento.longitude,
         label: `R$ ${estacionamento.hourlyRate}/h`,
         title: estacionamento.companyName,
-        address: estacionamento.address, // Adicionando endereço para busca
+        address: estacionamento.address,
         iconUrl:
           'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
       }));
 
-      // No início, mostramos todos os estacionamentos
       this.filteredMarkers = this.markers;
     });
+
+    const estacionamentosSalvos = JSON.parse(localStorage.getItem('estacionamentos') || '[]');
+    if (estacionamentosSalvos.length > 0) {
+      estacionamentosSalvos.forEach((estacionamento: any) => {
+        const marcador = {
+          latitude: estacionamento.latitude,
+          longitude: estacionamento.longitude,
+          label: `R$ ${estacionamento.hourlyRate}/h`,
+          title: estacionamento.companyName,
+          address: estacionamento.address,
+          iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
+        };
+        this.markers.push(marcador);
+        this.filteredMarkers.push(marcador);
+      });
+
+      const primeiroEstacionamento = estacionamentosSalvos[0];
+      this.latitude = primeiroEstacionamento.latitude;
+      this.longitude = primeiroEstacionamento.longitude;
+      this.zoom = 12;
+    }
   }
 
   // Função de busca
   onSearch() {
     const query = this.searchForm.get('search')?.value?.toLowerCase();
 
-    // Filtra os estacionamentos pelo nome ou endereço
     if (query) {
       this.filteredMarkers = this.markers.filter(
         (marker) =>
@@ -59,32 +76,52 @@ export class WelcomeComponent implements OnInit {
       );
 
       if (this.filteredMarkers.length > 0) {
-        // Centraliza o mapa no primeiro resultado encontrado
         this.latitude = this.filteredMarkers[0].latitude;
         this.longitude = this.filteredMarkers[0].longitude;
-        this.zoom = 14; // Ajusta o zoom para um nível mais próximo
+        this.zoom = 14;
       }
     } else {
-      // Se a busca estiver vazia, mostra todos os estacionamentos
       this.filteredMarkers = this.markers;
     }
-
-    console.log('Pesquisa:', query, this.filteredMarkers);
   }
 
-  // Função para confirmar a seleção de um estacionamento
+  // Função para selecionar/desselecionar estacionamento ao clicar no ícone no mapa
+  toggleParkingSelection(marker: any) {
+    const index = this.selectedParkings.findIndex(
+      (selectedMarker) =>
+        selectedMarker.latitude === marker.latitude &&
+        selectedMarker.longitude === marker.longitude
+    );
+
+    if (index === -1) {
+      // Se não estiver selecionado, adiciona à lista
+      this.selectedParkings.push(marker);
+    } else {
+      // Se já estiver selecionado, remove da lista
+      this.selectedParkings.splice(index, 1);
+    }
+  }
+
+  deleteParking(markerToDelete: any) {
+    this.markers = this.markers.filter(marker => marker !== markerToDelete);
+    this.filteredMarkers = this.filteredMarkers.filter(marker => marker !== markerToDelete);
+    let estacionamentosSalvos = JSON.parse(localStorage.getItem('estacionamentos') || '[]');
+    estacionamentosSalvos = estacionamentosSalvos.filter(
+      (estacionamento: any) => estacionamento.latitude !== markerToDelete.latitude &&
+                               estacionamento.longitude !== markerToDelete.longitude
+    );
+    localStorage.setItem('estacionamentos', JSON.stringify(estacionamentosSalvos));
+  }
+
+  // Função para confirmar a seleção de estacionamentos
   confirmSelection() {
-    if (this.filteredMarkers.length > 0) {
-      this.selectedParking = this.filteredMarkers[0];
+    if (this.selectedParkings.length > 0) {
+      const clienteName = 'João Silva'; // Nome do cliente
+      const reservaTime = '15:00'; // Horário da reserva
 
-      // Exemplo de nome de cliente e horário de reserva (você pode obter esses dados de um formulário ou serviço)
-      const clienteName = 'João Silva'; // Substitua com o nome do cliente real
-      const reservaTime = '15:00'; // Substitua com o horário da reserva real
-
-      // Redireciona para a página de confirmação com o estacionamento selecionado e informações adicionais
       this.router.navigate(['/confirm'], {
         state: {
-          selectedParking: this.selectedParking,
+          selectedParkings: this.selectedParkings,
           clienteName: clienteName,
           reservaTime: reservaTime,
         },

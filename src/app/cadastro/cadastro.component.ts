@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { EstacionamentoService } from '../services/estacionamento.service';
 import { GeocodingService } from '../services/geocoding.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-cadastro',
@@ -13,12 +14,19 @@ export class CadastroComponent implements OnInit {
   showUserForm = true; // Controle de qual formulário mostrar
   userForm!: FormGroup;
   parkingForm!: FormGroup;
+  estacionamentos: any[] = [];
+  mostrarModalSucesso = false;
 
-  constructor(private fb: FormBuilder, private estacionamentoService: EstacionamentoService, private geocodingService: GeocodingService,) { }
+  constructor(private fb: FormBuilder,
+    private estacionamentoService: EstacionamentoService,
+    private geocodingService: GeocodingService,
+    private router: Router) { }
 
   ngOnInit(): void {
     this.initializeUserForm();
     this.initializeParkingForm();
+    const estacionamentosSalvos = this.carregarEstacionamentos();
+    console.log('Estacionamentos salvos:', estacionamentosSalvos);
   }
 
   // Inicializa o formulário de usuário com validações
@@ -67,18 +75,38 @@ export class CadastroComponent implements OnInit {
         if (coordinates) {
           const estacionamento = {
             ...this.parkingForm.value,
-            latitude: coordinates.latitude,  // Latitude obtida
-            longitude: coordinates.longitude  // Longitude obtida
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude
           };
 
-          // Adicionar o estacionamento ao serviço
-          this.estacionamentoService.adicionarEstacionamento(estacionamento);
-          console.log('Estacionamento cadastrado', estacionamento);
+          // Salvar no localStorage
+          this.salvarEstacionamento(estacionamento);
+
+          console.log('Estacionamento cadastrado e salvo localmente', estacionamento);
+
+          this.mostrarModalSucesso = true;
+
+          setTimeout(() => {
+            this.mostrarModalSucesso = false;
+            this.router.navigate(['/home']);  // Redireciona para a página Home
+          }, 2000);
+          // Redirecionar para a página home após salvar
+          this.router.navigate(['/home']);  // Redireciona para a página Home
         } else {
           console.error('Endereço inválido');
         }
       });
     }
+  }
+
+  carregarEstacionamentos() {
+    const estacionamentos = JSON.parse(localStorage.getItem('estacionamentos') || '[]');
+    return estacionamentos;
+  }
+  salvarEstacionamento(estacionamento: any) {
+    let estacionamentos = JSON.parse(localStorage.getItem('estacionamentos') || '[]');
+    estacionamentos.push(estacionamento);
+    localStorage.setItem('estacionamentos', JSON.stringify(estacionamentos));
   }
 
   onCpfInput(event: Event): void {

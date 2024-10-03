@@ -8,37 +8,47 @@ import { Router } from '@angular/router';
 })
 export class ConfirmComponent implements OnInit {
 
-  parking: any;  // Variável para armazenar os dados do estacionamento
+  selectedParkings: any[] = [];  // Lista de estacionamentos selecionados
   clienteName: string = '';  // Nome do cliente
   reservaTime: string = '';  // Horário da reserva
+  availableTimes: string[] = [];  // Lista de horários disponíveis
+  selectedTime: string = '';
 
   constructor(private router: Router) {
-    // Obtendo os dados do estacionamento e do cliente da navegação anterior
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
-      selectedParking: any;
+      selectedParkings: any[];
       clienteName: string;
       reservaTime: string;
     };
 
-    // Armazenando os dados recebidos
     if (state) {
-      this.parking = state.selectedParking;
+      this.selectedParkings = state.selectedParkings;
       this.clienteName = state.clienteName;
       this.reservaTime = state.reservaTime;
     }
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.generateAvailableTimes();
+  }
+
+  generateAvailableTimes() {
+    for (let i = 7; i <= 22; i++) {
+      const time = i < 10 ? `0${i}:00` : `${i}:00`;
+      this.availableTimes.push(time);
+    }
+  }
 
   confirmReservation() {
-    // Aqui você pode implementar a lógica para confirmar a reserva
-    console.log('Reserva Confirmada:');
-    console.log('Estacionamento:', this.parking);
-    console.log('Cliente:', this.clienteName);
-    console.log('Horário:', this.reservaTime);
-
-    // Redirecionar ou exibir uma mensagem de confirmação
-    alert('Reserva confirmada com sucesso!');
+    if (this.selectedTime) {
+      console.log('Reserva Confirmada para os seguintes estacionamentos:');
+      console.log(this.selectedParkings);
+      console.log('Cliente:', this.clienteName);
+      console.log('Horário da Reserva:', this.selectedTime);
+      alert(`Reserva confirmada para ${this.selectedTime}!`);
+    } else {
+      alert('Por favor, selecione um horário.');
+    }
   }
 }

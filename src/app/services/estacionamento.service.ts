@@ -14,7 +14,11 @@ export class EstacionamentoService {
   constructor() { }
 
   adicionarEstacionamento(estacionamento: any) {
-    this.estacionamentos.push(estacionamento);
-    this.estacionamentosSubject.next(this.estacionamentos);  // Atualiza a lista de estacionamentos
+    let estacionamentos = this.getEstacionamentos();
+    estacionamentos.push(estacionamento);
+    localStorage.setItem('estacionamentos', JSON.stringify(estacionamentos));
+  }
+  getEstacionamentos(): any[] {
+    return JSON.parse(localStorage.getItem('estacionamentos') || '[]');
   }
 }
