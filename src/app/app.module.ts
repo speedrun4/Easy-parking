@@ -23,6 +23,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { PaymentComponent } from './payment/payment.component';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 @NgModule({
   declarations: [
     AppComponent,
@@ -34,6 +37,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     CadastroComponent,
     WelcomeComponent,
     ConfirmComponent,
+    PaymentComponent,
   ],
   imports: [
     BrowserModule,
@@ -53,6 +57,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatRadioModule,
+    MatProgressSpinnerModule,
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyC1JY-mIJMlZinIwKj3jJYoCV9sXrpWmSk'
     }),

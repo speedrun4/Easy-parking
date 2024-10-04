@@ -16,6 +16,7 @@ export class ConfirmComponent implements OnInit {
   selectedTime: string = '';
   selectedDate: Date | null = null; // Data selecionada
   minDate: Date;
+  totalValue: number = 0;
 
   constructor(private router: Router) {
     const navigation = this.router.getCurrentNavigation();
@@ -29,6 +30,7 @@ export class ConfirmComponent implements OnInit {
       this.selectedParkings = state.selectedParkings;
       this.clienteName = state.clienteName;
       this.reservaTime = state.reservaTime;
+      this.calculateTotalValue();
     }
     this.minDate = new Date();
   }
@@ -43,6 +45,12 @@ export class ConfirmComponent implements OnInit {
       this.availableTimes.push(time);
     }
   }
+  calculateTotalValue() {
+    this.totalValue = this.selectedParkings.reduce((total, parking) => {
+      return total + parking.hourlyRate;  // Supondo que o valor esteja em hourlyRate
+    }, 0);
+  }
+
   onDateChange(event: any) {
     this.selectedDate = event.value; // Aqui você captura o valor da data
   }
@@ -54,7 +62,12 @@ export class ConfirmComponent implements OnInit {
       console.log('Cliente:', this.clienteName);
       console.log('Horário da Reserva:', this.selectedTime);
       console.log('Data da Reserva:', this.selectedDate);
-      alert(`Reserva confirmada para ${moment(this.selectedDate).format('DD/MM/YYYY')} às ${this.selectedTime}!`);
+      alert(`Reserva confirmada para ${moment(this.selectedDate).format('DD/MM/YYYY')} às ${this.selectedTime}! Favor realizar o pagamento para finalizar sua reserva`);
+      this.router.navigate(['/payment'], {
+        state: {
+          totalValue: this.totalValue
+        }
+      });
     } else {
       alert('Por favor, selecione uma data e horário.');
     }

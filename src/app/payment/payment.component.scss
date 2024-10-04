@@ -1,0 +1,87 @@
+.payment-container {
+  padding: 20px;
+  background-color: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));;
+  min-height: 100vh;
+}
+
+.payment-card {
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.total-value {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #4CAF50;
+}
+
+.payment-option {
+  display: block;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid transparent;
+  transition: background-color 0.3s ease;
+
+  &.mat-radio-checked {
+    border: 1px solid linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+    border-radius: 5px;
+    background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+  }
+
+  &:hover {
+    background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+  }
+}
+
+/* Formulário de cartão */
+.credit-card-form, .debit-card-form, .boleto-form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Espaçamento consistente entre os campos */
+}
+
+.confirm-button-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between; /* Espaço entre os botões */
+  gap: 10px; /* Espaçamento entre os botões *
+}
+
+mat-form-field {
+  width: 100%; /* Garante que o campo ocupe toda a largura disponível */
+}
+
+.pix-container {
+  margin-top: 20px;
+}
+
+.qr-code {
+  width: 200px;
+  height: 200px;
+  margin-top: 10px;
+}
+
+.confirm-button-container {
+  margin-top: 20px;
+}
+
+.payment-button {
+  flex: 1; /* Ambos os botões ocupam o mesmo espaço */
+  height: 48px; /* Altura consistente */
+  text-align: center;
+}
+
+.payment-button + .payment-button {
+  margin-left: 10px; /* Espaçamento lateral entre os botões */
+}
+
+/* Adiciona margem e padding aos campos de input */
+mat-form-field {
+  margin-top: 10px;
+  padding: 5px 0;
+}
+
+input, textarea {
+  padding: 10px; /* Aumenta a área clicável dos campos de input */
+}

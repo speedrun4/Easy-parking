@@ -16,18 +16,29 @@ export class WelcomeComponent implements OnInit {
   markers: any[] = [];
   filteredMarkers: any[] = []; // Armazena os resultados da busca
   selectedParkings: any[] = []; // Array para armazenar estacionamentos selecionados
+  paymentConfirmed: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private estacionamentoService: EstacionamentoService,
     private router: Router
   ) {
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state as { paymentConfirmed: boolean };
+
+    if (state) {
+      this.paymentConfirmed = state.paymentConfirmed;
+    }
+
     this.searchForm = this.fb.group({
       search: [''],
     });
   }
 
   ngOnInit(): void {
+    if (this.paymentConfirmed) {
+      this.askForRoute();
+    }
     this.estacionamentoService.estacionamentos$.subscribe((estacionamentos) => {
       this.markers = estacionamentos.map((estacionamento) => ({
         latitude: estacionamento.latitude,
@@ -64,6 +75,25 @@ export class WelcomeComponent implements OnInit {
     }
   }
 
+  askForRoute() {
+    const startRoute = confirm('Pagamento confirmado! Deseja iniciar a rota até o estacionamento agora?');
+    if (startRoute) {
+      this.navigateToGoogleMaps();
+    }
+  }
+
+  navigateToGoogleMaps() {
+    // Latitude e longitude do local atual (exemplo fixo para simplificação)
+    const currentLatitude = -23.55052;
+    const currentLongitude = -46.633308;
+
+    // Destino de exemplo, pode ser baseado no estacionamento selecionado
+    const destinationLatitude = -23.5733;
+    const destinationLongitude = -46.6417;
+
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${currentLatitude},${currentLongitude}&destination=${destinationLatitude},${destinationLongitude}`;
+    window.open(url, '_blank');
+  }
   // Função de busca
   onSearch() {
     const query = this.searchForm.get('search')?.value?.toLowerCase();

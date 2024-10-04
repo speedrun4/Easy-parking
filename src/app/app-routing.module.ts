@@ -5,6 +5,7 @@ import { LoginComponent } from './login/login.component';
 import { CadastroComponent } from './cadastro/cadastro.component';
 import { WelcomeComponent } from './welcome/welcome.component';
 import { ConfirmComponent } from './confirm/confirm.component';
+import { PaymentComponent } from './payment/payment.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -12,6 +13,8 @@ const routes: Routes = [
   { path: 'cadastro', component: CadastroComponent },
   { path: 'welcome', component: WelcomeComponent },
   { path: 'confirm', component: ConfirmComponent },
+  { path: 'payment', component: PaymentComponent },
+  { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   // adicione outras rotas aqui
   { path: '**', redirectTo: '' } // rota para página não encontrada
 ];
