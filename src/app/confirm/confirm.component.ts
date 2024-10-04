@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-confirm',
@@ -13,6 +14,8 @@ export class ConfirmComponent implements OnInit {
   reservaTime: string = '';  // Horário da reserva
   availableTimes: string[] = [];  // Lista de horários disponíveis
   selectedTime: string = '';
+  selectedDate: Date | null = null; // Data selecionada
+  minDate: Date;
 
   constructor(private router: Router) {
     const navigation = this.router.getCurrentNavigation();
@@ -27,6 +30,7 @@ export class ConfirmComponent implements OnInit {
       this.clienteName = state.clienteName;
       this.reservaTime = state.reservaTime;
     }
+    this.minDate = new Date();
   }
 
   ngOnInit(): void {
@@ -39,16 +43,20 @@ export class ConfirmComponent implements OnInit {
       this.availableTimes.push(time);
     }
   }
+  onDateChange(event: any) {
+    this.selectedDate = event.value; // Aqui você captura o valor da data
+  }
 
   confirmReservation() {
-    if (this.selectedTime) {
+    if (this.selectedTime && this.selectedDate) {
       console.log('Reserva Confirmada para os seguintes estacionamentos:');
       console.log(this.selectedParkings);
       console.log('Cliente:', this.clienteName);
       console.log('Horário da Reserva:', this.selectedTime);
-      alert(`Reserva confirmada para ${this.selectedTime}!`);
+      console.log('Data da Reserva:', this.selectedDate);
+      alert(`Reserva confirmada para ${moment(this.selectedDate).format('DD/MM/YYYY')} às ${this.selectedTime}!`);
     } else {
-      alert('Por favor, selecione um horário.');
+      alert('Por favor, selecione uma data e horário.');
     }
   }
 }

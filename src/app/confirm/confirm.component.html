@@ -15,6 +15,14 @@
       <h3>Informações do Cliente</h3>
       <p><strong>Nome do Cliente:</strong> {{ clienteName }}</p>
 
+      <!-- Campo de seleção de data -->
+      <mat-form-field appearance="fill">
+        <input matInput [matDatepicker]="picker" [ngModel]="selectedDate" (dateChange)="onDateChange($event)"
+          [min]="minDate" placeholder="Escolha uma data">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+
       <!-- Dropdown para seleção do horário -->
       <mat-form-field appearance="fill" class="time-select">
         <mat-label>Selecione o horário de reserva</mat-label>
