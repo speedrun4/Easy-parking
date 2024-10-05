@@ -106,12 +106,6 @@
       <button type="submit" [disabled]="parkingForm.invalid">Cadastrar</button>
     </form>
   </div>
-  <h2>Estacionamentos Cadastrados</h2>
-  <ul>
-    <li *ngFor="let estacionamento of estacionamentos">
-      Nome: {{ estacionamento.companyName }} | CNPJ: {{ estacionamento.cnpj }} | Endereço: {{ estacionamento.address }}
-    </li>
-  </ul>
   <!-- Modal de sucesso -->
 <div *ngIf="mostrarModalSucesso" class="modal">
   <div class="modal-content">

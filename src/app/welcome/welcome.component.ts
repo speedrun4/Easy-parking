@@ -53,7 +53,9 @@ export class WelcomeComponent implements OnInit {
       this.filteredMarkers = this.markers;
     });
 
-    const estacionamentosSalvos = JSON.parse(localStorage.getItem('estacionamentos') || '[]');
+    const estacionamentosSalvos = JSON.parse(
+      localStorage.getItem('estacionamentos') || '[]'
+    );
     if (estacionamentosSalvos.length > 0) {
       estacionamentosSalvos.forEach((estacionamento: any) => {
         const marcador = {
@@ -62,7 +64,8 @@ export class WelcomeComponent implements OnInit {
           label: `R$ ${estacionamento.hourlyRate}/h`,
           title: estacionamento.companyName,
           address: estacionamento.address,
-          iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
+          iconUrl:
+            'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
         };
         this.markers.push(marcador);
         this.filteredMarkers.push(marcador);
@@ -76,7 +79,9 @@ export class WelcomeComponent implements OnInit {
   }
 
   askForRoute() {
-    const startRoute = confirm('Pagamento confirmado! Deseja iniciar a rota até o estacionamento agora?');
+    const startRoute = confirm(
+      'Pagamento confirmado! Deseja iniciar a rota até o estacionamento agora?'
+    );
     if (startRoute) {
       this.navigateToGoogleMaps();
     }
@@ -115,6 +120,17 @@ export class WelcomeComponent implements OnInit {
     }
   }
 
+  removeParking(markerToRemove: any) {
+    const index = this.selectedParkings.findIndex(
+      (marker) =>
+        marker.latitude === markerToRemove.latitude &&
+        marker.longitude === markerToRemove.longitude
+    );
+
+    if (index !== -1) {
+      this.selectedParkings.splice(index, 1); // Remove o estacionamento da seleção
+    }
+  }
   // Função para selecionar/desselecionar estacionamento ao clicar no ícone no mapa
   toggleParkingSelection(marker: any) {
     const index = this.selectedParkings.findIndex(
@@ -133,14 +149,22 @@ export class WelcomeComponent implements OnInit {
   }
 
   deleteParking(markerToDelete: any) {
-    this.markers = this.markers.filter(marker => marker !== markerToDelete);
-    this.filteredMarkers = this.filteredMarkers.filter(marker => marker !== markerToDelete);
-    let estacionamentosSalvos = JSON.parse(localStorage.getItem('estacionamentos') || '[]');
-    estacionamentosSalvos = estacionamentosSalvos.filter(
-      (estacionamento: any) => estacionamento.latitude !== markerToDelete.latitude &&
-                               estacionamento.longitude !== markerToDelete.longitude
+    this.markers = this.markers.filter((marker) => marker !== markerToDelete);
+    this.filteredMarkers = this.filteredMarkers.filter(
+      (marker) => marker !== markerToDelete
     );
-    localStorage.setItem('estacionamentos', JSON.stringify(estacionamentosSalvos));
+    let estacionamentosSalvos = JSON.parse(
+      localStorage.getItem('estacionamentos') || '[]'
+    );
+    estacionamentosSalvos = estacionamentosSalvos.filter(
+      (estacionamento: any) =>
+        estacionamento.latitude !== markerToDelete.latitude &&
+        estacionamento.longitude !== markerToDelete.longitude
+    );
+    localStorage.setItem(
+      'estacionamentos',
+      JSON.stringify(estacionamentosSalvos)
+    );
   }
 
   // Função para confirmar a seleção de estacionamentos

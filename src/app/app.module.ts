@@ -26,6 +26,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { PaymentComponent } from './payment/payment.component';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { SplashComponent } from './splash/splash.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -38,6 +39,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     WelcomeComponent,
     ConfirmComponent,
     PaymentComponent,
+    SplashComponent,
   ],
   imports: [
     BrowserModule,

@@ -59,15 +59,17 @@ export class HeaderComponent implements OnInit {
     this.router.navigate(['/']); // Redireciona para a página inicial (home)
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    const clickedInsideMenu = (event.target as HTMLElement).closest('.menu-list');
-    const clickedInsideButton = (event.target as HTMLElement).closest('.hamburger-menu');
+  @HostListener('window:scroll', [])
+onWindowScroll() {
+  const scrollY = window.scrollY;
+  const header = document.querySelector('header') as HTMLElement;
 
-    if (!clickedInsideMenu && !clickedInsideButton) {
-      this.closeMenu();
-    }
+  if (scrollY > 50) {
+    header.style.backgroundColor = 'rgba(0, 128, 128, 0.8)'; // Por exemplo, uma cor de fundo diferente
+  } else {
+    header.style.backgroundColor = 'linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128))'; // Cor original
   }
+}
 
   ngOnDestroy(): void {
     this.authSubscription.unsubscribe(); // Evitar memory leaks

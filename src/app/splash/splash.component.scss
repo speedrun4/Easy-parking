@@ -1,0 +1,33 @@
+.splash-container {
+  position: fixed; /* Mantém a imagem fixa na tela */
+  top: 0; /* Alinha ao topo */
+  left: 0; /* Alinha à esquerda */
+  width: 100vw; /* 100% da largura da tela */
+  height: 100vh; /* 100% da altura da tela */
+  overflow: hidden; /* Oculta qualquer conteúdo que ultrapasse */
+}
+
+img {
+  width: 100%; /* Ajusta a largura da imagem para 100% */
+  height: 100%; /* Ajusta a altura da imagem para 100% */
+  object-fit: cover; /* Cobre toda a área, mantendo a proporção da imagem */
+}
+
+.overlay {
+  position: absolute; /* Permite sobrepor o texto na imagem */
+  top: 50%; /* Centraliza verticalmente */
+  left: 50%; /* Centraliza horizontalmente */
+  transform: translate(-80%, -50%); /* Ajusta a posição para centralizar exatamente */
+  color: white; /* Cor do texto */
+  text-align: center; /* Centraliza o texto */
+  z-index: 1; /* Garante que o texto fique acima da imagem */
+}
+
+h1 {
+  font-size: 2em; /* Tamanho da fonte do título */
+  margin: 0; /* Remove margem padrão */
+}
+
+p {
+  font-size: 1.5em; /* Tamanho da fonte do parágrafo */
+}

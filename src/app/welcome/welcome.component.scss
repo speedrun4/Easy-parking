@@ -36,3 +36,51 @@ mat-form-field{
     height: 60vh;
   }
 }
+
+.selected-parkings-list {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ccc; /* Optional: Add a border */
+  border-radius: 5px; /* Rounded corners */
+  background-color: #f9f9f9; /* Light background for contrast */
+}
+
+.parking-list-item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd; /* Separate items visually */
+  display: flex;
+  justify-content: space-between; /* Space between title and remove button */
+  align-items: center; /* Center vertically */
+}
+
+.parking-list-item h4 {
+  margin: 0; /* Remove default margin */
+  font-size: 1.2em; /* Adjust title size */
+}
+
+.parking-list-item p {
+  margin: 5px 0; /* Add some space above/below */
+}
+
+/* Responsive styles for selected parkings */
+@media (max-width: 768px) {
+  .selected-parkings-list {
+    padding: 5px; /* Reduce padding on smaller screens */
+  }
+
+  .parking-list-item {
+    flex-direction: column; /* Stack items on smaller screens */
+    align-items: flex-start; /* Align items to the start */
+  }
+
+  .parking-list-item h4 {
+    font-size: 1em; /* Smaller font size on mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .parking-list-item {
+    margin: 5px 0; /* Reduce margin for tighter spacing */
+  }
+}

@@ -6,9 +6,11 @@ import { CadastroComponent } from './cadastro/cadastro.component';
 import { WelcomeComponent } from './welcome/welcome.component';
 import { ConfirmComponent } from './confirm/confirm.component';
 import { PaymentComponent } from './payment/payment.component';
+import { SplashComponent } from './splash/splash.component';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
+  { path: '', component: SplashComponent },
+  { path: 'home', component: HomeComponent },
   { path: 'login', component: LoginComponent }, // rota para a página de login
   { path: 'cadastro', component: CadastroComponent },
   { path: 'welcome', component: WelcomeComponent },
