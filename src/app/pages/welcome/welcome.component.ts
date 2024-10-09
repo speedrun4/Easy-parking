@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { EstacionamentoService } from '../services/estacionamento.service';
+import { EstacionamentoService } from '../../services/estacionamento.service';
 import { Router } from '@angular/router';
 
 @Component({

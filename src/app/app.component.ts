@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +7,14 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'easy-parking';
+  isSplashScreenActive = true; // Inicialmente, a tela de splash está ativa
+
+  constructor(private router: Router) {
+    this.router.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        // Verifica se a navegação é para a página splash
+        this.isSplashScreenActive = this.router.url === '/splash';
+      }
+    });
+  }
 }

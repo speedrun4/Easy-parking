@@ -7,26 +7,31 @@ import { HeaderComponent } from './components/header/header.component';
 import { CarouselComponent } from './components/carousel/carousel.component';
 import { AboutComponent } from './components/about/about.component';
 import { CarouselModule } from 'ngx-bootstrap/carousel';
-import { LoginComponent } from './login/login.component';
+
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HomeComponent } from './home/home.component';
-import { CadastroComponent } from './cadastro/cadastro.component';
-import { WelcomeComponent } from './welcome/welcome.component';
+import { HomeComponent } from './pages/home/home.component';
+import { CadastroComponent } from './pages/cadastro/cadastro.component';
+import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { AgmCoreModule } from '@agm/core';
 import {MatCardModule} from '@angular/material/card';
 import { HttpClientModule } from '@angular/common/http';
-import { ConfirmComponent } from './confirm/confirm.component';
+import { ConfirmComponent } from './pages/confirm/confirm.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { PaymentComponent } from './payment/payment.component';
+import { PaymentComponent } from './pages/payment/payment.component';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { SplashComponent } from './splash/splash.component';
+import { SplashComponent } from './components/splash/splash.component';
+import { FooterComponent } from './components/footer/footer.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { ContatoComponent } from './pages/contato/contato.component';
+import { LoginComponent } from './pages/login/login.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -40,6 +45,8 @@ import { SplashComponent } from './splash/splash.component';
     ConfirmComponent,
     PaymentComponent,
     SplashComponent,
+    FooterComponent,
+    ContatoComponent,
   ],
   imports: [
     BrowserModule,
@@ -61,6 +68,8 @@ import { SplashComponent } from './splash/splash.component';
     MatNativeDateModule,
     MatRadioModule,
     MatProgressSpinnerModule,
+    MatIconModule,
+    MatToolbarModule,
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyC1JY-mIJMlZinIwKj3jJYoCV9sXrpWmSk'
     }),

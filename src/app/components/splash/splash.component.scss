@@ -1,0 +1,41 @@
+.splash-container {
+  position: fixed; 
+  top: 0;
+  left: 0; 
+  width: 100vw; 
+  height: 100vh; 
+  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128)); /* Cor do fundo baseado na imagem */
+  overflow: hidden; 
+  display: flex; /* Usamos flexbox para centralizar o conteúdo */
+  justify-content: center; /* Centraliza horizontalmente */
+  align-items: center; /* Centraliza verticalmente */
+}
+
+img {
+  width: 400px; /* Define o tamanho da imagem */
+  height: auto; /* Mantém a proporção da imagem */
+  object-fit: contain; /* Garante que a imagem não seja cortada */
+}
+
+.overlay {
+  position: relative; /* Ajustamos para alinhar melhor com a imagem */
+  color: white; 
+  text-align: center; 
+  z-index: 1; 
+}
+
+h1 {
+  font-size: 2em; 
+  margin: 0; 
+}
+
+p {
+  font-size: 1.5em;
+}
+
+img {
+  width: 300px; /* Tamanho ajustado */
+  height: auto;
+  object-fit: contain;
+  /* Sem cor de fundo */
+}

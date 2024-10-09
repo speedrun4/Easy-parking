@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
-import { EstacionamentoService } from '../services/estacionamento.service';
-import { GeocodingService } from '../services/geocoding.service';
+import { EstacionamentoService } from '../../services/estacionamento.service';
+import { GeocodingService } from '../../services/geocoding.service';
 import { Router } from '@angular/router';
 
 @Component({

@@ -12,7 +12,7 @@ export class SplashComponent implements OnInit {
 
   ngOnInit(): void {
     setTimeout(() => {
-      this.router.navigate(['/home']); // Adjust the path if necessary
+      this.router.navigate(['/home']); // Ajuste o caminho, se necessário
     }, 3000); // 3 seconds
   }
 
