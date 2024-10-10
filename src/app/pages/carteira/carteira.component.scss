@@ -1,0 +1,56 @@
+.carteira-container {
+    padding: 81px 8px 53px 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    min-height: 100vh;
+}
+
+.operacao-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* Espaçamento vertical entre os elementos */
+
+}
+
+h3 {
+    margin-top: 24px;
+}
+
+.operacao-form input {
+    padding: 8px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 22px;
+}
+
+.operacao-form button {
+    padding: 10px 82px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-right: 45px;
+    margin-left: 45px;
+    background: linear-gradient(to right, #2bfab9, teal);
+    color: white !important;
+    border-radius: 22px;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 10px;
+}

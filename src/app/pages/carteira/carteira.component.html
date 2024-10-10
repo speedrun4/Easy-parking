@@ -1,0 +1,19 @@
+<div class="carteira-container">
+    <h2>Minha Carteira</h2>
+    <p>Saldo atual: {{ carteira.saldo | currency:'BRL' }}</p>
+  
+    <div class="operacao-form">
+      <input type="number" [(ngModel)]="valorOperacao" placeholder="Valor" />
+      <input type="text" [(ngModel)]="descricaoOperacao" placeholder="Descrição" />
+      <button (click)="adicionar()">Adicionar</button>
+      <button (click)="remover()">Remover</button>
+    </div>
+  
+    <h3>Histórico de Transações</h3>
+    <ul>
+      <li *ngFor="let transacao of carteira.historicoTransacoes">
+        <span>{{ transacao.data | date:'short' }} - {{ transacao.descricao }}: {{ transacao.valor | currency:'BRL' }} ({{ transacao.tipo }})</span>
+      </li>
+    </ul>
+  </div>
+  

@@ -32,6 +32,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { LoginComponent } from './pages/login/login.component';
 import { ContatoComponent } from './pages/contato/contato.component';
+import { CarteiraComponent } from './pages/carteira/carteira.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -47,6 +48,7 @@ import { ContatoComponent } from './pages/contato/contato.component';
     SplashComponent,
     FooterComponent,
     ContatoComponent,
+    CarteiraComponent,
   ],
   imports: [
     BrowserModule,
