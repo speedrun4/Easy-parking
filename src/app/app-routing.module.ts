@@ -7,6 +7,7 @@ import { ConfirmComponent } from './pages/confirm/confirm.component';
 import { PaymentComponent } from './pages/payment/payment.component';
 import { SplashComponent } from './components/splash/splash.component';
 import { LoginComponent } from './pages/login/login.component';
+import { ContatoComponent } from './pages/contato/contato.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
@@ -16,8 +17,8 @@ const routes: Routes = [
   { path: 'welcome', component: WelcomeComponent },
   { path: 'confirm', component: ConfirmComponent },
   { path: 'payment', component: PaymentComponent },
+  { path: 'contato', component: ContatoComponent },
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
-  // adicione outras rotas aqui
   { path: '**', redirectTo: '' },
   { path: 'splash', component: SplashComponent }, // rota para página não encontrada
   { path: '', redirectTo: '/splash', pathMatch: 'full' },

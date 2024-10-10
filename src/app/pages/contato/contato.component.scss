@@ -1,0 +1,51 @@
+/* Estilos para o botão de seta */
+.btn-voltar {
+  position: absolute;
+  top: 81px;
+  left: 20px;
+  font-size: 24px;
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
+
+.btn-voltar:hover {
+  color: #0056b3;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 60px; /* Adiciona um espaço extra no topo para evitar sobreposição */
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 81px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+button[disabled] {
+  background-color: #cccccc;
+}

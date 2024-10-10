@@ -30,8 +30,8 @@ import { SplashComponent } from './components/splash/splash.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { ContatoComponent } from './pages/contato/contato.component';
 import { LoginComponent } from './pages/login/login.component';
+import { ContatoComponent } from './pages/contato/contato.component';
 @NgModule({
   declarations: [
     AppComponent,
