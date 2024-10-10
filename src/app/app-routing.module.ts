@@ -9,6 +9,7 @@ import { SplashComponent } from './components/splash/splash.component';
 import { LoginComponent } from './pages/login/login.component';
 import { ContatoComponent } from './pages/contato/contato.component';
 import { CarteiraComponent } from './pages/carteira/carteira.component';
+import { PaymentHistoryComponent } from './pages/payment-history/payment-history.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
@@ -20,6 +21,7 @@ const routes: Routes = [
   { path: 'payment', component: PaymentComponent },
   { path: 'contato', component: ContatoComponent },
   { path: 'carteira', component: CarteiraComponent },
+  { path: 'history', component: PaymentHistoryComponent },
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
   { path: 'splash', component: SplashComponent }, // rota para página não encontrada

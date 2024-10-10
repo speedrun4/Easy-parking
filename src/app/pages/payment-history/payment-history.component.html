@@ -1,0 +1,22 @@
+<div class="payment-history-container">
+  <h2>Histórico de Pagamentos</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Estacionamento</th>
+        <th>Localização</th>
+        <th>Valor Pago</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let payment of paymentHistory">
+        <td>{{ payment.date | date: 'dd/MM/yyyy' }}</td>
+        <td>{{ payment.parkingName }}</td>
+        <td>{{ payment.location }}</td>
+        <td>{{ payment.amountPaid | currency: 'BRL' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,82 @@
+.payment-history-container {
+    padding: 81px 8px 53px 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    min-height: 100vh;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  table, th, td {
+    border: 1px solid #ddd;
+  }
+  
+  th, td {
+    padding: 12px;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  @media (max-width: 768px) {
+    table {
+      display: table;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  }
+  
+  /* Estilo responsivo para dispositivos muito pequenos */
+  @media (max-width: 480px) {
+    th, td {
+      padding: 8px;
+    }
+  
+    .payment-history-container h2 {
+      font-size: 1.5rem;
+    }
+  
+    table, th, td {
+      font-size: 0.9rem;
+    }
+  
+    /* Ajuste para tornar a tabela flexível e adaptável em telas pequenas */
+    table {
+      display: table;
+      overflow-x: auto;
+      width: 100%;
+    }
+  
+    thead {
+      display: none; /* Esconde o cabeçalho da tabela */
+    }
+  
+    tr {
+      display: block;
+      margin-bottom: 10px;
+    }
+  
+    td {
+      display: flex;
+      justify-content: left;
+      padding: 8px;
+      text-align: right;
+    }
+  
+    td::before {
+      content: attr(data-label); /* Exibe o conteúdo do cabeçalho como uma label */
+      font-weight: bold;
+      text-align: left;
+    }
+  }

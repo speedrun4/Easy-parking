@@ -33,6 +33,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { LoginComponent } from './pages/login/login.component';
 import { ContatoComponent } from './pages/contato/contato.component';
 import { CarteiraComponent } from './pages/carteira/carteira.component';
+import { PaymentHistoryComponent } from './pages/payment-history/payment-history.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -49,6 +50,7 @@ import { CarteiraComponent } from './pages/carteira/carteira.component';
     FooterComponent,
     ContatoComponent,
     CarteiraComponent,
+    PaymentHistoryComponent,
   ],
   imports: [
     BrowserModule,
