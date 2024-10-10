@@ -1,3 +1,13 @@
+.btn-voltar {
+    position: absolute;
+    top: 81px;
+    left: 20px;
+    font-size: 24px;
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+  }
+
 .carteira-container {
     padding: 81px 8px 53px 8px;
     border: 1px solid #ccc;
@@ -12,6 +22,10 @@
     gap: 10px;
     /* Espaçamento vertical entre os elementos */
 
+}
+
+h2{
+    margin-top: 50px; 
 }
 
 h3 {
