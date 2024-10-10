@@ -27,7 +27,7 @@
 
 <!-- Estacionamentos selecionados -->
 <div *ngIf="selectedParkings.length > 0" class="selected-parkings-list">
-  <h3>Estacionamentos Selecionados:</h3>
+  <h4>Estacionamentos Selecionados:</h4>
   <div *ngFor="let marker of selectedParkings" class="parking-list-item">
     <h4>{{ marker.title }} - {{ marker.label }}</h4>
     <p>{{ marker.address }}</p>

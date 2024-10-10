@@ -1,10 +1,14 @@
 .carousel-container {
   width: 100%;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 50px auto 0; /* Ajusta a margem superior para 50px */
 }
 
 .carousel img {
   width: 100%;
   height: auto;
+}
+
+.carousel {
+  margin-top: 81px;
 }

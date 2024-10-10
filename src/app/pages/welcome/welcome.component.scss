@@ -1,12 +1,13 @@
 .search-container, .confirm-container {
   width: 100%;
   text-align: center;
-  margin: 10px 0;
+  margin: 0px 0;
 }
 .card{
   margin-left: 10px;
   margin-right: 10px;
   height: 60vh;
+  margin-bottom: 14px
 }
 
 .map-container {
@@ -17,6 +18,7 @@
 
 mat-form-field{
   width: 90%;
+  margin-top: 81px;
 }
 
 @media (max-width: 768px) {
@@ -27,6 +29,7 @@ mat-form-field{
   .botao {
     width: 50%;
     background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+    margin-bottom: 14px;
   }
 }
 
@@ -38,11 +41,11 @@ mat-form-field{
 }
 
 .selected-parkings-list {
-  width: 100%;
-  margin: 10px 0;
+  width: 95%;
+  margin: 10px 10px 10px 10px;
   padding: 10px;
   border: 1px solid #ccc; /* Optional: Add a border */
-  border-radius: 5px; /* Rounded corners */
+  border-radius: 10px; /* Rounded corners */
   background-color: #f9f9f9; /* Light background for contrast */
 }
 
