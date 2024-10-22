@@ -45,11 +45,13 @@ export class AuthService {
   }
 
   private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'An error occurred';
+    let errorMessage = 'Um erro ocorreu';
     if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error: ${error.error.message}`;
+      // Erro do lado do cliente
+      errorMessage = `Erro: ${error.error.message}`;
     } else {
-      errorMessage = `Error: ${error.status} - ${error.message}`;
+      // Erro do lado do servidor
+      errorMessage = `Erro: ${error.status} - ${error.message}`;
     }
     return throwError(() => new Error(errorMessage));
   }

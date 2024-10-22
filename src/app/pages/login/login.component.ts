@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
-import { ErrorDialogComponent } from 'src/app/error-dialog/error-dialog.component';
+import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
 
 
 @Component({
@@ -16,8 +16,12 @@ export class LoginComponent implements OnInit {
   errorMessage: string = '';
   showErrorModal: boolean = false;
 
-  constructor(private fb: FormBuilder, private router: Router,
-    private authService: AuthService,   public dialog: MatDialog) {
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private authService: AuthService,
+    public dialog: MatDialog
+  ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
@@ -36,10 +40,13 @@ export class LoginComponent implements OnInit {
         },
         error: (error) => {
           if (error.status === 401) {
-            this.openErrorDialog();  // Abre o modal de erro ao receber 401
+            // Aqui, você pode usar a mensagem que deseja mostrar no modal
+            this.openErrorDialog("Email ou senha não conferem, por favor tentar novamente.");
+          } else {
+            // Para outros erros, você pode mostrar uma mensagem genérica ou específica
+            this.openErrorDialog("Email ou senha não conferem, por favor tentar novamente.");
           }
           console.error('Erro no login', error);
-          this.errorMessage = 'Credenciais inválidas. Tente novamente.';
         }
       });
     } else {
@@ -50,8 +57,10 @@ export class LoginComponent implements OnInit {
   closeModal() {
     this.showErrorModal = false;
   }
-  openErrorDialog(): void {
-    this.dialog.open(ErrorDialogComponent);  // Abre o modal de erro
+  openErrorDialog(message: string): void {
+    this.dialog.open(ErrorDialogComponent, {
+      data: { message: message } // Passa a mensagem de erro para o diálogo
+    });
   }
 
   loginWithGoogle() {

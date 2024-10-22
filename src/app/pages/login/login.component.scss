@@ -144,46 +144,14 @@
 }
 
 /* Sobreposição que escurece o fundo */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6); /* Fundo semitransparente */
-  z-index: 1000; /* Certifique-se de que este valor seja alto */
+mat-dialog-content {
+  font-size: 16px;
 }
 
-/* Container do modal */
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-  max-width: 400px;
-  background-color: white;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  z-index: 1001; /* Modal acima da overlay */
-  border-radius: 8px;
+mat-dialog-title {
+  color: #f44336; // Cor vermelha para indicar erro
 }
 
-/* Conteúdo do modal */
-.modal-content {
-  text-align: center;
-}
-
-.modal button {
-  margin-top: 15px;
-  padding: 10px 20px;
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.modal button:hover {
-  background-color: #0056b3;
+button {
+  color: #2196f3; // Cor azul para os botões
 }

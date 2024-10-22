@@ -35,7 +35,7 @@ import { ContatoComponent } from './pages/contato/contato.component';
 import { CarteiraComponent } from './pages/carteira/carteira.component';
 import { PaymentHistoryComponent } from './pages/payment-history/payment-history.component';
 import { MatDialogModule } from '@angular/material/dialog';
-import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
+import { ErrorDialogComponent } from './components/error-dialog/error-dialog.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -86,6 +86,7 @@ import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
     MatButtonModule,
     HttpClientModule,
   ],
+  entryComponents: [ErrorDialogComponent],
   providers: [],
   bootstrap: [AppComponent]
 })
