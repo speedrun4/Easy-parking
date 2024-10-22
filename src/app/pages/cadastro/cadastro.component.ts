@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/fo
 import { EstacionamentoService } from '../../services/estacionamento.service';
 import { GeocodingService } from '../../services/geocoding.service';
 import { Router } from '@angular/router';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-cadastro',
@@ -18,7 +19,7 @@ export class CadastroComponent implements OnInit {
   mostrarModalSucesso = false;
 
   constructor(private fb: FormBuilder,
-    private estacionamentoService: EstacionamentoService,
+    private authService: AuthService,
     private geocodingService: GeocodingService,
     private router: Router) { }
 
@@ -62,7 +63,25 @@ export class CadastroComponent implements OnInit {
 
   onUserSubmit() {
     if (this.userForm.valid) {
-      console.log('Formulário de usuário enviado', this.userForm.value);
+      const usuario = {
+        nomeCompleto: this.userForm.get('name')?.value,
+        email: this.userForm.get('email')?.value,
+        telefone: this.userForm.get('phone')?.value,
+        senha: this.userForm.get('password')?.value,
+        cpf: this.userForm.get('cpf')?.value,
+      };
+  
+      this.authService.register(usuario).subscribe(
+        (response) => {
+          console.log('Usuário cadastrado com sucesso', response);
+          // Redirecionar ou mostrar mensagem de sucesso
+          this.router.navigate(['/home']);
+        },
+        (error) => {
+          console.error('Erro ao cadastrar usuário', error);
+          // Mostrar mensagem de erro
+        }
+      );
     }
   }
 
