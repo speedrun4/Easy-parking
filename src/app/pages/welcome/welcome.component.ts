@@ -39,6 +39,8 @@ export class WelcomeComponent implements OnInit {
     if (this.paymentConfirmed) {
       this.askForRoute();
     }
+    this.estacionamentoService.carregarEstacionamentos();
+    
     this.estacionamentoService.estacionamentos$.subscribe((estacionamentos) => {
       this.markers = estacionamentos.map((estacionamento) => ({
         latitude: estacionamento.latitude,

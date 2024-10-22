@@ -34,6 +34,8 @@ import { LoginComponent } from './pages/login/login.component';
 import { ContatoComponent } from './pages/contato/contato.component';
 import { CarteiraComponent } from './pages/carteira/carteira.component';
 import { PaymentHistoryComponent } from './pages/payment-history/payment-history.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { ErrorDialogComponent } from './error-dialog/error-dialog.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -51,6 +53,7 @@ import { PaymentHistoryComponent } from './pages/payment-history/payment-history
     ContatoComponent,
     CarteiraComponent,
     PaymentHistoryComponent,
+    ErrorDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -74,6 +77,7 @@ import { PaymentHistoryComponent } from './pages/payment-history/payment-history
     MatProgressSpinnerModule,
     MatIconModule,
     MatToolbarModule,
+    MatDialogModule,
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyC1JY-mIJMlZinIwKj3jJYoCV9sXrpWmSk'
     }),

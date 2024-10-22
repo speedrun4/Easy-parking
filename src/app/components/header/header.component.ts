@@ -1,6 +1,5 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 
@@ -21,8 +20,14 @@ export class HeaderComponent implements OnInit {
   ngOnInit(): void {
     // Subscrição para detectar mudanças no estado de autenticação
     this.authSubscription = this.authService.currentUser.subscribe(user => {
-      this.isLoggedIn = !!user;
-      this.userName = user?.name || '';
+      this.isLoggedIn = !!user; // Atualiza o estado se o usuário está logado
+      if (user) {
+        const nomeCompleto = user.nomeCompleto || ''; // Pega o nome completo do usuário
+        const nomeDividido = nomeCompleto.split(' '); // Divide o nome completo
+        this.userName = nomeDividido.slice(0, 2).join(' '); // Mostra apenas o primeiro e segundo nome
+      } else {
+        this.userName = ''; // Caso deslogado, limpa o nome
+      }
     });
   }
 
@@ -60,16 +65,16 @@ export class HeaderComponent implements OnInit {
   }
 
   @HostListener('window:scroll', [])
-onWindowScroll() {
-  const scrollY = window.scrollY;
-  const header = document.querySelector('header') as HTMLElement;
+  onWindowScroll() {
+    const scrollY = window.scrollY;
+    const header = document.querySelector('header') as HTMLElement;
 
-  if (scrollY > 50) {
-    header.style.backgroundColor = 'rgba(0, 128, 128, 0.8)'; // Por exemplo, uma cor de fundo diferente
-  } else {
-    header.style.backgroundColor = 'linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128))'; // Cor original
+    if (scrollY > 50) {
+      header.style.backgroundColor = 'rgba(0, 128, 128, 0.8)'; // Por exemplo, uma cor de fundo diferente
+    } else {
+      header.style.backgroundColor = 'linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128))'; // Cor original
+    }
   }
-}
 
   ngOnDestroy(): void {
     this.authSubscription.unsubscribe(); // Evitar memory leaks
