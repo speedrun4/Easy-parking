@@ -25,9 +25,6 @@ export class CadastroComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeUserForm();
-    this.initializeParkingForm();
-    const estacionamentosSalvos = this.carregarEstacionamentos();
-    console.log('Estacionamentos salvos:', estacionamentosSalvos);
   }
 
   // Inicializa o formulário de usuário com validações
@@ -47,21 +44,8 @@ export class CadastroComponent implements OnInit {
     });
   }
 
-  // Inicializa o formulário de estacionamento com validações
-  initializeParkingForm() {
-    this.parkingForm = this.fb.group({
-      companyName: ['', Validators.required],
-      cnpj: ['', [Validators.required, Validators.pattern(/^\d{14}$/)]],  // Aceita apenas 14 dígitos numéricos
-      hourlyRate: ['', Validators.required],
-      address: ['', Validators.required],
-      cep: ['', Validators.required],
-      branchCeps: ['', Validators.required],
-      phone: ['', Validators.required]
-    });
-  }
 
-
-  onUserSubmit() {
+  onUserSubmit(perfil: string) {
     if (this.userForm.valid) {
       const usuario = {
         nomeCompleto: this.userForm.get('name')?.value,
@@ -69,6 +53,7 @@ export class CadastroComponent implements OnInit {
         telefone: this.userForm.get('phone')?.value,
         senha: this.userForm.get('password')?.value,
         cpf: this.userForm.get('cpf')?.value,
+        perfil: perfil
       };
   
       this.authService.register(usuario).subscribe(
@@ -83,49 +68,6 @@ export class CadastroComponent implements OnInit {
         }
       );
     }
-  }
-
-  onParkingSubmit() {
-    if (this.parkingForm.valid) {
-      const address = this.parkingForm.get('address')?.value;
-
-      // Use o serviço de geocodificação para obter latitude e longitude
-      this.geocodingService.getCoordinates(address).subscribe(coordinates => {
-        if (coordinates) {
-          const estacionamento = {
-            ...this.parkingForm.value,
-            latitude: coordinates.latitude,
-            longitude: coordinates.longitude
-          };
-
-          // Salvar no localStorage
-          this.salvarEstacionamento(estacionamento);
-
-          console.log('Estacionamento cadastrado e salvo localmente', estacionamento);
-
-          this.mostrarModalSucesso = true;
-
-          setTimeout(() => {
-            this.mostrarModalSucesso = false;
-            this.router.navigate(['/home']);  // Redireciona para a página Home
-          }, 2000);
-          // Redirecionar para a página home após salvar
-          this.router.navigate(['/home']);  // Redireciona para a página Home
-        } else {
-          console.error('Endereço inválido');
-        }
-      });
-    }
-  }
-
-  carregarEstacionamentos() {
-    const estacionamentos = JSON.parse(localStorage.getItem('estacionamentos') || '[]');
-    return estacionamentos;
-  }
-  salvarEstacionamento(estacionamento: any) {
-    let estacionamentos = JSON.parse(localStorage.getItem('estacionamentos') || '[]');
-    estacionamentos.push(estacionamento);
-    localStorage.setItem('estacionamentos', JSON.stringify(estacionamentos));
   }
 
   onCpfInput(event: Event): void {

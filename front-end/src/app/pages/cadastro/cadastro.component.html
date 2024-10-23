@@ -7,7 +7,7 @@
 
   <div *ngIf="showUserForm" class="form-container">
     <h2>Cadastro de Usuário</h2>
-    <form [formGroup]="userForm" (ngSubmit)="onUserSubmit()">
+    <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('usuario')">
       <div>
         <label for="name">Nome Completo</label>
         <input id="name" formControlName="name">
@@ -53,7 +53,7 @@
 
   <div *ngIf="!showUserForm" class="form-container">
     <h2>Cadastro de Clientes</h2>
-    <form [formGroup]="parkingForm" (ngSubmit)="onParkingSubmit()">
+    <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('cliente')">
       <div>
         <label for="name">Nome Completo do Cliente</label>
         <input id="name" formControlName="name">
@@ -93,7 +93,7 @@
           <div *ngIf="userForm.get('cpf')?.errors?.cpfInvalid">CPF inválido. Deve conter 11 dígitos numéricos.</div>
         </div>
       </div>
-      <button type="submit" [disabled]="parkingForm.invalid">Cadastrar</button>
+      <button type="submit" [disabled]="userForm.invalid">Cadastrar</button>
     </form>
   </div>
   <!-- Modal de sucesso -->
