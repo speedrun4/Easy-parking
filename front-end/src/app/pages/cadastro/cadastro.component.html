@@ -2,7 +2,7 @@
 <div class="cadastro-container">
   <div class="toggle-buttons">
     <button (click)="showUserForm = true" [class.active]="showUserForm">Cadastro de Usuário</button>
-    <button (click)="showUserForm = false" [class.active]="!showUserForm">Cadastro de Estacionamento</button>
+    <button (click)="showUserForm = false" [class.active]="!showUserForm">Cadastro de Clientes</button>
   </div>
 
   <div *ngIf="showUserForm" class="form-container">
@@ -51,7 +51,7 @@
   </div>
 
   <div *ngIf="!showUserForm" class="form-container">
-    <h2>Cadastro de Estacionamento</h2>
+    <h2>Cadastro de Clientes</h2>
     <form [formGroup]="parkingForm" (ngSubmit)="onParkingSubmit()">
       <div>
         <label for="companyName">Nome da Empresa/Razão Social</label>
