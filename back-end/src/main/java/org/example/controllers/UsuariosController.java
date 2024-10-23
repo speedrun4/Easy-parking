@@ -42,10 +42,15 @@ public class UsuariosController {
 
     @PostMapping
     public ResponseEntity<Usuarios> register(@RequestBody Usuarios usuario) {
+        // Validação e verificação do perfil
+        if (usuario.getPerfil() == null || (!usuario.getPerfil().equals("usuario") && !usuario.getPerfil().equals("cliente"))) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
         // Você pode adicionar validações aqui
         Usuarios savedUsuario = usuariosService.saveUsuario(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUsuario);
     }
+
 }
 
 

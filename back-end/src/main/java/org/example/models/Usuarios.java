@@ -14,7 +14,7 @@ public class Usuarios {
     private String telefone;
     private String senha;
     private String cpf;
-
+    private String perfil;
     // Construtores
     public Usuarios() {}
 
@@ -25,6 +25,7 @@ public class Usuarios {
         this.telefone = telefone;
         this.senha = senha;
         this.cpf = cpf;
+        this.perfil = perfil;
     }
 
     // Getters e Setters
@@ -74,5 +75,12 @@ public class Usuarios {
 
     public void setCpf(String cpf) {
         this.cpf = cpf;
+    }
+    public String getPerfil() {
+        return perfil;
+    }
+
+    public void setPerfil(String perfil) {
+        this.perfil = perfil;
     }
 }
