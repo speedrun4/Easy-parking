@@ -5,7 +5,6 @@ import { AuthService } from 'src/app/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
 
-
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -15,6 +14,9 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   errorMessage: string = '';
   showErrorModal: boolean = false;
+
+  // Variável para controlar a exibição dos formulários
+  showUserForm: boolean = true;
 
   constructor(
     private fb: FormBuilder,
@@ -28,7 +30,8 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onSubmit() {
+  // Modificar onSubmit para aceitar o tipo de login (usuário ou cliente)
+  onSubmit(type: string) {
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
 
@@ -36,15 +39,19 @@ export class LoginComponent implements OnInit {
         next: (response) => {
           console.log('Login bem-sucedido', response);
           localStorage.setItem('token', response.token);
-          this.router.navigate(['/welcome']);
+
+          // Verifica o tipo de login e redireciona
+          if (type === 'user') {
+            this.router.navigate(['/welcome']);
+          } else if (type === 'client') {
+            this.router.navigate(['/cliente']);
+          }
         },
         error: (error) => {
           if (error.status === 401) {
-            // Aqui, você pode usar a mensagem que deseja mostrar no modal
             this.openErrorDialog("Email ou senha não conferem, por favor tentar novamente.");
           } else {
-            // Para outros erros, você pode mostrar uma mensagem genérica ou específica
-            this.openErrorDialog("Email ou senha não conferem, por favor tentar novamente.");
+            this.openErrorDialog("Ocorreu um erro inesperado. Por favor, tente novamente.");
           }
           console.error('Erro no login', error);
         }
@@ -57,9 +64,10 @@ export class LoginComponent implements OnInit {
   closeModal() {
     this.showErrorModal = false;
   }
+
   openErrorDialog(message: string): void {
     this.dialog.open(ErrorDialogComponent, {
-      data: { message: message } // Passa a mensagem de erro para o diálogo
+      data: { message: message }
     });
   }
 
@@ -73,7 +81,5 @@ export class LoginComponent implements OnInit {
     // Adicione a lógica de login com Facebook aqui
   }
 
-  ngOnInit(): void {
-  }
-
+  ngOnInit(): void {}
 }

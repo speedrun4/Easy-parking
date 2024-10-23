@@ -36,6 +36,9 @@ import { CarteiraComponent } from './pages/carteira/carteira.component';
 import { PaymentHistoryComponent } from './pages/payment-history/payment-history.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { ErrorDialogComponent } from './components/error-dialog/error-dialog.component';
+import { ClienteComponent } from './pages/cliente/cliente.component';
+import { AboutClienteComponent } from './components/about-cliente/about-cliente.component';
+import { CarouselClienteComponent } from './components/carousel-cliente/carousel-cliente.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -54,6 +57,9 @@ import { ErrorDialogComponent } from './components/error-dialog/error-dialog.com
     CarteiraComponent,
     PaymentHistoryComponent,
     ErrorDialogComponent,
+    ClienteComponent,
+    AboutClienteComponent,
+    CarouselClienteComponent,
   ],
   imports: [
     BrowserModule,

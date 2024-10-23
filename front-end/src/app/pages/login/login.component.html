@@ -9,8 +9,14 @@
 
   <h2 class="login-title">Login</h2>
 
-  <!-- Formulário de Login -->
-  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+  <!-- Botões para alternar entre o login de Usuário e Cliente -->
+  <div class="toggle-buttons">
+    <button (click)="showUserForm = true" [class.active]="showUserForm">Login de Usuário</button>
+    <button (click)="showUserForm = false" [class.active]="!showUserForm">Login de Cliente</button>
+  </div>
+
+  <!-- Formulário de Login de Usuário -->
+  <form *ngIf="showUserForm" [formGroup]="loginForm" (ngSubmit)="onSubmit('user')">
     <div class="form-group">
       <label for="email">Email</label>
       <input type="email" id="email" formControlName="email" placeholder="Digite seu email" />
@@ -32,10 +38,33 @@
     </div>
   </form>
 
+  <!-- Formulário de Login de Cliente -->
+  <form *ngIf="!showUserForm" [formGroup]="loginForm" (ngSubmit)="onSubmit('client')">
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" formControlName="email" placeholder="Digite o email do cliente" />
+      <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error-message">
+        Email inválido
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Senha</label>
+      <input type="password" id="password" formControlName="password" placeholder="Digite a senha do cliente" />
+      <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error-message">
+        A senha é obrigatória
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="loginForm.invalid">Entrar</button>
+    </div>
+  </form>
+
   <!-- Links para recuperação de senha e cadastro -->
   <div class="login-options">
     <a href="#" class="forgot-password">Esqueci minha senha</a>
-    <a href="#" class="register">Cadastrar-se</a>
+    <a href="/cadastro" class="register">Cadastrar-se</a>
   </div>
 
   <!-- Botões de login social -->
@@ -45,4 +74,3 @@
     <button (click)="loginWithFacebook()" class="facebook-login">Facebook</button>
   </div>
 </div>
-

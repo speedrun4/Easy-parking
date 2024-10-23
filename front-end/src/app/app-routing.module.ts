@@ -10,12 +10,14 @@ import { LoginComponent } from './pages/login/login.component';
 import { ContatoComponent } from './pages/contato/contato.component';
 import { CarteiraComponent } from './pages/carteira/carteira.component';
 import { PaymentHistoryComponent } from './pages/payment-history/payment-history.component';
+import { ClienteComponent } from './pages/cliente/cliente.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
   { path: 'home', component: HomeComponent },
   { path: 'login', component: LoginComponent }, // rota para a página de login
   { path: 'cadastro', component: CadastroComponent },
+  { path: 'cliente', component: ClienteComponent },
   { path: 'welcome', component: WelcomeComponent },
   { path: 'confirm', component: ConfirmComponent },
   { path: 'payment', component: PaymentComponent },

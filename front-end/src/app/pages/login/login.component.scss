@@ -153,5 +153,31 @@ mat-dialog-title {
 }
 
 button {
-  color: #2196f3; // Cor azul para os botões
+  color: black; // Cor azul para os botões
+}
+
+.toggle-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.toggle-buttons button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #f1f1f1;
+  border: 0px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-buttons button.active {
+  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+  color: white;
+  border: none !important;
+}
+
+.toggle-buttons button:not(.active):hover {
+  background-color: #e0e0e0;
 }
