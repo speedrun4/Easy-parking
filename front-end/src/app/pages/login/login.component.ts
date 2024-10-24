@@ -37,20 +37,29 @@ export class LoginComponent implements OnInit {
   
       this.authService.login(email, password).subscribe({
         next: (response) => {
-          const perfil = response.perfil; // Supondo que o perfil seja retornado no login.
+          if (!response) {
+            this.openErrorDialog("Erro ao processar o login.");
+            return;
+          }
+          const perfil = response.perfil;
           const token = response.token;
-          localStorage.setItem('token', token);
   
           if (type === 'user') {
-            // Apenas usuários com perfil 'usuario' ou 'cliente' podem acessar
             if (perfil === 'usuario' || perfil === 'cliente') {
+              // Armazena o usuário e atualiza o estado
+              localStorage.setItem('currentUser', JSON.stringify(response));
+              this.authService.setCurrentUser(response);  // Usa o novo método aqui
+              localStorage.setItem('token', token);
               this.router.navigate(['/welcome']);
             } else {
               this.openErrorDialog('Perfil não autorizado para login de usuário.');
             }
           } else if (type === 'client') {
-            // Apenas usuários com perfil 'cliente' podem acessar
             if (perfil === 'cliente') {
+              // Armazena o usuário e atualiza o estado
+              localStorage.setItem('currentUser', JSON.stringify(response));
+              this.authService.setCurrentUser(response);  // Usa o novo método aqui
+              localStorage.setItem('token', token);
               this.router.navigate(['/cliente']);
             } else {
               this.openErrorDialog('Apenas clientes podem acessar esta seção.');

@@ -23,7 +23,19 @@
     </ul>
   </div>
 
-  <div *ngIf="isLoggedIn" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
+  <!-- Menu do Cliente -->
+  <div *ngIf="isClient" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
+    <ul>
+      <li><a (click)="closeMenu()" [routerLink]="['/cadastrar-estacionamento']">Cadastrar Estacionamento</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/valores-pagos']">Valores Pagos</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/reservas-usuario']">Reservas no Meu Estacionamento</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/historico']">Histórico</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/enviar-mensagem']">Enviar Mensagem para Usuário</a></li>
+    </ul>
+  </div>
+
+  <!-- Menu geral para usuários logados -->
+  <div *ngIf="isLoggedIn && !isClient" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
     <ul>
       <li><a (click)="closeMenu()" [routerLink]="['/carteira']">Carteira</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/welcome']">Estacionamentos</a></li>
@@ -33,6 +45,7 @@
     </ul>
   </div>
 
+  <!-- Menu para usuários não logados -->
   <div *ngIf="!isLoggedIn" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
     <ul>
       <li><a (click)="closeMenu()" [routerLink]="['/sobre']">Sobre o app</a></li>

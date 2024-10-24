@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { BehaviorSubject, Observable, throwError } from "rxjs";
+import { catchError, map } from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
@@ -29,14 +29,17 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       map(user => {
         if (user && user.token && user.perfil) {
-          // Armazena o usuário, token e perfil no localStorage
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          this.currentUserSubject.next(user);
+          return user;
         }
-        return user;
+        return null;
       }),
       catchError(this.handleError)
     );
+  }
+
+  // Expor um método público para definir o currentUserSubject
+  setCurrentUser(user: any): void {
+    this.currentUserSubject.next(user);
   }
 
   // Logout e remoção dos dados do usuário armazenados
@@ -48,6 +51,12 @@ export class AuthService {
   // Verifica se o usuário está autenticado
   isAuthenticated(): boolean {
     return !!this.currentUserSubject.value;
+  }
+
+  // Verifica se o usuário é um cliente
+  isClient(): boolean {
+    const currentUser = this.getCurrentUser();
+    return currentUser && currentUser.perfil === 'cliente'; // Checa o perfil do usuário
   }
 
   // Obtém o usuário atual com base no localStorage

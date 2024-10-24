@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
@@ -8,10 +8,11 @@ import { AuthService } from 'src/app/services/auth.service';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   menuOpen = false;
   avatarMenuOpen = false;
   isLoggedIn = false; // Verifica se o usuário está logado
+  isClient = false;   // Verifica se o usuário é um cliente
   userName: string = ''; // Nome do usuário logado
   private authSubscription: Subscription = new Subscription(); // Subscription para escutar as mudanças
 
@@ -19,16 +20,20 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     // Subscrição para detectar mudanças no estado de autenticação
-    this.authSubscription = this.authService.currentUser.subscribe(user => {
-      this.isLoggedIn = !!user; // Atualiza o estado se o usuário está logado
-      if (user) {
-        const nomeCompleto = user.nomeCompleto || ''; // Pega o nome completo do usuário
-        const nomeDividido = nomeCompleto.split(' '); // Divide o nome completo
-        this.userName = nomeDividido.slice(0, 2).join(' '); // Mostra apenas o primeiro e segundo nome
-      } else {
-        this.userName = ''; // Caso deslogado, limpa o nome
-      }
-    });
+  this.authSubscription = this.authService.currentUser.subscribe(user => {
+    this.isLoggedIn = !!user; // Atualiza o estado se o usuário está logado
+    if (user) {
+      const nomeCompleto = user.nomeCompleto || ''; // Pega o nome completo do usuário
+      const nomeDividido = nomeCompleto.split(' '); // Divide o nome completo
+      this.userName = nomeDividido.slice(0, 2).join(' '); // Mostra apenas o primeiro e segundo nome
+
+      // Verifica se o usuário é um cliente
+      this.isClient = this.authService.isClient(); // Usa o novo método para verificar
+    } else {
+      this.userName = ''; // Caso deslogado, limpa o nome
+      this.isClient = false; // Se deslogado, o usuário não é um cliente
+    }
+  });
   }
 
   // Alterna o estado do menu
@@ -59,6 +64,7 @@ export class HeaderComponent implements OnInit {
   logout() {
     this.authService.logout(); // Remove o usuário do localStorage e do serviço
     this.isLoggedIn = false;
+    this.isClient = false;
     this.userName = '';
     this.avatarMenuOpen = false; // Fecha o dropdown do avatar
     this.router.navigate(['/']); // Redireciona para a página inicial (home)
