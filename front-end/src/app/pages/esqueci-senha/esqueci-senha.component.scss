@@ -1,0 +1,29 @@
+.forgot-password-card {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  .button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .mat-card>:first-child, .mat-card-content>:first-child {
+    margin-top: 24px;
+}
+
+mat-button-ripple.mat-ripple, mat-button-focus-overlay {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+}

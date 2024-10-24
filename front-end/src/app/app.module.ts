@@ -40,6 +40,8 @@ import { ClienteComponent } from './pages/cliente/cliente.component';
 import { AboutClienteComponent } from './components/about-cliente/about-cliente.component';
 import { CarouselClienteComponent } from './components/carousel-cliente/carousel-cliente.component';
 import { CadastroClientesComponent } from './pages/cadastro-clientes/cadastro-clientes.component';
+import { EsqueciSenhaComponent } from './pages/esqueci-senha/esqueci-senha.component';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 @NgModule({
   declarations: [
     AppComponent,
@@ -62,6 +64,7 @@ import { CadastroClientesComponent } from './pages/cadastro-clientes/cadastro-cl
     AboutClienteComponent,
     CarouselClienteComponent,
     CadastroClientesComponent,
+    EsqueciSenhaComponent,
   ],
   imports: [
     BrowserModule,
@@ -86,6 +89,7 @@ import { CadastroClientesComponent } from './pages/cadastro-clientes/cadastro-cl
     MatIconModule,
     MatToolbarModule,
     MatDialogModule,
+    MatSnackBarModule, 
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyC1JY-mIJMlZinIwKj3jJYoCV9sXrpWmSk'
     }),

@@ -76,4 +76,9 @@ export class AuthService {
     }
     return throwError(() => new Error(errorMessage));
   }
+  sendPasswordToEmail(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/send-password`, email).pipe(
+        catchError(this.handleError)
+    );
+  }
 }
