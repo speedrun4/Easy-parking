@@ -39,6 +39,7 @@ import { ErrorDialogComponent } from './components/error-dialog/error-dialog.com
 import { ClienteComponent } from './pages/cliente/cliente.component';
 import { AboutClienteComponent } from './components/about-cliente/about-cliente.component';
 import { CarouselClienteComponent } from './components/carousel-cliente/carousel-cliente.component';
+import { CadastroClientesComponent } from './pages/cadastro-clientes/cadastro-clientes.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -60,6 +61,7 @@ import { CarouselClienteComponent } from './components/carousel-cliente/carousel
     ClienteComponent,
     AboutClienteComponent,
     CarouselClienteComponent,
+    CadastroClientesComponent,
   ],
   imports: [
     BrowserModule,
