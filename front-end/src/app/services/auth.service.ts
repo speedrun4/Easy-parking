@@ -17,17 +17,19 @@ export class AuthService {
     this.currentUser = this.currentUserSubject.asObservable();
   }
 
+  // Registro de usuário (opcional, conforme necessário)
   register(usuario: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}`, usuario).pipe(
       catchError(this.handleError)
     );
   }
 
+  // Login do usuário, agora com perfil retornado do backend
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       map(user => {
-        if (user && user.token) {
-          // Armazena o usuário e token no localStorage
+        if (user && user.token && user.perfil) {
+          // Armazena o usuário, token e perfil no localStorage
           localStorage.setItem('currentUser', JSON.stringify(user));
           this.currentUserSubject.next(user);
         }
@@ -37,19 +39,23 @@ export class AuthService {
     );
   }
 
+  // Logout e remoção dos dados do usuário armazenados
   logout(): void {
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
   }
 
+  // Verifica se o usuário está autenticado
   isAuthenticated(): boolean {
     return !!this.currentUserSubject.value;
   }
 
+  // Obtém o usuário atual com base no localStorage
   getCurrentUser(): any {
     return this.currentUserSubject.value;
   }
 
+  // Tratamento de erro para requisições HTTP
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'Um erro ocorreu';
     if (error.error instanceof ErrorEvent) {
