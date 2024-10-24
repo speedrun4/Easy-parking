@@ -31,7 +31,7 @@ public class UsuariosController {
             if (usuario.getSenha().equals(loginRequest.getPassword())) {
                 // Exemplo de token, em produção use JWT ou outro mecanismo de token real
                 String token = "fake-jwt-token";
-                return ResponseEntity.ok(new AuthResponse(token, usuario.getNomeCompleto()));
+                return ResponseEntity.ok(new AuthResponse(token, usuario.getNomeCompleto(), usuario.getPerfil()));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta");
             }
