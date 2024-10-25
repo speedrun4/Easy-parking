@@ -1,0 +1,96 @@
+/* cadastro.component.scss */
+.cadastro-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .toggle-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    margin-top: 81px;
+  }
+  
+  .toggle-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .form-container {
+    width: 100%;
+    max-width: 600px;
+     form {
+      display: flex;
+      flex-direction: column;
+  
+      div {
+        margin-bottom: 15px;
+      }
+  
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+  
+      input {
+        width: 100%;
+        border: 0px solid #ccc;
+        border-radius: 4px;
+      }
+  
+      button {
+        padding: 10px;
+        background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+  
+        &:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+      }
+    }
+  
+  }
+  
+  .modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal-content {
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  
+  .mat-flat-button.mat-primary, .mat-raised-button.mat-primary, .mat-fab.mat-primary, .mat-mini-fab.mat-primary {
+    background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128)); /* Exemplo de nova cor azul */
+    color: #ffffff; /* Opcional: alterar a cor do texto para branco */
+  }
+  
+  .mat-flat-button.mat-primary:hover, .mat-raised-button.mat-primary:hover, 
+  .mat-fab.mat-primary:hover, .mat-mini-fab.mat-primary:hover {
+    background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128)); /* Cor para estado de hover */
+  }
+
+  .mat-card {
+    transition: box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1);
+    display: block;
+    position: relative;
+    padding: 16px;
+    border-radius: 4px;
+    margin-top: 81px;
+}

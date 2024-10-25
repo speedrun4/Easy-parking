@@ -5,11 +5,11 @@ import { GeocodingService } from 'src/app/services/geocoding.service';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-cadastro-clientes',
-  templateUrl: './cadastro-clientes.component.html',
-  styleUrls: ['./cadastro-clientes.component.scss']
+  selector: 'app-cadastro-estacionamento',
+  templateUrl: './cadastro-estacionamento.component.html',
+  styleUrls: ['./cadastro-estacionamento.component.scss']
 })
-export class CadastroClientesComponent implements OnInit {
+export class CadastroEstacionamentoComponent implements OnInit {
 
   showUserForm = true; // Controle de qual formulário mostrar
   parkingForm!: FormGroup;

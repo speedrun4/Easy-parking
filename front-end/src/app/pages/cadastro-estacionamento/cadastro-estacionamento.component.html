@@ -1,0 +1,64 @@
+<div class="cadastro-container">
+  <mat-card *ngIf="showUserForm" class="form-container">
+    <h2>Cadastro de Estacionamento</h2>
+    <form [formGroup]="parkingForm" (ngSubmit)="onParkingSubmit()">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Nome da Empresa/Razão Social</mat-label>
+        <input matInput id="companyName" formControlName="companyName">
+        <mat-error *ngIf="parkingForm.get('companyName')?.invalid && parkingForm.get('companyName')?.touched">
+          Nome da empresa é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>CNPJ</mat-label>
+        <input matInput id="cnpj" formControlName="cnpj" (input)="onCnpjInput($event)">
+        <mat-error *ngIf="parkingForm.get('cnpj')?.invalid && parkingForm.get('cnpj')?.touched">
+          CNPJ inválido. Deve conter 14 dígitos numéricos.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Valor por Hora</mat-label>
+        <input matInput id="hourlyRate" formControlName="hourlyRate" type="number" step="0.01">
+        <mat-error *ngIf="parkingForm.get('hourlyRate')?.invalid && parkingForm.get('hourlyRate')?.touched">
+          Valor por hora é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Endereço Completo</mat-label>
+        <input matInput id="address" formControlName="address">
+        <mat-error *ngIf="parkingForm.get('address')?.invalid && parkingForm.get('address')?.touched">
+          Endereço é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>CEP</mat-label>
+        <input matInput id="cep" formControlName="cep">
+        <mat-error *ngIf="parkingForm.get('cep')?.invalid && parkingForm.get('cep')?.touched">
+          CEP é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>CEP Filiais</mat-label>
+        <input matInput id="branchCeps" formControlName="branchCeps">
+        <mat-error *ngIf="parkingForm.get('branchCeps')?.invalid && parkingForm.get('branchCeps')?.touched">
+          CEP filiais é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Telefone</mat-label>
+        <input matInput id="phone" formControlName="phone">
+        <mat-error *ngIf="parkingForm.get('phone')?.invalid && parkingForm.get('phone')?.touched">
+          Telefone é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="parkingForm.invalid">Cadastrar</button>
+    </form>
+  </mat-card>
+</div>

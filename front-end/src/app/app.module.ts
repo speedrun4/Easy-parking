@@ -39,10 +39,10 @@ import { ErrorDialogComponent } from './components/error-dialog/error-dialog.com
 import { ClienteComponent } from './pages/cliente/cliente.component';
 import { AboutClienteComponent } from './components/about-cliente/about-cliente.component';
 import { CarouselClienteComponent } from './components/carousel-cliente/carousel-cliente.component';
-import { CadastroClientesComponent } from './pages/cadastro-clientes/cadastro-clientes.component';
 import { EsqueciSenhaComponent } from './pages/esqueci-senha/esqueci-senha.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+import { CadastroEstacionamentoComponent } from './pages/cadastro-estacionamento/cadastro-estacionamento.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -64,9 +64,9 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
     ClienteComponent,
     AboutClienteComponent,
     CarouselClienteComponent,
-    CadastroClientesComponent,
     EsqueciSenhaComponent,
     ResetPasswordComponent,
+    CadastroEstacionamentoComponent,
   ],
   imports: [
     BrowserModule,
