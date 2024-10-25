@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/services/auth.service';
-
 
 @Component({
   selector: 'app-esqueci-senha',
@@ -10,9 +9,13 @@ import { AuthService } from 'src/app/services/auth.service';
   styleUrls: ['./esqueci-senha.component.scss']
 })
 export class EsqueciSenhaComponent implements OnInit {
-  forgotPasswordForm!: FormGroup; // O operador '!' indica que será inicializado posteriormente
+  forgotPasswordForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,  // Injeta o serviço de autenticação
+    private snackBar: MatSnackBar      // Para exibir mensagens de sucesso ou erro
+  ) {}
 
   ngOnInit(): void {
     this.forgotPasswordForm = this.fb.group({
@@ -34,8 +37,18 @@ export class EsqueciSenhaComponent implements OnInit {
   onSubmit() {
     if (this.forgotPasswordForm.valid) {
       const email = this.forgotPasswordForm.value.email;
-      console.log(`Enviando email de recuperação para: ${email}`);
-      alert('Email de recuperação enviado com sucesso!');
+  
+      this.authService.requestPasswordReset(email).subscribe(
+        (response) => {
+          this.snackBar.open(response.message, 'Fechar', { duration: 3000 });
+        },
+        (error) => {
+          this.snackBar.open('Erro ao enviar o email de recuperação. Tente novamente.', 'Fechar', {
+            duration: 3000
+          });
+          console.error('Erro ao solicitar recuperação de senha:', error);
+        }
+      );
     }
   }
 }

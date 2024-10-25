@@ -12,11 +12,13 @@ import { CarteiraComponent } from './pages/carteira/carteira.component';
 import { PaymentHistoryComponent } from './pages/payment-history/payment-history.component';
 import { ClienteComponent } from './pages/cliente/cliente.component';
 import { EsqueciSenhaComponent } from './pages/esqueci-senha/esqueci-senha.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
   { path: 'home', component: HomeComponent },
   { path: 'esqueci-senha', component: EsqueciSenhaComponent }, 
+  {path: 'reset-password', component: ResetPasswordComponent},
   { path: 'login', component: LoginComponent }, // rota para a página de login
   { path: 'cadastro', component: CadastroComponent },
   { path: 'cliente', component: ClienteComponent },

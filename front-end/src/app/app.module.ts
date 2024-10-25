@@ -42,6 +42,7 @@ import { CarouselClienteComponent } from './components/carousel-cliente/carousel
 import { CadastroClientesComponent } from './pages/cadastro-clientes/cadastro-clientes.component';
 import { EsqueciSenhaComponent } from './pages/esqueci-senha/esqueci-senha.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -65,6 +66,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     CarouselClienteComponent,
     CadastroClientesComponent,
     EsqueciSenhaComponent,
+    ResetPasswordComponent,
   ],
   imports: [
     BrowserModule,

@@ -81,4 +81,7 @@ export class AuthService {
         catchError(this.handleError)
     );
   }
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
 }
