@@ -1,105 +1,112 @@
 <!-- cadastro.component.html -->
 <div class="cadastro-container">
   <div class="toggle-buttons">
-    <button (click)="showUserForm = true" [class.active]="showUserForm">Cadastro de Usuário</button>
-    <button (click)="showUserForm = false" [class.active]="!showUserForm">Cadastro de Clientes</button>
+    <button mat-raised-button (click)="showUserForm = true" [color]="showUserForm ? 'primary' : ''">
+      Cadastro de Usuário
+    </button>
+    <button mat-raised-button (click)="showUserForm = false" [color]="!showUserForm ? 'primary' : ''">
+      Cadastro de Clientes
+    </button>
   </div>
 
-  <div *ngIf="showUserForm" class="form-container">
+  <!-- Formulário de Cadastro de Usuário -->
+  <mat-card *ngIf="showUserForm" class="form-container">
     <h2>Cadastro de Usuário</h2>
     <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('usuario')">
-      <div>
-        <label for="name">Nome Completo</label>
-        <input id="name" formControlName="name">
-        <div *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">
-          Nome completo é obrigatório.
-        </div>
-      </div>
-      <div>
-        <label for="email">Email</label>
-        <input id="email" formControlName="email">
-        <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
-          <div *ngIf="userForm.get('email')?.errors?.required">Email é obrigatório.</div>
-          <div *ngIf="userForm.get('email')?.errors?.email">Email inválido.</div>
-        </div>
-      </div>
-      <div>
-        <label for="phone">Telefone</label>
-        <input id="phone" formControlName="phone">
-        <div *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">
-          Telefone é obrigatório.
-        </div>
-      </div>
-      <div>
-        <label for="password">Senha</label>
-        <input type="password" id="password" formControlName="password">
-        <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
-          <div *ngIf="userForm.get('password')?.errors?.required">Senha é obrigatória.</div>
-          <div *ngIf="userForm.get('password')?.errors?.pattern">Senha deve ter entre 8 e 11 caracteres e conter letras,
-            números e caracteres especiais.</div>
-        </div>
-      </div>
-      <div>
-        <label for="cpf">CPF</label>
-        <input id="cpf" formControlName="cpf" (input)="onCpfInput($event)" maxlength="14">
-        <!-- Limita a 14 caracteres para incluir pontos e traço -->
-        <div *ngIf="userForm.get('cpf')?.invalid && userForm.get('cpf')?.touched">
-          <div *ngIf="userForm.get('cpf')?.errors?.cpfInvalid">CPF inválido. Deve conter 11 dígitos numéricos.</div>
-        </div>
-      </div>
-      <button type="submit" [disabled]="userForm.invalid">Cadastrar</button>
-    </form>
-  </div>
+      <mat-form-field appearance="fill" class="wide-field">
+        <mat-label>Nome Completo</mat-label>
+        <input matInput formControlName="name" required>
+        <mat-error *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">Nome completo é obrigatório.</mat-error>
+      </mat-form-field>
 
-  <div *ngIf="!showUserForm" class="form-container">
+      <mat-form-field appearance="fill">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" required>
+        <mat-error *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+          <span *ngIf="userForm.get('email')?.errors?.required">Email é obrigatório.</span>
+          <span *ngIf="userForm.get('email')?.errors?.email">Email inválido.</span>
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Telefone</mat-label>
+        <input matInput type="tel" formControlName="phone" required>
+        <mat-error *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">Telefone é obrigatório.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Senha</mat-label>
+        <input matInput type="password" formControlName="password" required>
+        <mat-error *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+          <span *ngIf="userForm.get('password')?.errors?.required">Senha é obrigatória.</span>
+          <span *ngIf="userForm.get('password')?.errors?.pattern">Senha deve ter entre 8 e 11 caracteres e conter letras, números e caracteres especiais.</span>
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>CPF</mat-label>
+        <input matInput formControlName="cpf" (input)="onCpfInput($event)" maxlength="14" required>
+        <mat-error *ngIf="userForm.get('cpf')?.invalid && userForm.get('cpf')?.touched">
+          <span *ngIf="userForm.get('cpf')?.errors?.cpfInvalid">CPF inválido. Deve conter 11 dígitos numéricos.</span>
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">Cadastrar</button>
+    </form>
+  </mat-card>
+
+  <!-- Formulário de Cadastro de Clientes -->
+  <mat-card *ngIf="!showUserForm" class="form-container">
     <h2>Cadastro de Clientes</h2>
     <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('cliente')">
-      <div>
-        <label for="name">Nome Completo do Cliente</label>
-        <input id="name" formControlName="name">
-        <div *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">
-          Nome completo é obrigatório.
-        </div>
-      </div>
-      <div>
-        <label for="email">Email</label>
-        <input id="email" formControlName="email">
-        <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
-          <div *ngIf="userForm.get('email')?.errors?.required">Email é obrigatório.</div>
-          <div *ngIf="userForm.get('email')?.errors?.email">Email inválido.</div>
-        </div>
-      </div>
-      <div>
-        <label for="phone">Telefone</label>
-        <input id="phone" formControlName="phone">
-        <div *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">
-          Telefone é obrigatório.
-        </div>
-      </div>
-      <div>
-        <label for="password">Senha</label>
-        <input type="password" id="password" formControlName="password">
-        <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
-          <div *ngIf="userForm.get('password')?.errors?.required">Senha é obrigatória.</div>
-          <div *ngIf="userForm.get('password')?.errors?.pattern">Senha deve ter entre 8 e 11 caracteres e conter letras,
-            números e caracteres especiais.</div>
-        </div>
-      </div>
-      <div>
-        <label for="cpf">CPF</label>
-        <input id="cpf" formControlName="cpf" (input)="onCpfInput($event)" maxlength="14">
-        <!-- Limita a 14 caracteres para incluir pontos e traço -->
-        <div *ngIf="userForm.get('cpf')?.invalid && userForm.get('cpf')?.touched">
-          <div *ngIf="userForm.get('cpf')?.errors?.cpfInvalid">CPF inválido. Deve conter 11 dígitos numéricos.</div>
-        </div>
-      </div>
-      <button type="submit" [disabled]="userForm.invalid">Cadastrar</button>
+      <mat-form-field appearance="fill">
+        <mat-label>Nome Completo do Cliente</mat-label>
+        <input matInput formControlName="name" required>
+        <mat-error *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">Nome completo é obrigatório.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" required>
+        <mat-error *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+          <span *ngIf="userForm.get('email')?.errors?.required">Email é obrigatório.</span>
+          <span *ngIf="userForm.get('email')?.errors?.email">Email inválido.</span>
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Telefone</mat-label>
+        <input matInput type="tel" formControlName="phone" required>
+        <mat-error *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">Telefone é obrigatório.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Senha</mat-label>
+        <input matInput type="password" formControlName="password" required>
+        <mat-error *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+          <span *ngIf="userForm.get('password')?.errors?.required">Senha é obrigatória.</span>
+          <span *ngIf="userForm.get('password')?.errors?.pattern">Senha deve ter entre 8 e 11 caracteres e conter letras, números e caracteres especiais.</span>
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>CPF</mat-label>
+        <input matInput formControlName="cpf" (input)="onCpfInput($event)" maxlength="14">
+        <mat-error *ngIf="userForm.get('cpf')?.invalid && userForm.get('cpf')?.touched">
+          <span *ngIf="userForm.get('cpf')?.errors?.cpfInvalid">CPF inválido. Deve conter 11 dígitos numéricos.</span>
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">Cadastrar</button>
     </form>
-  </div>
-  <!-- Modal de sucesso -->
-  <div *ngIf="mostrarModalSucesso" class="modal">
-    <div class="modal-content">
-      <h3>Estacionamento salvo com sucesso!</h3>
+  </mat-card>
+
+  <!-- Modal de Sucesso -->
+  <ng-template>
+    <div *ngIf="mostrarModalSucesso" class="modal">
+      <mat-card class="modal-content">
+        <h3>Estacionamento salvo com sucesso!</h3>
+      </mat-card>
     </div>
-  </div>
+  </ng-template>
 </div>

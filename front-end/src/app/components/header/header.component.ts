@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
+import { Component, HostListener, ElementRef, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
@@ -16,24 +16,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
   userName: string = ''; // Nome do usuário logado
   private authSubscription: Subscription = new Subscription(); // Subscription para escutar as mudanças
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private elementRef: ElementRef // Injetando ElementRef para detectar cliques fora
+  ) {}
 
   ngOnInit(): void {
-    // Subscrição para detectar mudanças no estado de autenticação
-  this.authSubscription = this.authService.currentUser.subscribe(user => {
-    this.isLoggedIn = !!user; // Atualiza o estado se o usuário está logado
-    if (user) {
-      const nomeCompleto = user.nomeCompleto || ''; // Pega o nome completo do usuário
-      const nomeDividido = nomeCompleto.split(' '); // Divide o nome completo
-      this.userName = nomeDividido.slice(0, 2).join(' '); // Mostra apenas o primeiro e segundo nome
-
-      // Verifica se o usuário é um cliente
-      this.isClient = this.authService.isClient(); // Usa o novo método para verificar
-    } else {
-      this.userName = ''; // Caso deslogado, limpa o nome
-      this.isClient = false; // Se deslogado, o usuário não é um cliente
-    }
-  });
+    this.authSubscription = this.authService.currentUser.subscribe(user => {
+      this.isLoggedIn = !!user;
+      if (user) {
+        const nomeCompleto = user.nomeCompleto || '';
+        const nomeDividido = nomeCompleto.split(' ');
+        this.userName = nomeDividido.slice(0, 2).join(' ');
+        this.isClient = this.authService.isClient();
+      } else {
+        this.userName = '';
+        this.isClient = false;
+      }
+    });
   }
 
   // Alterna o estado do menu
@@ -44,6 +45,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Fecha o menu
   closeMenu() {
     this.menuOpen = false;
+    this.avatarMenuOpen = false; // Opcional: Fecha também o menu do avatar
   }
 
   toggleAvatarMenu() {
@@ -51,23 +53,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   goToLogin() {
-    this.avatarMenuOpen = false; // Fecha o dropdown
+    this.avatarMenuOpen = false;
     this.router.navigate(['/login']);
   }
 
   goToProfile() {
-    this.avatarMenuOpen = false; // Fecha o dropdown
+    this.avatarMenuOpen = false;
     this.router.navigate(['/perfil']);
   }
 
-  // Função de logout com redirecionamento para a página inicial
   logout() {
-    this.authService.logout(); // Remove o usuário do localStorage e do serviço
+    this.authService.logout();
     this.isLoggedIn = false;
     this.isClient = false;
     this.userName = '';
-    this.avatarMenuOpen = false; // Fecha o dropdown do avatar
-    this.router.navigate(['/']); // Redireciona para a página inicial (home)
+    this.avatarMenuOpen = false;
+    this.router.navigate(['/']);
   }
 
   @HostListener('window:scroll', [])
@@ -76,13 +77,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const header = document.querySelector('header') as HTMLElement;
 
     if (scrollY > 50) {
-      header.style.backgroundColor = 'rgba(0, 128, 128, 0.8)'; // Por exemplo, uma cor de fundo diferente
+      header.style.backgroundColor = 'rgba(0, 128, 128, 0.8)';
     } else {
-      header.style.backgroundColor = 'linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128))'; // Cor original
+      header.style.backgroundColor = 'linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128))';
+    }
+  }
+
+  // Fechar menu ao clicar fora
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: MouseEvent) {
+    const clickedInside = this.elementRef.nativeElement.contains(event.target);
+    if (!clickedInside) {
+      this.closeMenu(); // Fecha o menu se o clique foi fora dele
     }
   }
 
   ngOnDestroy(): void {
-    this.authSubscription.unsubscribe(); // Evitar memory leaks
+    this.authSubscription.unsubscribe();
   }
 }

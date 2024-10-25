@@ -13,34 +13,16 @@
   margin-top: 81px;
 }
 
-.toggle-buttons button {
-  margin: 0px 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border: 0px solid #ccc;
-  background-color: #f1f1f1;
-  border-radius: 5px;
-  transition: background-color 0.3s;
-  cursor: pointer;
+.toggle-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
-
-.toggle-buttons button.active {
-  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
-  color: white;
-  border: none !important;
-}
-
-.toggle-buttons button:not(.active):hover {
-  background-color: #e0e0e0;
-}
-
-
 
 .form-container {
   width: 100%;
   max-width: 600px;
-
-  form {
+   form {
     display: flex;
     flex-direction: column;
 
@@ -55,14 +37,13 @@
 
     input {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
+      border: 0px solid #ccc;
       border-radius: 4px;
     }
 
     button {
       padding: 10px;
-      background: #007bff;
+      background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
       color: #fff;
       border: none;
       border-radius: 4px;
@@ -74,6 +55,7 @@
       }
     }
   }
+
 }
 
 .modal {
@@ -89,25 +71,17 @@
 }
 
 .modal-content {
-  background-color: #fff;
   padding: 20px;
   border-radius: 10px;
   text-align: center;
 }
 
-.back-button {
-  position: absolute;
-  top: 81px;
-  left: 10px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  outline: none;
+.mat-flat-button.mat-primary, .mat-raised-button.mat-primary, .mat-fab.mat-primary, .mat-mini-fab.mat-primary {
+  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128)); /* Exemplo de nova cor azul */
+  color: #ffffff; /* Opcional: alterar a cor do texto para branco */
 }
 
-.back-button svg {
-  stroke: #000;
-  width: 24px;
-  height: 24px;
+.mat-flat-button.mat-primary:hover, .mat-raised-button.mat-primary:hover, 
+.mat-fab.mat-primary:hover, .mat-mini-fab.mat-primary:hover {
+  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128)); /* Cor para estado de hover */
 }
