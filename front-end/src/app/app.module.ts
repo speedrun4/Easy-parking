@@ -43,6 +43,10 @@ import { EsqueciSenhaComponent } from './pages/esqueci-senha/esqueci-senha.compo
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { CadastroEstacionamentoComponent } from './pages/cadastro-estacionamento/cadastro-estacionamento.component';
+import { FinancasComponent } from './pages/financas/financas.component';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableModule } from '@angular/material/table';
+import { MatSortModule } from '@angular/material/sort';
 @NgModule({
   declarations: [
     AppComponent,
@@ -67,6 +71,7 @@ import { CadastroEstacionamentoComponent } from './pages/cadastro-estacionamento
     EsqueciSenhaComponent,
     ResetPasswordComponent,
     CadastroEstacionamentoComponent,
+    FinancasComponent,
   ],
   imports: [
     BrowserModule,
@@ -91,7 +96,10 @@ import { CadastroEstacionamentoComponent } from './pages/cadastro-estacionamento
     MatIconModule,
     MatToolbarModule,
     MatDialogModule,
-    MatSnackBarModule, 
+    MatSnackBarModule,
+    MatPaginatorModule,
+    MatTableModule,
+    MatSortModule,
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyC1JY-mIJMlZinIwKj3jJYoCV9sXrpWmSk'
     }),

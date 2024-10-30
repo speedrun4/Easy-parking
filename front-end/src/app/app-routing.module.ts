@@ -14,11 +14,13 @@ import { ClienteComponent } from './pages/cliente/cliente.component';
 import { EsqueciSenhaComponent } from './pages/esqueci-senha/esqueci-senha.component';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { CadastroEstacionamentoComponent } from './pages/cadastro-estacionamento/cadastro-estacionamento.component';
+import { FinancasComponent } from './pages/financas/financas.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
   { path: 'home', component: HomeComponent },
-  { path: 'esqueci-senha', component: EsqueciSenhaComponent }, 
+  { path: 'esqueci-senha', component: EsqueciSenhaComponent },
+  { path: 'financas', component: FinancasComponent },
   {path: 'reset-password', component: ResetPasswordComponent},
   {path: 'cadastro-estacionamento', component: CadastroEstacionamentoComponent},
   { path: 'login', component: LoginComponent }, // rota para a página de login
