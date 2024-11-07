@@ -44,11 +44,13 @@ export class LoginComponent implements OnInit {
           const perfil = response.perfil;
           const token = response.token;
   
+          // Armazena o estado do login e redireciona conforme o tipo de login
           if (type === 'user') {
             if (perfil === 'usuario' || perfil === 'cliente') {
-              // Armazena o usuário e atualiza o estado
-              localStorage.setItem('currentUser', JSON.stringify(response));
-              this.authService.setCurrentUser(response);  // Usa o novo método aqui
+              // Atualiza o estado com login como usuário
+              const updatedResponse = { ...response, loginAsUser: true }; 
+              localStorage.setItem('currentUser', JSON.stringify(updatedResponse));
+              this.authService.setCurrentUser(updatedResponse);
               localStorage.setItem('token', token);
               this.router.navigate(['/welcome']);
             } else {
@@ -56,9 +58,10 @@ export class LoginComponent implements OnInit {
             }
           } else if (type === 'client') {
             if (perfil === 'cliente') {
-              // Armazena o usuário e atualiza o estado
-              localStorage.setItem('currentUser', JSON.stringify(response));
-              this.authService.setCurrentUser(response);  // Usa o novo método aqui
+              // Atualiza o estado com login como cliente
+              const updatedResponse = { ...response, loginAsUser: false }; 
+              localStorage.setItem('currentUser', JSON.stringify(updatedResponse));
+              this.authService.setCurrentUser(updatedResponse);
               localStorage.setItem('token', token);
               this.router.navigate(['/cliente']);
             } else {

@@ -39,7 +39,10 @@ export class AuthService {
 
   // Expor um método público para definir o currentUserSubject
   setCurrentUser(user: any): void {
-    this.currentUserSubject.next(user);
+    const isClient = user.perfil === 'cliente';
+  const loginAsUser = user.loginAsUser || false; // Login como usuário ou cliente
+  const currentUser = { ...user, isClient, loginAsUser };
+  this.currentUserSubject.next(currentUser);
   }
 
   // Logout e remoção dos dados do usuário armazenados
@@ -83,5 +86,14 @@ export class AuthService {
   }
   requestPasswordReset(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  autoLogin(): void {
+    const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    if (storedUser) {
+      const isClient = storedUser.perfil === 'cliente';
+      const loginAsUser = storedUser.loginAsUser || false; // Diferencia o tipo de login
+      this.setCurrentUser({ ...storedUser, isClient, loginAsUser });
+    }
   }
 }

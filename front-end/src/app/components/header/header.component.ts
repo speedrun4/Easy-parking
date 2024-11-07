@@ -14,6 +14,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isLoggedIn = false; // Verifica se o usuário está logado
   isClient = false;   // Verifica se o usuário é um cliente
   userName: string = ''; // Nome do usuário logado
+  loginAsUser: boolean = false;
   private authSubscription: Subscription = new Subscription(); // Subscription para escutar as mudanças
 
   constructor(
@@ -23,13 +24,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.authService.autoLogin();
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       this.isLoggedIn = !!user;
       if (user) {
-        const nomeCompleto = user.nomeCompleto || '';
-        const nomeDividido = nomeCompleto.split(' ');
-        this.userName = nomeDividido.slice(0, 2).join(' ');
-        this.isClient = this.authService.isClient();
+        this.userName = user.nomeCompleto?.split(' ').slice(0, 2).join(' ') || '';
+        this.isClient = user.isClient; // Perfil cliente
+        this.loginAsUser = user.loginAsUser; // Tipo de login realizado
       } else {
         this.userName = '';
         this.isClient = false;

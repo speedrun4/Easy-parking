@@ -24,7 +24,7 @@
   </div>
 
   <!-- Menu do Cliente -->
-  <div *ngIf="isClient" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
+  <div *ngIf="isLoggedIn && isClient && !loginAsUser" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
     <ul>
       <li><a (click)="closeMenu()" [routerLink]="['/cadastro-estacionamento']">Cadastrar Estacionamento</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/financas']">Valores Pagos</a></li>
@@ -35,7 +35,7 @@
   </div>
 
   <!-- Menu geral para usuários logados -->
-  <div *ngIf="isLoggedIn && !isClient" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
+  <div *ngIf="isLoggedIn && (loginAsUser || !isClient)" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
     <ul>
       <li><a (click)="closeMenu()" [routerLink]="['/carteira']">Carteira</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/welcome']">Estacionamentos</a></li>
