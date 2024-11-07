@@ -15,7 +15,11 @@ public class ClienteService {
     }
 
     public Cliente saveCliente(Cliente cliente) {
+        if (cliente.getNomeEmpresa() == null || cliente.getNomeEmpresa().isEmpty()) {
+            throw new IllegalArgumentException("Nome da empresa não pode ser vazio");
+        }
         return clienteRepository.save(cliente);
     }
+
 
 }

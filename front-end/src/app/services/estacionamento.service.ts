@@ -25,7 +25,7 @@ export class EstacionamentoService {
           map((coords) => ({
             latitude: coords.latitude,
             longitude: coords.longitude,
-            companyName: cliente.nomeEmpresa,
+            companyName: cliente.nome_empresa,
             hourlyRate: cliente.valorPorHora,
             address: cliente.enderecoCompleto,
           }))
@@ -58,5 +58,9 @@ export class EstacionamentoService {
         }
       })
     );
+  }
+
+  salvarEstacionamento(estacionamento: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, estacionamento);
   }
 }

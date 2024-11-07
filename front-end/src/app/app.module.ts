@@ -47,6 +47,7 @@ import { FinancasComponent } from './pages/financas/financas.component';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
+import { SucessoModalComponent } from './components/sucess-modal/sucess-modal.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -72,8 +73,10 @@ import { MatSortModule } from '@angular/material/sort';
     ResetPasswordComponent,
     CadastroEstacionamentoComponent,
     FinancasComponent,
+    SucessoModalComponent
   ],
   imports: [
+    MatButtonModule,
     BrowserModule,
     BrowserAnimationsModule,
     AppRoutingModule,
@@ -82,12 +85,10 @@ import { MatSortModule } from '@angular/material/sort';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatCardModule,
-    MatButtonModule,
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
@@ -105,7 +106,6 @@ import { MatSortModule } from '@angular/material/sort';
     }),
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
     HttpClientModule,
   ],
   entryComponents: [ErrorDialogComponent],
