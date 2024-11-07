@@ -123,4 +123,7 @@ export class CadastroComponent implements OnInit {
     // Atualiza o valor do formulário com o CNPJ sem a máscara (só números)
     this.parkingForm.get('cnpj')?.setValue(cnpj.replace(/\D/g, ''));
   }
+  goToLogin() {
+    this.router.navigate(['/home']);
+  }
 }

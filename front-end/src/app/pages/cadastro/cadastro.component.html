@@ -1,4 +1,8 @@
 <!-- cadastro.component.html -->
+<button mat-icon-button (click)="goToLogin()" class="button-icon">
+  <mat-icon>arrow_back</mat-icon>
+</button>
+
 <div class="cadastro-container">
   <div class="toggle-buttons">
     <button mat-raised-button (click)="showUserForm = true" [color]="showUserForm ? 'primary' : ''">

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
@@ -14,7 +15,8 @@ export class EsqueciSenhaComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,  // Injeta o serviço de autenticação
-    private snackBar: MatSnackBar      // Para exibir mensagens de sucesso ou erro
+    private snackBar: MatSnackBar, 
+    private router: Router      // Para exibir mensagens de sucesso ou erro
   ) {}
 
   ngOnInit(): void {
@@ -50,5 +52,8 @@ export class EsqueciSenhaComponent implements OnInit {
         }
       );
     }
+  }
+  goToLogin() {
+    this.router.navigate(['/login']);
   }
 }

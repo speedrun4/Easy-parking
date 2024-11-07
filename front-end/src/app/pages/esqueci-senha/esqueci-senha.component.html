@@ -1,20 +1,22 @@
-<mat-card appearance="outlined">
-</mat-card>
+  <button mat-icon-button (click)="goToLogin()" class="button-icon">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+
 <br>
 <mat-card appearance="outlined">
-    <mat-card-title>Esqueci minha senha</mat-card-title>
-    <form [formGroup]="forgotPasswordForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput placeholder="Digite seu email" formControlName="email" />
-          <mat-error *ngIf="email?.invalid && email?.touched">
-            {{ getErrorMessage() }}
-          </mat-error>
-        </mat-form-field>
-        <div class="button-container">
-          <button mat-raised-button color="primary" type="submit" [disabled]="forgotPasswordForm.invalid">
-            Enviar email de recuperação
-          </button>
-        </div>
-      </form>
+  <mat-card-title>Esqueci minha senha</mat-card-title>
+  <form [formGroup]="forgotPasswordForm" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput placeholder="Digite seu email" formControlName="email" />
+      <mat-error *ngIf="email?.invalid && email?.touched">
+        {{ getErrorMessage() }}
+      </mat-error>
+    </mat-form-field>
+    <div class="button-container">
+      <button mat-raised-button color="primary" type="submit" [disabled]="forgotPasswordForm.invalid">
+        Enviar email de recuperação
+      </button>
+    </div>
+  </form>
 </mat-card>
