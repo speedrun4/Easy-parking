@@ -43,6 +43,12 @@ export class AuthService {
   const loginAsUser = user.loginAsUser || false; // Login como usuário ou cliente
   const currentUser = { ...user, isClient, loginAsUser };
   this.currentUserSubject.next(currentUser);
+  if (!currentUser.id) {
+    console.error('Erro: ID do usuário não está definido!');
+  }
+
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  this.currentUserSubject.next(currentUser);
   }
 
   // Logout e remoção dos dados do usuário armazenados
@@ -64,6 +70,12 @@ export class AuthService {
 
   // Obtém o usuário atual com base no localStorage
   getCurrentUser(): any {
+    const currentUser = this.currentUserSubject.value;
+  if (!currentUser) {
+    console.error('Nenhum usuário logado encontrado!');
+  } else if (!currentUser.id) {
+    console.error('Usuário logado não possui ID!', currentUser);
+  }
     return this.currentUserSubject.value;
   }
 
@@ -95,5 +107,10 @@ export class AuthService {
       const loginAsUser = storedUser.loginAsUser || false; // Diferencia o tipo de login
       this.setCurrentUser({ ...storedUser, isClient, loginAsUser });
     }
+  }
+  deleteAccount(userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${userId}`).pipe(
+      catchError(this.handleError)
+    );
   }
 }

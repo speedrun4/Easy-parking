@@ -7,7 +7,7 @@ import javax.persistence.*;
 public class Usuarios {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Geração automática do ID
-    private int id;
+    private Integer id;
 
     private String nomeCompleto;
     private String email;
@@ -83,4 +83,5 @@ public class Usuarios {
     public void setPerfil(String perfil) {
         this.perfil = perfil;
     }
+
 }

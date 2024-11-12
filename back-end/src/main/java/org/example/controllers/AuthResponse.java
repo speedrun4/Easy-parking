@@ -1,13 +1,15 @@
-package org.example.controllers;
+package org.example.dto;
 
 public class AuthResponse {
     private String token;
+    private Integer id;
     private String nomeCompleto;
-    private String perfil; // Incluímos o campo perfil
+    private String perfil;
 
-    // Construtor com 3 argumentos
-    public AuthResponse(String token, String nomeCompleto, String perfil) {
+    // Construtor com 4 argumentos
+    public AuthResponse(String token, Integer id, String nomeCompleto, String perfil) {
         this.token = token;
+        this.id = id;
         this.nomeCompleto = nomeCompleto;
         this.perfil = perfil;
     }
@@ -19,6 +21,14 @@ public class AuthResponse {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getNomeCompleto() {

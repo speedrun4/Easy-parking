@@ -15,6 +15,7 @@ import { EsqueciSenhaComponent } from './pages/esqueci-senha/esqueci-senha.compo
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { CadastroEstacionamentoComponent } from './pages/cadastro-estacionamento/cadastro-estacionamento.component';
 import { FinancasComponent } from './pages/financas/financas.component';
+import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
@@ -32,6 +33,7 @@ const routes: Routes = [
   { path: 'contato', component: ContatoComponent },
   { path: 'carteira', component: CarteiraComponent },
   { path: 'history', component: PaymentHistoryComponent },
+  { path: 'user-profile', component: UserProfileComponent },
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
   { path: 'splash', component: SplashComponent }, // rota para página não encontrada

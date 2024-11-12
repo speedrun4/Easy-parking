@@ -1,5 +1,6 @@
 package org.example.controllers;
 
+import org.example.dto.AuthResponse;
 import org.example.dto.ResetPasswordRequest;
 import org.example.models.Usuarios;
 import org.example.services.EmailService;
@@ -34,9 +35,10 @@ public class UsuariosController {
         if (usuarioOpt.isPresent()) {
             Usuarios usuario = usuarioOpt.get();
             if (usuario.getSenha().equals(loginRequest.getPassword())) {
-                // Exemplo de token, em produção use JWT ou outro mecanismo de token real
                 String token = "fake-jwt-token";
-                return ResponseEntity.ok(new AuthResponse(token, usuario.getNomeCompleto(), usuario.getPerfil()));
+                // Cria o objeto AuthResponse
+                AuthResponse response = new AuthResponse(token, usuario.getId(), usuario.getNomeCompleto(), usuario.getPerfil());
+                return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta");
             }
@@ -45,13 +47,16 @@ public class UsuariosController {
         }
     }
 
-    @PostMapping
     public ResponseEntity<Usuarios> register(@RequestBody Usuarios usuario) {
         // Validação e verificação do perfil
-        if (usuario.getPerfil() == null || (!usuario.getPerfil().equals("usuario") && !usuario.getPerfil().equals("cliente"))) {
+        if (usuario.getPerfil() == null ||
+                (!usuario.getPerfil().equals("usuario") && !usuario.getPerfil().equals("cliente"))) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        // Você pode adicionar validações aqui
+
+        // Criptografar a senha antes de salvar
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+
         Usuarios savedUsuario = usuariosService.saveUsuario(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUsuario);
     }
@@ -95,6 +100,18 @@ public class UsuariosController {
             return ResponseEntity.ok("Senha redefinida com sucesso.");
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+        Optional<Usuarios> usuario = usuariosService.findById(id);
+
+        if (usuario.isPresent()) {
+            usuariosService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
 }

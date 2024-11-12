@@ -1,0 +1,42 @@
+<mat-card class="user-card">
+  <mat-card-header>
+    <mat-card-title>Informações do Usuário</mat-card-title>
+  </mat-card-header>
+  <mat-card-content *ngIf="userData; else noUser" class="table-move">
+    <table mat-table [dataSource]="[userData]" class="mat-elevation-z8">
+      <!-- Nome Completo -->
+      <ng-container matColumnDef="nomeCompleto">
+        <th mat-header-cell *matHeaderCellDef> Nome Completo </th>
+        <td mat-cell *matCellDef="let user"> {{ user.nomeCompleto }} </td>
+      </ng-container>
+
+      <!-- Email -->
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef> Email </th>
+        <td mat-cell *matCellDef="let user"> {{ user.email || 'Não informado' }} </td>
+      </ng-container>
+
+      <!-- Telefone -->
+      <ng-container matColumnDef="telefone">
+        <th mat-header-cell *matHeaderCellDef> Telefone </th>
+        <td mat-cell *matCellDef="let user"> {{ user.telefone || 'Não informado' }} </td>
+      </ng-container>
+
+      <!-- Ações -->
+      <ng-container matColumnDef="acoes">
+        <th mat-header-cell *matHeaderCellDef> Ações </th>
+        <td mat-cell *matCellDef="let user">
+          <button mat-raised-button color="warn" (click)="deleteAccount()">
+            Excluir Conta
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </mat-card-content>
+  <ng-template #noUser>
+    <p>Nenhum usuário está logado no momento.</p>
+  </ng-template>
+</mat-card>

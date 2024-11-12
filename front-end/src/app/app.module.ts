@@ -48,6 +48,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { SucessoModalComponent } from './components/sucess-modal/sucess-modal.component';
+import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -73,7 +74,8 @@ import { SucessoModalComponent } from './components/sucess-modal/sucess-modal.co
     ResetPasswordComponent,
     CadastroEstacionamentoComponent,
     FinancasComponent,
-    SucessoModalComponent
+    SucessoModalComponent,
+    UserProfileComponent
   ],
   imports: [
     MatButtonModule,
