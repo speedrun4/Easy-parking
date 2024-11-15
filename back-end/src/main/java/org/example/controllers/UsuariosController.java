@@ -46,7 +46,7 @@ public class UsuariosController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado");
         }
     }
-
+    @PostMapping
     public ResponseEntity<Usuarios> register(@RequestBody Usuarios usuario) {
         // Validação e verificação do perfil
         if (usuario.getPerfil() == null ||

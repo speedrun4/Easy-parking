@@ -24,7 +24,13 @@ public class UsuariosService {
 
 
     public Usuarios saveUsuario(Usuarios usuario) {
-        return usuariosRepository.save(usuario);
+        try {
+            return usuariosRepository.save(usuario);
+        } catch (Exception e) {
+            // Loga o erro para depuração
+            System.err.println("Erro ao salvar usuário: " + e.getMessage());
+            throw new RuntimeException("Erro ao salvar usuário.", e);
+        }
     }
 
     public List<Usuarios> getAllUsuarios() {

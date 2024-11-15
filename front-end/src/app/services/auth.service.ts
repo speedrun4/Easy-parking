@@ -29,6 +29,7 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       map(user => {
         if (user && user.token && user.perfil) {
+          this.setCurrentUser(user);
           return user;
         }
         return null;
@@ -39,78 +40,86 @@ export class AuthService {
 
   // Expor um método público para definir o currentUserSubject
   setCurrentUser(user: any): void {
-    const isClient = user.perfil === 'cliente';
-  const loginAsUser = user.loginAsUser || false; // Login como usuário ou cliente
-  const currentUser = { ...user, isClient, loginAsUser };
-  this.currentUserSubject.next(currentUser);
-  if (!currentUser.id) {
-    console.error('Erro: ID do usuário não está definido!');
+    if (user && user.id && user.perfil) {
+      const isClient = user.perfil === 'cliente';
+      const loginAsUser = user.loginAsUser || false; // Login como usuário ou cliente
+      const currentUser = { ...user, isClient, loginAsUser };
+      this.currentUserSubject.next(currentUser);
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    } else {
+      console.error('Erro: ID ou perfil do usuário não estão definidos!');
+      this.currentUserSubject.next(null); // Reseta o currentUser
+      localStorage.removeItem('currentUser'); // Remove o usuário do localStorage em caso de erro
+    }
+
+//   if(!currentUser.id) {
+//     console.error('Erro: ID do usuário não está definido!');
+//   }
+
+//   localStorage.setItem('currentUser', JSON.stringify(currentUser));
+// this.currentUserSubject.next(currentUser);
   }
 
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-  this.currentUserSubject.next(currentUser);
-  }
+// Logout e remoção dos dados do usuário armazenados
+logout(): void {
+  localStorage.removeItem('currentUser');
+  this.currentUserSubject.next(null);
+}
 
-  // Logout e remoção dos dados do usuário armazenados
-  logout(): void {
-    localStorage.removeItem('currentUser');
-    this.currentUserSubject.next(null);
-  }
+// Verifica se o usuário está autenticado
+isAuthenticated(): boolean {
+  return !!this.currentUserSubject.value;
+}
 
-  // Verifica se o usuário está autenticado
-  isAuthenticated(): boolean {
-    return !!this.currentUserSubject.value;
-  }
+// Verifica se o usuário é um cliente
+isClient(): boolean {
+  const currentUser = this.getCurrentUser();
+  return currentUser && currentUser.perfil === 'cliente'; // Checa o perfil do usuário
+}
 
-  // Verifica se o usuário é um cliente
-  isClient(): boolean {
-    const currentUser = this.getCurrentUser();
-    return currentUser && currentUser.perfil === 'cliente'; // Checa o perfil do usuário
-  }
-
-  // Obtém o usuário atual com base no localStorage
-  getCurrentUser(): any {
-    const currentUser = this.currentUserSubject.value;
+// Obtém o usuário atual com base no localStorage
+getCurrentUser(): any {
+  const currentUser = this.currentUserSubject.value;
   if (!currentUser) {
     console.error('Nenhum usuário logado encontrado!');
   } else if (!currentUser.id) {
     console.error('Usuário logado não possui ID!', currentUser);
   }
-    return this.currentUserSubject.value;
-  }
+  return this.currentUserSubject.value;
+}
 
   // Tratamento de erro para requisições HTTP
   private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'Um erro ocorreu';
-    if (error.error instanceof ErrorEvent) {
-      // Erro do lado do cliente
-      errorMessage = `Erro: ${error.error.message}`;
-    } else {
-      // Erro do lado do servidor
-      errorMessage = `Erro: ${error.status} - ${error.message}`;
-    }
-    return throwError(() => new Error(errorMessage));
+  let errorMessage = 'Um erro ocorreu';
+  if (error.error instanceof ErrorEvent) {
+    // Erro do lado do cliente
+    errorMessage = `Erro: ${error.error.message}`;
+  } else {
+    // Erro do lado do servidor
+    errorMessage = `Erro: ${error.status} - ${error.message}`;
   }
-  sendPasswordToEmail(email: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/send-password`, email).pipe(
-        catchError(this.handleError)
-    );
-  }
-  requestPasswordReset(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
-  }
+  return throwError(() => new Error(errorMessage));
+}
+sendPasswordToEmail(email: string): Observable < any > {
+  return this.http.post<any>(`${this.apiUrl}/send-password`, email).pipe(
+    catchError(this.handleError)
+  );
+}
+requestPasswordReset(email: string): Observable < any > {
+  return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+}
 
-  autoLogin(): void {
-    const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    if (storedUser) {
-      const isClient = storedUser.perfil === 'cliente';
-      const loginAsUser = storedUser.loginAsUser || false; // Diferencia o tipo de login
-      this.setCurrentUser({ ...storedUser, isClient, loginAsUser });
-    }
+autoLogin(): void {
+  const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  if(storedUser) {
+    const isClient = storedUser.perfil === 'cliente';
+    const loginAsUser = storedUser.loginAsUser || false; // Diferencia o tipo de login
+    this.setCurrentUser({ ...storedUser, isClient, loginAsUser });
   }
-  deleteAccount(userId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${userId}`).pipe(
-      catchError(this.handleError)
-    );
-  }
+}
+deleteAccount(userId: number): Observable < any > {
+  return this.http.delete(`${this.apiUrl}/${userId}`).pipe(
+    catchError(this.handleError)
+  );
+}
 }

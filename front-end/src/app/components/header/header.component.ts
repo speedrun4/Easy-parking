@@ -60,7 +60,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   goToProfile() {
     this.avatarMenuOpen = false;
-    this.router.navigate(['/perfil']);
+    this.router.navigate(['/user-profile']);
   }
 
   logout() {

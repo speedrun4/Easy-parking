@@ -7,8 +7,8 @@ import javax.persistence.*;
 public class Usuarios {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Geração automática do ID
-    private Integer id;
 
+    private Integer id;
     private String nomeCompleto;
     private String email;
     private String telefone;
@@ -18,7 +18,7 @@ public class Usuarios {
     // Construtores
     public Usuarios() {}
 
-    public Usuarios(int id, String nomeCompleto, String email, String telefone, String senha, String cpf) {
+    public Usuarios(Integer id, String nomeCompleto, String email, String telefone, String senha, String cpf) {
         this.id = id;
         this.nomeCompleto = nomeCompleto;
         this.email = email;
@@ -29,11 +29,11 @@ public class Usuarios {
     }
 
     // Getters e Setters
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
