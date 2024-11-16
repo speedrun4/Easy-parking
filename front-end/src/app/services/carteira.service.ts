@@ -15,7 +15,7 @@ export interface Transacao {
 })
 
 export class CarteiraService {
-  private carteira: Carteira = { saldo: 1000, historicoTransacoes: [] }; // Simulação inicial
+  private carteira: Carteira = { saldo: 0, historicoTransacoes: [] }; // Simulação inicial
 
   obterCarteira(): Carteira {
     return this.carteira;

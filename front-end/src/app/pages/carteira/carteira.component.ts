@@ -15,6 +15,7 @@ export class CarteiraComponent implements OnInit {
   descricaoOperacao: string = '';
   mostrarModal: boolean = false;
   metodoSelecionado: string | null = null;
+  isLoading: boolean = false; // Estado de loading
 
   dadosCartao = {
     numero: '',
@@ -49,24 +50,41 @@ export class CarteiraComponent implements OnInit {
     }
   }
 
-  gerarQRCodePIX() {
-    // Realiza a requisição POST para gerar o código PIX no backend
-    const valor = this.valorOperacao;
-   this.http.post('http://localhost:8080/api/pix', { valor: valor })  // Certifique-se de que `valorOperacao` é um número com casas decimais (Double)
-    .subscribe((response: any) => {
-      this.codigoPix = response.codigoPix;
-      this.qrCodeSrc = `data:image/png;base64,${response.qrCodeBase64}`;
-    });
-  }
   
-  arrayBufferToBase64(buffer: any): string {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    const length = bytes.byteLength;
-    for (let i = 0; i < length; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
+  gerarQRCodePIX() {
+    const valor = this.valorOperacao;
+    this.isLoading = true; // Inicia o carregamento enquanto gera o QR Code
+
+    // Enviar a requisição para gerar o QR Code
+    this.http.post('http://localhost:8080/api/pix', { valor: valor })
+      .subscribe((response: any) => {
+        this.codigoPix = response.codigoPix;
+        this.qrCodeSrc = `data:image/png;base64,${response.qrCodeBase64}`;
+
+        // Depois de gerar o QR Code, aguarde a confirmação do pagamento
+        this.simularPagamento();
+      }, error => {
+        console.error('Erro ao gerar o QR Code:', error);
+        this.isLoading = false; // Desabilita o loading em caso de erro
+      });
+  }
+
+  // Função para simular o processamento do pagamento
+  simularPagamento() {
+    setTimeout(() => {
+      // Aqui você pode verificar com o backend se o pagamento foi confirmado, se necessário
+      // Simulação de confirmação de pagamento (por exemplo, checando um status no backend)
+
+      // Adicionar o valor à carteira
+      this.carteiraService.adicionarValor(this.valorOperacao, this.descricaoOperacao, 'pix');
+      this.carteira = this.carteiraService.obterCarteira();
+
+      // Após o pagamento ser confirmado, desative o estado de carregamento
+      this.isLoading = false;
+
+      // Fechar o modal após o pagamento ser realizado
+      this.fecharModal();
+    }, 5000); // Simula 5 segundos de espera pelo pagamento
   }
 
   copiarCodigoPix() {
@@ -75,34 +93,6 @@ export class CarteiraComponent implements OnInit {
     }).catch(err => {
       console.error('Erro ao copiar o código PIX:', err);
     });
-  }
-  processarPagamento(metodo: string) {
-    // Exemplo de salvamento na base de acordo com o usuário logado
-    this.carteiraService.adicionarValor(this.valorOperacao, this.descricaoOperacao, metodo);
-
-    // Fechar o modal após a operação
-    this.fecharModal();
-
-    // Atualizar o saldo da carteira
-    this.carteira = this.carteiraService.obterCarteira();
-
-    // Resetar os inputs
-    this.valorOperacao = 0;
-    this.descricaoOperacao = '';
-  }
-
-  confirmarPagamento() {
-    if (this.metodoSelecionado === 'cartao') {
-      console.log('Pagamento com cartão:', this.dadosCartao);
-    } else if (this.metodoSelecionado === 'pix') {
-      console.log('Pagamento com PIX confirmado.');
-    }
-
-    // Atualiza a carteira e registra a transação
-    this.carteiraService.adicionarValor(this.valorOperacao, this.descricaoOperacao, this.metodoSelecionado!);
-
-    // Fecha o modal e reseta os dados
-    this.fecharModal();
   }
 
   resetarDadosPagamento() {
@@ -115,5 +105,5 @@ export class CarteiraComponent implements OnInit {
     this.valorOperacao = 0;
     this.descricaoOperacao = '';
   }
-
 }
+

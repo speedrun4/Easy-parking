@@ -6,73 +6,78 @@
     </svg>
   </a>
 
-    <h2>Minha Carteira</h2>
-    <p>Saldo atual: {{ carteira.saldo | currency:'BRL' }}</p>
-  
-    <div class="operacao-form">
-      <input type="number" [(ngModel)]="valorOperacao" placeholder="Valor" />
-      <input type="text" [(ngModel)]="descricaoOperacao" placeholder="Descrição" />
-      <button (click)="abrirModal()">Adicionar</button>
-      <button (click)="remover()">Remover</button>
-    </div>
-  
-    <h3>Histórico de Transações</h3>
-    <ul>
-      <li *ngFor="let transacao of carteira.historicoTransacoes">
-        <span>{{ transacao.data | date:'short' }} - {{ transacao.descricao }}: {{ transacao.valor | currency:'BRL' }} ({{ transacao.tipo }})</span>
-      </li>
-    </ul>
-    <div class="modal" *ngIf="mostrarModal">
-      <div class="modal-content">
-        <h3>Confirme os Dados do Pagamento</h3>
-    
-        <!-- Exibição do valor escrito -->
-        <p>Valor a ser pago: <strong>{{ valorOperacao | currency: 'BRL' }}</strong></p>
-    
-        <!-- Input para dados do cartão -->
-        <div *ngIf="metodoSelecionado === 'cartao'">
-          <label>
-            Número do Cartão:
-            <input type="text" [(ngModel)]="dadosCartao.numero" placeholder="XXXX XXXX XXXX XXXX" maxlength="16" />
-          </label>
-          <label>
-            Nome no Cartão:
-            <input type="text" [(ngModel)]="dadosCartao.nome" placeholder="Nome do Titular" />
-          </label>
-          <label>
-            Validade:
-            <input type="text" [(ngModel)]="dadosCartao.validade" placeholder="MM/AA" maxlength="5" />
-          </label>
-          <label>
-            CVV:
-            <input type="text" [(ngModel)]="dadosCartao.cvv" placeholder="CVV" maxlength="3" />
-          </label>
-        </div>
-    
-        <!-- QR Code para PIX -->
-        <div *ngIf="metodoSelecionado === 'pix'">
-          <p>Use o QR Code abaixo para realizar o pagamento:</p>
-          <div class="qrcode-container">
-            <!-- QR Code gerado com o valor -->
-            <img [src]="qrCodeSrc" alt="QR Code para PIX" />
-          </div>
-          <div class="pix-code-container">
-            <p><strong>Código PIX:</strong></p>
-            <input type="text" [value]="codigoPix" readonly class="pix-code" />
-            <button (click)="copiarCodigoPix()">Copiar Código</button>
-          </div>
-        </div>
-    
-        <!-- Botões para escolher o método -->
-        <div *ngIf="!metodoSelecionado">
-          <button (click)="selecionarMetodo('pix')">Pagar com PIX</button>
-          <button (click)="selecionarMetodo('cartao')">Pagar com Cartão</button>
-        </div>
-    
-        <!-- Botão de confirmação -->
-        <button *ngIf="metodoSelecionado" (click)="confirmarPagamento()">Confirmar</button>
-        <button (click)="fecharModal()">Cancelar</button>
+  <h2>Minha Carteira</h2>
+  <p>Saldo atual: {{ carteira.saldo | currency:'BRL' }}</p>
+
+  <div class="operacao-form">
+    <input type="number" [(ngModel)]="valorOperacao" placeholder="Valor" />
+    <input type="text" [(ngModel)]="descricaoOperacao" placeholder="Descrição" />
+    <button (click)="abrirModal()">Adicionar</button>
+    <button (click)="remover()">Remover</button>
+  </div>
+
+  <h3>Histórico de Transações</h3>
+  <ul>
+    <li *ngFor="let transacao of carteira.historicoTransacoes">
+      <span>{{ transacao.data | date:'short' }} - {{ transacao.descricao }}: {{ transacao.valor | currency:'BRL' }} ({{
+        transacao.tipo }})</span>
+    </li>
+  </ul>
+  <div class="modal" *ngIf="mostrarModal">
+    <div class="modal-content">
+      <h3>Confirme os Dados do Pagamento</h3>
+
+      <!-- Exibição do valor escrito -->
+      <p>Valor a ser pago: <strong>{{ valorOperacao | currency: 'BRL' }}</strong></p>
+
+      <!-- Input para dados do cartão -->
+      <div *ngIf="metodoSelecionado === 'cartao'">
+        <label>
+          Número do Cartão:
+          <input type="text" [(ngModel)]="dadosCartao.numero" placeholder="XXXX XXXX XXXX XXXX" maxlength="16" />
+        </label>
+        <label>
+          Nome no Cartão:
+          <input type="text" [(ngModel)]="dadosCartao.nome" placeholder="Nome do Titular" />
+        </label>
+        <label>
+          Validade:
+          <input type="text" [(ngModel)]="dadosCartao.validade" placeholder="MM/AA" maxlength="5" />
+        </label>
+        <label>
+          CVV:
+          <input type="text" [(ngModel)]="dadosCartao.cvv" placeholder="CVV" maxlength="3" />
+        </label>
       </div>
+
+      <!-- QR Code para PIX -->
+      <div *ngIf="metodoSelecionado === 'pix'">
+        <p>Use o QR Code abaixo para realizar o pagamento:</p>
+        <div class="qrcode-container">
+          <!-- QR Code gerado com o valor -->
+          <img [src]="qrCodeSrc" alt="QR Code para PIX" />
+        </div>
+        <div class="pix-code-container">
+          <p><strong>Código PIX:</strong></p>
+          <input type="text" [value]="codigoPix" readonly class="pix-code" />
+          <button (click)="copiarCodigoPix()">Copiar Código</button>
+        </div>
+      </div>
+
+      <!-- Botões para escolher o método -->
+      <div *ngIf="!metodoSelecionado">
+        <button (click)="selecionarMetodo('pix')">Pagar com PIX</button>
+        <button (click)="selecionarMetodo('cartao')">Pagar com Cartão</button>
+      </div>
+
+      <!-- Botão de confirmação -->
+      <div *ngIf="isLoading">
+        <p>Processando pagamento...</p>
+        <div class="spinner"></div> <!-- Você pode usar um ícone de spinner aqui -->
+      </div>
+
+      <!-- Se não estiver carregando, mostre o botão de confirmação -->
+      <button (click)="fecharModal()">Cancelar</button>
     </div>
   </div>
-  
+</div>

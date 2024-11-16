@@ -6,7 +6,7 @@
     text-decoration: none;
     color: black;
     font-weight: bold;
-  }
+}
 
 .carteira-container {
     padding: 81px 8px 53px 8px;
@@ -24,8 +24,8 @@
 
 }
 
-h2{
-    margin-top: 50px; 
+h2 {
+    margin-top: 50px;
 }
 
 h3 {
@@ -71,73 +71,115 @@ li {
 
 .modal {
     position: fixed;
+    /* Para que o modal ocupe toda a tela */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
+    /* Fundo semi-transparente */
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-  
-  .modal-content {
+    z-index: 9999;
+}
+
+.modal-content {
     background: white;
     padding: 20px;
     border-radius: 8px;
+    width: 300px;
     text-align: center;
-  }
-  
-  .modal-content button {
-    margin: 5px;
-  }
+}
 
-  .qrcode-container img {
+.modal-content button {
+    margin: 5px;
+}
+
+.qrcode-container img {
     width: 200px;
     height: 200px;
     margin: 20px auto;
     display: block;
-  }
-  
-  .modal-content label {
+}
+
+.modal-content label {
     display: block;
     margin-bottom: 10px;
-  }
-  
-  .modal-content input {
+}
+
+.modal-content input {
     width: 100%;
     padding: 5px;
     margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
-  }
+}
 
-  .pix-code-container {
+.pix-code-container {
     margin-top: 20px;
     text-align: center;
-  
+
     .pix-code {
-      width: 80%;
-      padding: 5px;
-      margin: 10px auto;
-      text-align: center;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 14px;
+        width: 80%;
+        padding: 5px;
+        margin: 10px auto;
+        text-align: center;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
     }
-  
+
     button {
-      margin-top: 10px;
-      padding: 8px 15px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-  
-      &:hover {
-        background-color: #0056b3;
-      }
+        margin-top: 10px;
+        padding: 8px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+
+        &:hover {
+            background-color: #0056b3;
+        }
     }
-  }
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+    margin-top: 10px;
+    /* Distância do texto */
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-container {
+    position: absolute;
+    /* Absoluto para cobrir toda a tela */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.8);
+    /* Fundo branco com transparência */
+    z-index: 10;
+    /* Garantir que o loading apareça acima do conteúdo */
+}
