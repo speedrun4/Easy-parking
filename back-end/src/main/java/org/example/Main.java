@@ -31,4 +31,11 @@ public class Main {
     public List<Cliente> getAllClientes() {
         return clienteService.getAllClientes();
     }
+
+    public class QRCodeApplication {
+
+        public void main(String[] args) {
+            SpringApplication.run(QRCodeApplication.class, args);
+        }
+    }
 }
