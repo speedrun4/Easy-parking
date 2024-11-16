@@ -1,40 +1,53 @@
+
 import { Injectable } from '@angular/core';
-import { Carteira, Transacao } from '../models/carteira.model';
+import { Carteira } from 'src/app/models/carteira.model';
+
+
+export interface Transacao {
+  data: Date;
+  descricao: string;
+  valor: number;
+  tipo: "entrada" | "saida"; // tipo restrito
+}
 
 @Injectable({
   providedIn: 'root'
 })
-export class CarteiraService {
-  private carteira: Carteira = {
-    saldo: 1000,  // Saldo inicial, por exemplo
-    historicoTransacoes: []
-  };
 
-  constructor() { }
+export class CarteiraService {
+  private carteira: Carteira = { saldo: 1000, historicoTransacoes: [] }; // Simulação inicial
 
   obterCarteira(): Carteira {
     return this.carteira;
   }
 
-  adicionarValor(valor: number, descricao: string) {
+  adicionarValor(valor: number, descricao: string, metodo: string,): void {
     const transacao: Transacao = {
-      tipo: 'entrada',
-      valor: valor,
-      descricao: descricao,
-      data: new Date()
+      data: new Date(),
+      descricao,
+      valor,
+      tipo: "entrada",
     };
+
     this.carteira.saldo += valor;
     this.carteira.historicoTransacoes.push(transacao);
+
+    // Simule um salvamento na base de dados aqui
+    console.log('Transação salva:', transacao);
   }
 
-  removerValor(valor: number, descricao: string) {
+  removerValor(valor: number, descricao: string): void {
     const transacao: Transacao = {
-      tipo: 'saida',
-      valor: valor,
-      descricao: descricao,
-      data: new Date()
+      data: new Date(),
+      descricao,
+      valor,
+      tipo: "saida"
     };
+
     this.carteira.saldo -= valor;
     this.carteira.historicoTransacoes.push(transacao);
+
+    // Simule um salvamento na base de dados aqui
+    console.log('Transação salva:', transacao);
   }
 }

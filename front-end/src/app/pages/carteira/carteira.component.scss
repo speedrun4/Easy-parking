@@ -68,3 +68,76 @@ ul {
 li {
     margin-bottom: 10px;
 }
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .modal-content button {
+    margin: 5px;
+  }
+
+  .qrcode-container img {
+    width: 200px;
+    height: 200px;
+    margin: 20px auto;
+    display: block;
+  }
+  
+  .modal-content label {
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .modal-content input {
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .pix-code-container {
+    margin-top: 20px;
+    text-align: center;
+  
+    .pix-code {
+      width: 80%;
+      padding: 5px;
+      margin: 10px auto;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+  
+    button {
+      margin-top: 10px;
+      padding: 8px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+  
+      &:hover {
+        background-color: #0056b3;
+      }
+    }
+  }
