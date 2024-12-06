@@ -183,3 +183,27 @@ li {
     z-index: 10;
     /* Garantir que o loading apareça acima do conteúdo */
 }
+
+.modal-content {
+    button {
+        margin: 5px;
+        border-radius: 20px;
+        border: none !important;
+        color: white;
+        background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+    }
+} 
+
+.qrcode-container img {
+    width: 200px;
+    height: 200px;
+    margin: 20px auto;
+    display: block;
+  }
+  
+  .pix-code-container {
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+
