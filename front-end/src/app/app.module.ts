@@ -7,7 +7,6 @@ import { HeaderComponent } from './components/header/header.component';
 import { CarouselComponent } from './components/carousel/carousel.component';
 import { AboutComponent } from './components/about/about.component';
 import { CarouselModule } from 'ngx-bootstrap/carousel';
-
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HomeComponent } from './pages/home/home.component';
 import { CadastroComponent } from './pages/cadastro/cadastro.component';

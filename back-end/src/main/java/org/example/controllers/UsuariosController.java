@@ -27,15 +27,15 @@ public class UsuariosController {
     @Autowired
     private EmailService emailService;
 
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Optional<Usuarios> usuarioOpt = usuariosService.findByEmail(loginRequest.getEmail());
 
         if (usuarioOpt.isPresent()) {
             Usuarios usuario = usuarioOpt.get();
-            if (usuario.getSenha().equals(loginRequest.getPassword())) {
-                String token = "fake-jwt-token";
+            // Usar BCrypt para comparar a senha enviada com o hash no banco
+            if (passwordEncoder.matches(loginRequest.getPassword(), usuario.getSenha())) {
+                String token = "fake-jwt-token"; // Substitua pelo seu gerador de token real
                 // Cria o objeto AuthResponse
                 AuthResponse response = new AuthResponse(token, usuario.getId(), usuario.getNomeCompleto(), usuario.getPerfil());
                 return ResponseEntity.ok(response);

@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
           if (error.status === 401) {
             this.openErrorDialog("Email ou senha não conferem, por favor tentar novamente.");
           } else {
-            this.openErrorDialog("Ocorreu um erro inesperado. Por favor, tente novamente.");
+            this.openErrorDialog("Email ou senha não conferem, por favor tentar novamente.");
           }
           console.error('Erro no login', error);
         }
