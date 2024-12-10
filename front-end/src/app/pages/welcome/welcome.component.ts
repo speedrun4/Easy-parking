@@ -45,11 +45,10 @@ export class WelcomeComponent implements OnInit {
       this.markers = estacionamentos.map((estacionamento) => ({
         latitude: estacionamento.latitude,
         longitude: estacionamento.longitude,
-        label: `R$ ${estacionamento.hourlyRate}/h`,
-        title: estacionamento.companyName,
-        address: estacionamento.address,
-        iconUrl:
-          'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
+        label: `R$ ${estacionamento.hourlyRate}/h`, // Valor por hora
+        title: estacionamento.companyName, // Nome da empresa
+        address: estacionamento.address, // Endereço
+        iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
       }));
 
       this.filteredMarkers = this.markers;
@@ -142,8 +141,12 @@ export class WelcomeComponent implements OnInit {
     );
 
     if (index === -1) {
-      // Se não estiver selecionado, adiciona à lista
-      this.selectedParkings.push(marker);
+      // Se não estiver selecionado, adiciona à lista com data e hora padrão
+      this.selectedParkings.push({
+        ...marker,
+        selectedDate: '', // Campo para a data
+        selectedTime: '', // Campo para a hora
+      });
     } else {
       // Se já estiver selecionado, remove da lista
       this.selectedParkings.splice(index, 1);
@@ -169,19 +172,45 @@ export class WelcomeComponent implements OnInit {
     );
   }
 
+  updateSelectedParkingDate(marker: any, date: string) {
+    const parking = this.selectedParkings.find(
+      (selectedMarker) =>
+        selectedMarker.latitude === marker.latitude &&
+        selectedMarker.longitude === marker.longitude
+    );
+    if (parking) {
+      parking.selectedDate = date;
+    }
+  }
+  
+  updateSelectedParkingTime(marker: any, event: Event) {
+    const inputElement = event.target as HTMLInputElement; // Confirma que o alvo é um elemento de entrada
+  const time = inputElement.value;
+  const parking = this.selectedParkings.find(
+    (selectedMarker) =>
+      selectedMarker.latitude === marker.latitude &&
+      selectedMarker.longitude === marker.longitude
+  );
+  if (parking) {
+    parking.selectedTime = time;
+  }
+  }
+  
+
   // Função para confirmar a seleção de estacionamentos
   confirmSelection() {
     if (this.selectedParkings.length > 0) {
       const clienteName = 'João Silva'; // Nome do cliente
-      const reservaTime = '15:00'; // Horário da reserva
-
+  
       this.router.navigate(['/confirm'], {
         state: {
           selectedParkings: this.selectedParkings,
           clienteName: clienteName,
-          reservaTime: reservaTime,
         },
       });
+  
+      // Exibe os dados confirmados no console
+      console.log('Estacionamentos confirmados:', this.selectedParkings);
     }
   }
 }

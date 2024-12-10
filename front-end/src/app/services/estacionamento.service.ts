@@ -22,13 +22,16 @@ export class EstacionamentoService {
     return this.http.get<any[]>(this.apiUrl).pipe(
       mergeMap((clientes) => {
         const requests = clientes.map((cliente) => this.getCoordinatesByCep(cliente.cep).pipe(
-          map((coords) => ({
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-            companyName: cliente.nome_empresa,
-            hourlyRate: cliente.valorPorHora,
-            address: cliente.enderecoCompleto,
-          }))
+          map((coords) => {
+            console.log('Nome da Empresa:', cliente.nomeEmpresa); // Verifique o nome da empresa
+            return {
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+              companyName: cliente.nomeEmpresa,
+              hourlyRate: cliente.valorPorHora,
+              address: cliente.enderecoCompleto,
+            };
+          })
         ));
 
         // Executa todas as requisições de geocodificação de uma vez com forkJoin

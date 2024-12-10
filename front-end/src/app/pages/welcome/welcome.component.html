@@ -25,13 +25,27 @@
   </agm-map>
 </div>
 
-<!-- Estacionamentos selecionados -->
 <div *ngIf="selectedParkings.length > 0" class="selected-parkings-list">
   <h4>Estacionamentos Selecionados:</h4>
   <div *ngFor="let marker of selectedParkings" class="parking-list-item">
     <h4>{{ marker.title }} - {{ marker.label }}</h4>
     <p>{{ marker.address }}</p>
-    <button mat-button color="warn" (click)="removeParking(marker)">Remover</button> <!-- Optional: Add functionality to remove selection -->
+    
+    <!-- Campo para selecionar a data -->
+    <mat-form-field appearance="outline" class="date">
+      <mat-label>Data</mat-label>
+      <input matInput [matDatepicker]="picker" (dateChange)="updateSelectedParkingDate(marker, $event.value)" placeholder="Escolha a data">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+    
+    <!-- Campo para selecionar a hora -->
+    <mat-form-field appearance="outline" class="time">
+      <mat-label>Hora</mat-label>
+      <input matInput type="time" (change)="updateSelectedParkingTime(marker, $event)">
+    </mat-form-field>
+
+    <button mat-button color="warn" (click)="removeParking(marker)">Remover</button>
   </div>
 </div>
 
