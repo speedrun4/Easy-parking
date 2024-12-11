@@ -204,7 +204,13 @@ export class WelcomeComponent implements OnInit {
   
       this.router.navigate(['/confirm'], {
         state: {
-          selectedParkings: this.selectedParkings,
+          selectedParkings: this.selectedParkings.map((parking) => ({
+            title: parking.title,
+            label: parking.label,
+            address: parking.address,
+            selectedDate: parking.selectedDate, // Inclui a data selecionada
+            selectedTime: parking.selectedTime, // Inclui a hora selecionada
+          })),
           clienteName: clienteName,
         },
       });

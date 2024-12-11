@@ -43,7 +43,7 @@ export class AuthService {
     if (user && user.id && user.perfil) {
       const isClient = user.perfil === 'cliente';
       const loginAsUser = user.loginAsUser || false; // Login como usuário ou cliente
-      const currentUser = { ...user, isClient, loginAsUser };
+      const currentUser = { ...user, isClient, loginAsUser};
       this.currentUserSubject.next(currentUser);
       localStorage.setItem('currentUser', JSON.stringify(currentUser));
     } else {
@@ -51,13 +51,6 @@ export class AuthService {
       this.currentUserSubject.next(null); // Reseta o currentUser
       localStorage.removeItem('currentUser'); // Remove o usuário do localStorage em caso de erro
     }
-
-//   if(!currentUser.id) {
-//     console.error('Erro: ID do usuário não está definido!');
-//   }
-
-//   localStorage.setItem('currentUser', JSON.stringify(currentUser));
-// this.currentUserSubject.next(currentUser);
   }
 
 // Logout e remoção dos dados do usuário armazenados

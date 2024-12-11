@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
+import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-confirm',
@@ -17,8 +19,13 @@ export class ConfirmComponent implements OnInit {
   selectedDate: Date | null = null; // Data selecionada
   minDate: Date;
   totalValue: number = 0;
+  userName: string = '';
+  isLoggedIn = false;
+  isClient = false;
+  loginAsUser: boolean = false;
+  private authSubscription: Subscription = new Subscription();
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private authService: AuthService) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       selectedParkings: any[];
@@ -27,15 +34,29 @@ export class ConfirmComponent implements OnInit {
     };
 
     if (state) {
-      this.selectedParkings = state.selectedParkings;
+      this.selectedParkings = state.selectedParkings.map((parking) => ({
+        ...parking,
+        selectedDate: parking.selectedDate || null,
+        selectedTime: parking.selectedTime || null,
+      }));
       this.clienteName = state.clienteName;
-      this.reservaTime = state.reservaTime;
       this.calculateTotalValue();
     }
     this.minDate = new Date();
   }
 
   ngOnInit(): void {
+    this.authSubscription = this.authService.currentUser.subscribe(user => {
+      this.isLoggedIn = !!user;
+      if (user) {
+        this.userName = user.nomeCompleto?.split(' ').slice(0, 2).join(' ') || '';
+        this.isClient = user.isClient; // Perfil cliente
+        this.loginAsUser = user.loginAsUser; // Tipo de login realizado
+      } else {
+        this.userName = '';
+        this.isClient = false;
+      }
+    });
     this.generateAvailableTimes();
   }
 
@@ -57,11 +78,6 @@ export class ConfirmComponent implements OnInit {
 
   confirmReservation() {
     if (this.selectedTime && this.selectedDate) {
-      console.log('Reserva Confirmada para os seguintes estacionamentos:');
-      console.log(this.selectedParkings);
-      console.log('Cliente:', this.clienteName);
-      console.log('Horário da Reserva:', this.selectedTime);
-      console.log('Data da Reserva:', this.selectedDate);
       alert(`Reserva confirmada para ${moment(this.selectedDate).format('DD/MM/YYYY')} às ${this.selectedTime}! Favor realizar o pagamento para finalizar sua reserva`);
       this.router.navigate(['/payment'], {
         state: {

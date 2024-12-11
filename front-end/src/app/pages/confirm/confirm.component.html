@@ -9,27 +9,14 @@
         <p><strong>Nome:</strong> {{ parking.title }}</p>
         <p><strong>Valor:</strong> {{ parking.label }}</p>
         <p><strong>Endereço:</strong> {{ parking.address }}</p>
+        <p><strong>Data:</strong> {{ parking.selectedDate | date:'dd/MM/yyyy' }}</p>
+        <p><strong>Hora:</strong> {{ parking.selectedTime }}</p>
         <hr />
       </div>
 
-      <h3>Informações do Cliente</h3>
-      <p><strong>Nome do Cliente:</strong> {{ clienteName }}</p>
-
-      <!-- Campo de seleção de data -->
-      <mat-form-field appearance="fill">
-        <input matInput [matDatepicker]="picker" [ngModel]="selectedDate" (dateChange)="onDateChange($event)"
-          [min]="minDate" placeholder="Escolha uma data">
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-      </mat-form-field>
-
-      <!-- Dropdown para seleção do horário -->
-      <mat-form-field appearance="fill" class="time-select">
-        <mat-label>Selecione o horário de reserva</mat-label>
-        <mat-select [(value)]="selectedTime" placeholder="Escolha um horário">
-          <mat-option *ngFor="let time of availableTimes" [value]="time">{{ time }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+      <h3>Informações do Usuário</h3>
+      <p><strong>Nome do Usuário:</strong> {{ userName }}</p>
+     
 
     </mat-card-content>
   </mat-card>
