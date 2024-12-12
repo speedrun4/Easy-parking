@@ -51,8 +51,10 @@ import { SucessoModalComponent } from './components/sucess-modal/sucess-modal.co
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { CommonModule } from '@angular/common';
+import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 @NgModule({
   declarations: [
+    ConfirmationDialogComponent,
     AppComponent,
     HeaderComponent,
     CarouselComponent,
@@ -77,7 +79,7 @@ import { CommonModule } from '@angular/common';
     CadastroEstacionamentoComponent,
     FinancasComponent,
     SucessoModalComponent,
-    UserProfileComponent
+    UserProfileComponent,
   ],
   imports: [
     MatButtonModule,

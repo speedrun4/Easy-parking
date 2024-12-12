@@ -4,6 +4,8 @@ import * as moment from 'moment';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { Location } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationDialogComponent } from 'src/app/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-confirm',
@@ -24,9 +26,10 @@ export class ConfirmComponent implements OnInit {
   isLoggedIn = false;
   isClient = false;
   loginAsUser: boolean = false;
+  confirmationMessage: string = '';
   private authSubscription: Subscription = new Subscription();
 
-  constructor(private router: Router, private authService: AuthService, private location: Location) {
+  constructor(private router: Router, private authService: AuthService, private location: Location, private dialog: MatDialog) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       selectedParkings: any[];
@@ -81,15 +84,21 @@ export class ConfirmComponent implements OnInit {
   }
 
   confirmReservation() {
-    if (this.selectedTime && this.selectedDate) {
-      alert(`Reserva confirmada para ${moment(this.selectedDate).format('DD/MM/YYYY')} às ${this.selectedTime}! Favor realizar o pagamento para finalizar sua reserva`);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      width: '350px',
+      data: {
+        message: `Reserva pré-confirmada! Favor realizar o pagamento para finalizar sua reserva.
+        Caso o pagamento não for confirmado dentro de 10 minutos sua reserva será cancelada! Caso você saia da pagina de pagamento, você pode visualizar a sua pré-reserva na barra de menu -> pré-reserva.`
+      }
+    });
+    dialogRef.afterClosed().subscribe(() => {
       this.router.navigate(['/payment'], {
         state: {
-          totalValue: this.totalValue
+          totalValue: this.totalValue,
+          selectedDate: this.selectedDate || null, // Inclua a data, mesmo que seja nula
+          selectedTime: this.selectedTime || null // Inclua o horário, mesmo que seja nulo
         }
       });
-    } else {
-      alert('Por favor, selecione uma data e horário.');
-    }
+    });
   }
 }

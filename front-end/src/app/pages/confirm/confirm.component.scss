@@ -12,10 +12,22 @@
   button {
     margin-top: 20px;
     background: linear-gradient(to right, #2bfab9, teal);
+    margin-right: 14px;
   }
 }
 
 .time-select {
   width: 100%;
   margin-top: 20px;
+}
+
+.confirmation-message {
+  color: green;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid green;
+  border-radius: 5px;
+  background-color: #e6ffe6;
 }
