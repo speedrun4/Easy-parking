@@ -46,6 +46,7 @@ export class ConfirmComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log('Dados recebidos:', this.selectedParkings);
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       this.isLoggedIn = !!user;
       if (user) {

@@ -10,7 +10,7 @@
         <p><strong>Valor:</strong> {{ parking.label }}</p>
         <p><strong>Endereço:</strong> {{ parking.address }}</p>
         <p><strong>Data:</strong> {{ parking.selectedDate | date:'dd/MM/yyyy' }}</p>
-        <p><strong>Hora:</strong> {{ parking.selectedTime }}</p>
+        <p><strong>Hora:</strong> {{ parking.selectedTime || selectedTime }}</p>
         <hr />
       </div>
 

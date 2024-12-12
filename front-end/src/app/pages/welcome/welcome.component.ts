@@ -17,6 +17,7 @@ export class WelcomeComponent implements OnInit {
   filteredMarkers: any[] = []; // Armazena os resultados da busca
   selectedParkings: any[] = []; // Array para armazenar estacionamentos selecionados
   paymentConfirmed: boolean = false;
+  selectedTime: string | undefined;
 
   constructor(
     private fb: FormBuilder,
@@ -77,6 +78,9 @@ export class WelcomeComponent implements OnInit {
       this.longitude = primeiroEstacionamento.longitude;
       this.zoom = 12;
     }
+  }
+  areDatesAndTimesSelected(): boolean {
+    return this.selectedParkings.every(parking => parking.selectedDate && parking.selectedTime);
   }
 
   askForRoute() {

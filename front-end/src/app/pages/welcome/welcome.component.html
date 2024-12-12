@@ -38,17 +38,39 @@
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
+
+    <!-- <mat-form-field appearance="outline" class="time">
+      <mat-label>Hora</mat-label>
+      <input
+        matInput
+        timepicker
+        [ngxTimepicker]="timepicker"
+        (change)="updateSelectedParkingTime(marker, $event)"
+        readonly
+      />
+      <ngx-material-timepicker
+        #timepicker
+        [minutesGap]="5" 
+        [hour24Mode]="true"
+      ></ngx-material-timepicker>
+    </mat-form-field> -->
     
     <!-- Campo para selecionar a hora -->
     <mat-form-field appearance="outline" class="time">
       <mat-label>Hora</mat-label>
-      <input matInput type="time" (change)="updateSelectedParkingTime(marker, $event)">
+      <input matInput type="time" step="600" (change)="updateSelectedParkingTime(marker, $event)">
     </mat-form-field>
 
     <button mat-button color="warn" (click)="removeParking(marker)">Remover</button>
   </div>
 </div>
 
-<div class="confirm-container" fxLayoutAlign="center center" *ngIf="selectedParkings.length > 0">
-  <button mat-raised-button color="primary" class="botao" (click)="confirmSelection()">Confirmar</button>
+<div *ngIf="selectedParkings.length > 0" class="confirm-container" fxLayoutAlign="center center">
+  <button mat-raised-button
+          color="primary"
+          class="botao"
+          (click)="confirmSelection()"
+          [disabled]="!areDatesAndTimesSelected()">
+    Confirmar
+  </button>
 </div>

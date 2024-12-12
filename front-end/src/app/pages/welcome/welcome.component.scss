@@ -95,3 +95,20 @@ mat-form-field{
 .time {
   margin-top: 1px;
 }
+ngx-material-timepicker {
+  width: auto;
+  height: auto;
+}
+
+.disabled-button {
+  background-color: #e0e0e0; /* Cor de fundo suave */
+  color: #9e9e9e;            /* Cor do texto mais clara */
+  cursor: not-allowed;       /* Mostra um cursor de "não permitido" */
+  border: 1px solid #bdbdbd; /* Cor da borda */
+}
+
+.disabled-button:disabled {
+  background-color: #e0e0e0; /* Mesma cor de fundo quando o botão está desabilitado */
+  color: #9e9e9e;            /* Mesma cor do texto */
+  border: 1px solid #bdbdbd; /* Mesma cor da borda */
+}

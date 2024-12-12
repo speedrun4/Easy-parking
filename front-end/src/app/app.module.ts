@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -49,6 +49,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { SucessoModalComponent } from './components/sucess-modal/sucess-modal.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
+import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+import { CommonModule } from '@angular/common';
 @NgModule({
   declarations: [
     AppComponent,
@@ -103,15 +105,19 @@ import { UserProfileComponent } from './pages/user-profile/user-profile.componen
     MatPaginatorModule,
     MatTableModule,
     MatSortModule,
+    NgxMaterialTimepickerModule,
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyC1JY-mIJMlZinIwKj3jJYoCV9sXrpWmSk'
     }),
     MatFormFieldModule,
     MatInputModule,
     HttpClientModule,
+    CommonModule
+    
   ],
   entryComponents: [ErrorDialogComponent],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppModule { }
