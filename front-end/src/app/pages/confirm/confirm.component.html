@@ -16,11 +16,14 @@
 
       <h3>Informações do Usuário</h3>
       <p><strong>Nome do Usuário:</strong> {{ userName }}</p>
-     
+
 
     </mat-card-content>
   </mat-card>
 
   <!-- Botão para confirmar a reserva -->
   <button mat-raised-button color="primary" (click)="confirmReservation()">Confirmar Reserva</button>
+  <div>
+    <button mat-raised-button color="warn" (click)="cancelReservation()">Cancelar Reserva</button>
+  </div>
 </div>

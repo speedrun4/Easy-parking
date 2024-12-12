@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import * as moment from 'moment';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-confirm',
@@ -25,7 +26,7 @@ export class ConfirmComponent implements OnInit {
   loginAsUser: boolean = false;
   private authSubscription: Subscription = new Subscription();
 
-  constructor(private router: Router, private authService: AuthService) {
+  constructor(private router: Router, private authService: AuthService, private location: Location) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       selectedParkings: any[];
@@ -60,7 +61,9 @@ export class ConfirmComponent implements OnInit {
     });
     this.generateAvailableTimes();
   }
-
+  cancelReservation() {
+    this.location.back();
+  }
   generateAvailableTimes() {
     for (let i = 7; i <= 22; i++) {
       const time = i < 10 ? `0${i}:00` : `${i}:00`;
