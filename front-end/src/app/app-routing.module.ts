@@ -16,6 +16,7 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
 import { CadastroEstacionamentoComponent } from './pages/cadastro-estacionamento/cadastro-estacionamento.component';
 import { FinancasComponent } from './pages/financas/financas.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
+import { PreReservaComponent } from './pages/pre-reserva/pre-reserva.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
@@ -34,6 +35,8 @@ const routes: Routes = [
   { path: 'carteira', component: CarteiraComponent },
   { path: 'history', component: PaymentHistoryComponent },
   { path: 'user-profile', component: UserProfileComponent },
+  { path: 'pre-reserva', component: PreReservaComponent },
+
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
   { path: 'splash', component: SplashComponent }, // rota para página não encontrada

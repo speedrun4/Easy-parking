@@ -52,6 +52,7 @@ import { UserProfileComponent } from './pages/user-profile/user-profile.componen
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { CommonModule } from '@angular/common';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
+import { PreReservaComponent } from './pages/pre-reserva/pre-reserva.component';
 @NgModule({
   declarations: [
     ConfirmationDialogComponent,
@@ -80,6 +81,7 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
     FinancasComponent,
     SucessoModalComponent,
     UserProfileComponent,
+    PreReservaComponent
   ],
   imports: [
     MatButtonModule,
