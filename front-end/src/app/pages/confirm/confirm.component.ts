@@ -84,6 +84,23 @@ export class ConfirmComponent implements OnInit {
   }
 
   confirmReservation() {
+       // Preparando os dados da pré-reserva
+       const preReservaData = {
+        selectedParkings: this.selectedParkings.map((parking) => ({
+          title: parking.title,
+          label: parking.label,
+          address: parking.address,
+          selectedDate: parking.selectedDate,
+          selectedTime: parking.selectedTime,
+        })),
+        timestamp: new Date().getTime(), // Salva o timestamp para controle de expiração
+      };
+  
+      // Salva os dados no localStorage
+      localStorage.setItem('preReservaData', JSON.stringify(preReservaData));
+  
+      // Exibe no console os dados confirmados
+      console.log('Pré-reserva salva com sucesso:', preReservaData);
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '350px',
       data: {

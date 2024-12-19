@@ -1,114 +1,27 @@
-.search-container, .confirm-container {
-  width: 100%;
-  text-align: center;
-  margin: 0px 0;
-}
-.card{
-  margin-left: 10px;
-  margin-right: 10px;
-  height: 60vh;
-  margin-bottom: 14px
-}
-
-.map-container {
-  height: 400px;  // Altura fixa para garantir que o mapa ocupe espaço suficiente
-  width: 100%;
-  max-width: 100%;
-}
-
-mat-form-field{
-  width: 90%;
-  margin-top: 81px;
-}
-
-@media (max-width: 768px) {
-  .map-container {
-    height: 300px;
+.pre-reserva-container {
+    padding: 75px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 8px;
   }
-
-  .botao {
-    width: 50%;
-    background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
-    margin-bottom: 14px;
+  
+  h3 {
+    margin: 5px 0;
   }
-}
-
-@media (max-width: 480px) {
-  .map-container {
-    height: 100px;
-    height: 60vh;
+  
+  h2 {
+    color: #4caf50;
   }
-}
-
-.selected-parkings-list {
-  width: 95%;
-  margin: 10px 10px 10px 10px;
-  padding: 10px;
-  border: 1px solid #ccc; /* Optional: Add a border */
-  border-radius: 10px; /* Rounded corners */
-  background-color: #f9f9f9; /* Light background for contrast */
-}
-
-.parking-list-item {
-  padding: 10px;
-  border-bottom: 1px solid #ddd; /* Separate items visually */
-  display: flex;
-  justify-content: space-between; /* Space between title and remove button */
-  align-items: center; /* Center vertically */
-}
-
-.parking-list-item h4 {
-  margin: 0; /* Remove default margin */
-  font-size: 1.2em; /* Adjust title size */
-}
-
-.parking-list-item p {
-  margin: 5px 0; /* Add some space above/below */
-}
-
-/* Responsive styles for selected parkings */
-@media (max-width: 768px) {
-  .selected-parkings-list {
-    padding: 5px; /* Reduce padding on smaller screens */
+  
+  p {
+    margin: 5px 0;
   }
-
-  .parking-list-item {
-    flex-direction: column; /* Stack items on smaller screens */
-    align-items: flex-start; /* Align items to the start */
+  
+  .timer {
+    font-size: 1.5em;
+    color: #ff5722;
   }
-
-  .parking-list-item h4 {
-    font-size: 1em; /* Smaller font size on mobile */
+  
+  .card{
+    margin-top: 14px;
   }
-}
-
-@media (max-width: 480px) {
-  .parking-list-item {
-    margin: 5px 0; /* Reduce margin for tighter spacing */
-  }
-}
-
-.date {
-  margin-top: 1px;
-}
-
-.time {
-  margin-top: 1px;
-}
-ngx-material-timepicker {
-  width: auto;
-  height: auto;
-}
-
-.disabled-button {
-  background-color: #e0e0e0; /* Cor de fundo suave */
-  color: #9e9e9e;            /* Cor do texto mais clara */
-  cursor: not-allowed;       /* Mostra um cursor de "não permitido" */
-  border: 1px solid #bdbdbd; /* Cor da borda */
-}
-
-.disabled-button:disabled {
-  background-color: #e0e0e0; /* Mesma cor de fundo quando o botão está desabilitado */
-  color: #9e9e9e;            /* Mesma cor do texto */
-  border: 1px solid #bdbdbd; /* Mesma cor da borda */
-}

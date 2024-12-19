@@ -6,6 +6,10 @@
   </nav>
   <span class="app-name">Easy Parking</span>
 
+  <div class="pre-reserva-time" *ngIf="preReservaTimeLeft">
+    <span>{{ preReservaTimeLeft }}</span>
+  </div>
+
   <!-- Avatar com Dropdown -->
   <div class="login-avatar" (click)="toggleAvatarMenu()">
     <img src="assets/images/avatar.png" alt="Avatar">
@@ -39,6 +43,7 @@
     <ul>
       <li><a (click)="closeMenu()" [routerLink]="['/carteira']">Carteira</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/welcome']">Estacionamentos</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/pre-reserva']">Pré-reservas</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/history']">Histórico</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/user-profile']">Meus Dados</a></li>
     </ul>

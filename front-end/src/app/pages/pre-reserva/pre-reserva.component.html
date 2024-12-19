@@ -1,76 +1,17 @@
-<div *ngIf="paymentConfirmed" class="confirmation-message">
-  <p>Pagamento confirmado com sucesso!</p>
-</div>
-
-<div class="search-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="20px">
-  <form [formGroup]="searchForm" (ngSubmit)="onSearch()" fxFlex="100" fxFlex.xs="90" fxFlex.sm="95" fxFlex.md="80">
-    <mat-form-field fxFlex="100%">
-      <mat-label>Buscar estacionamento (Nome ou Endereço)</mat-label>
-      <input matInput formControlName="search" placeholder="Digite o nome ou endereço do estacionamento">
-    </mat-form-field>
-    <button class="botao" mat-raised-button color="primary" type="submit">Buscar</button>
-  </form>
-</div>
-
-<div class="card">
-  <agm-map [latitude]="latitude" [longitude]="longitude" [zoom]="zoom" class="map-container">
-    <agm-marker *ngFor="let marker of filteredMarkers"
-                [latitude]="marker.latitude"
-                [longitude]="marker.longitude"
-                [label]="marker.label"
-                [title]="marker.title"
-                [iconUrl]="marker.iconUrl"
-                (markerClick)="toggleParkingSelection(marker)">
-    </agm-marker>
-  </agm-map>
-</div>
-
-<div *ngIf="selectedParkings.length > 0" class="selected-parkings-list">
-  <h4>Estacionamentos Selecionados:</h4>
-  <div *ngFor="let marker of selectedParkings" class="parking-list-item">
-    <h4>{{ marker.title }} - {{ marker.label }}</h4>
-    <p>{{ marker.address }}</p>
-    
-    <!-- Campo para selecionar a data -->
-    <mat-form-field appearance="outline" class="date">
-      <mat-label>Data</mat-label>
-      <input matInput [matDatepicker]="picker" (dateChange)="updateSelectedParkingDate(marker, $event.value)" placeholder="Escolha a data">
-      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-datepicker #picker></mat-datepicker>
-    </mat-form-field>
-
-    <!-- <mat-form-field appearance="outline" class="time">
-      <mat-label>Hora</mat-label>
-      <input
-        matInput
-        timepicker
-        [ngxTimepicker]="timepicker"
-        (change)="updateSelectedParkingTime(marker, $event)"
-        readonly
-      />
-      <ngx-material-timepicker
-        #timepicker
-        [minutesGap]="5" 
-        [hour24Mode]="true"
-      ></ngx-material-timepicker>
-    </mat-form-field> -->
-    
-    <!-- Campo para selecionar a hora -->
-    <mat-form-field appearance="outline" class="time">
-      <mat-label>Hora</mat-label>
-      <input matInput type="time" step="600" (change)="updateSelectedParkingTime(marker, $event)">
-    </mat-form-field>
-
-    <button mat-button color="warn" (click)="removeParking(marker)">Remover</button>
+<div *ngIf="preReservaData; else emptyState" class="pre-reserva-container">
+    <h2>Pré-Reserva Confirmada</h2>
+    <p>Cliente: {{ preReservaData.clienteName }}</p>
+  
+    <div *ngFor="let parking of preReservaData.selectedParkings">
+      <h3>{{ parking.title }} - {{ parking.label }}</h3>
+      <p>Endereço: {{ parking.address }}</p>
+      <p>Data: {{ parking.selectedDate }}</p>
+      <p>Hora: {{ parking.selectedTime }}</p>
+    </div>
+  
+    <h3>Tempo restante: {{ countdown | date:'mm:ss' }}</h3>
   </div>
-</div>
-
-<div *ngIf="selectedParkings.length > 0" class="confirm-container" fxLayoutAlign="center center">
-  <button mat-raised-button
-          color="primary"
-          class="botao"
-          (click)="confirmSelection()"
-          [disabled]="!areDatesAndTimesSelected()">
-    Confirmar
-  </button>
-</div>
+  
+  <ng-template #emptyState>
+    <h2>Nenhuma pré-reserva ativa.</h2>
+  </ng-template>

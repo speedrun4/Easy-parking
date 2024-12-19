@@ -53,9 +53,11 @@ import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { CommonModule } from '@angular/common';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { PreReservaComponent } from './pages/pre-reserva/pre-reserva.component';
+import { ExpiradoModalComponent } from './components/expirado-modal/expirado-modal.component';
 @NgModule({
   declarations: [
     ConfirmationDialogComponent,
+    ExpiradoModalComponent,
     AppComponent,
     HeaderComponent,
     CarouselComponent,
@@ -81,7 +83,7 @@ import { PreReservaComponent } from './pages/pre-reserva/pre-reserva.component';
     FinancasComponent,
     SucessoModalComponent,
     UserProfileComponent,
-    PreReservaComponent
+    PreReservaComponent,
   ],
   imports: [
     MatButtonModule,

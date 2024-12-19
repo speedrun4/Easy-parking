@@ -15,7 +15,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isClient = false;   // Verifica se o usuário é um cliente
   userName: string = ''; // Nome do usuário logado
   loginAsUser: boolean = false;
+  preReservaTimeLeft: string = '';
+  isPreReservaExpired: boolean = false;
   private authSubscription: Subscription = new Subscription(); // Subscription para escutar as mudanças
+  private intervalId: any;
 
   constructor(
     private router: Router,
@@ -36,7 +39,38 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.isClient = false;
       }
     });
+    this.checkPreReservaTime();
   }
+
+  checkPreReservaTime() {
+    const storedData = localStorage.getItem('preReservaData');
+    if (storedData) {
+      const preReservaData = JSON.parse(storedData);
+      const expirationTime = preReservaData.timestamp + (10 * 60 * 1000); // Adiciona 10 minutos ao timestamp
+
+      // Função para atualizar o tempo restante
+      this.updateTimeLeft(expirationTime);
+    } else {
+      this.preReservaTimeLeft = ''; // Não exibe nada se não houver pré-reserva
+    }
+  }
+  updateTimeLeft(expirationTime: number) {
+    this.intervalId = setInterval(() => {
+      const currentTime = new Date().getTime();
+      const timeLeft = expirationTime - currentTime; // Calcula o tempo restante
+
+      if (timeLeft <= 0) {
+        this.isPreReservaExpired = true;
+        clearInterval(this.intervalId); // Limpa o intervalo quando a pré-reserva expirar
+        localStorage.removeItem('preReservaData'); // Remove os dados da pré-reserva
+      } else {
+        const minutes = Math.floor(timeLeft / 60000); // Calcula os minutos restantes
+        const seconds = Math.floor((timeLeft % 60000) / 1000); // Calcula os segundos restantes
+        this.preReservaTimeLeft = `${minutes}m ${seconds}s`; // Atualiza a variável com o tempo restante
+      }
+    }, 1000); // Atualiza a cada segundo
+  }
+  
 
   // Alterna o estado do menu
   toggleMenu() {
@@ -95,5 +129,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription.unsubscribe();
+  }
+
+  closeModal() {
+    this.isPreReservaExpired = false; // Fecha o modal
+    this.router.navigate(['/pre-reserva']); // Navega para a página de pré-reserva
   }
 }
