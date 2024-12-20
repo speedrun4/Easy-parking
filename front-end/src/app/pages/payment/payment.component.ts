@@ -9,7 +9,7 @@ import * as QRCode from 'qrcode';
 })
 export class PaymentComponent implements OnInit {
 
-  totalValue: number = 50.00; // valor total a pagar
+  totalValue: number = 0; // valor total a pagar
   selectedPaymentMethod: string = ''; // método de pagamento escolhido
   paymentMethods = ['Pix', 'Cartão de Crédito', 'Cartão de Débito', 'Boleto'];
   qrCodeData: string = '';
@@ -30,15 +30,35 @@ export class PaymentComponent implements OnInit {
   showCreditCardForm: boolean = false; // controla a exibição do formulário de cartão de crédito
   showDebitCardForm: boolean = false; // controla a exibição do formulário de cartão de débito
   showBoletoForm: boolean = false; // controla a exibição do formulário de boleto
+  selectedParkings: any[] = [];
+  selectedDate: Date | null = null;
+  selectedTime: string | null = null;
 
-  constructor(private router: Router) { }
-
-  ngOnInit(): void {
+  constructor(private router: Router) { 
     const navigation = this.router.getCurrentNavigation();
-    const state = navigation?.extras?.state as { totalValue: number };
+    const state = navigation?.extras?.state as {
+      totalValue: number;
+      selectedDate: Date | null;
+      selectedTime: string | null;
+    };
 
     if (state) {
-      this.totalValue = state.totalValue; // Obter o valor total da reserva
+      this.totalValue = state.totalValue;
+      this.selectedDate = state.selectedDate;
+      this.selectedTime = state.selectedTime;
+    }
+  }
+
+  ngOnInit(): void {
+    const preReservaData = JSON.parse(localStorage.getItem('preReservaData') || '{}');
+    if (preReservaData?.selectedParkings) {
+      this.selectedParkings = preReservaData.selectedParkings;
+  
+      // Calcular o total removendo "R$" e "/h" dos valores
+      this.totalValue = this.selectedParkings.reduce((total, parking) => {
+        const valorLimpo = parking.label.replace('R$', '').replace('/h', '').trim();
+        return total + parseFloat(valorLimpo);
+      }, 0);
     }
   }
 
