@@ -6,7 +6,8 @@ import java.math.BigDecimal;
 public class Cliente {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Geração automática do ID
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cliente_seq")
+    @SequenceGenerator(name = "cliente_seq", sequenceName = "cliente_sequence", allocationSize = 1)
     private Long id;
 
     @Column(name = "nome_empresa", nullable = false, length = 255)

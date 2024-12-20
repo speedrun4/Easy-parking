@@ -33,6 +33,7 @@ export class PaymentComponent implements OnInit {
   selectedParkings: any[] = [];
   selectedDate: Date | null = null;
   selectedTime: string | null = null;
+  paymentData: any = null;
 
   constructor(private router: Router) { 
     const navigation = this.router.getCurrentNavigation();
@@ -50,16 +51,36 @@ export class PaymentComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const preReservaData = JSON.parse(localStorage.getItem('preReservaData') || '{}');
-    if (preReservaData?.selectedParkings) {
-      this.selectedParkings = preReservaData.selectedParkings;
-  
-      // Calcular o total removendo "R$" e "/h" dos valores
-      this.totalValue = this.selectedParkings.reduce((total, parking) => {
-        const valorLimpo = parking.label.replace('R$', '').replace('/h', '').trim();
-        return total + parseFloat(valorLimpo);
-      }, 0);
+    try {
+      // Recuperar os dados de pagamento do localStorage
+      const storedData = localStorage.getItem('paymentData') || localStorage.getItem('preReservaData');
+      if (storedData) {
+        this.paymentData = JSON.parse(storedData);
+
+        // Verificar se os estacionamentos selecionados existem
+        if (Array.isArray(this.paymentData?.selectedParkings) && this.paymentData.selectedParkings.length > 0) {
+          this.selectedParkings = this.paymentData.selectedParkings;
+          this.calculateTotal();
+        } else {
+          console.warn('Nenhum estacionamento selecionado encontrado.');
+          this.router.navigate(['/']); // Redireciona para a página inicial
+        }
+      } else {
+        this.router.navigate(['/']); // Redireciona para a página inicial se não houver dados
+      }
+    } catch (error) {
+      console.error('Erro ao carregar os dados de pagamento:', error);
+      this.router.navigate(['/']); // Redireciona em caso de erro
     }
+  }
+
+  calculateTotal() {
+    // Calcular o valor total de forma segura
+    this.totalValue = this.selectedParkings.reduce((total, parking) => {
+      const valorLimpo = parking.label.replace(/R\$|\s|\/h/g, '').trim(); // Remove "R$", "/h" e espaços extras
+      const valorNumerico = parseFloat(valorLimpo);
+      return !isNaN(valorNumerico) ? total + valorNumerico : total; // Soma apenas valores válidos
+    }, 0);
   }
 
   confirmPayment() {

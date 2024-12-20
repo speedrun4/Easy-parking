@@ -72,7 +72,6 @@ export class CadastroEstacionamentoComponent implements OnInit {
         this.router.navigate(['/cliente']);  // Redireciona para uma página de sucesso, caso queira
       },
       error: (err) => {
-        console.error('Erro no cadastro', err);
         alert('Erro ao cadastrar estacionamento!');
       }
     });

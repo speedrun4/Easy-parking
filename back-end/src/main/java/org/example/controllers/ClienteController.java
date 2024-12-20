@@ -33,6 +33,7 @@ public class ClienteController {
     @PostMapping
     public ResponseEntity<?> createCliente(@Valid @RequestBody ClienteDTO clienteDTO) {
         try {
+            System.out.println("Criando cliente com: " + clienteDTO); // Log para verificar os dados recebidos
             Cliente cliente = new Cliente();
             cliente.setNomeEmpresa(clienteDTO.getNomeEmpresa());
             cliente.setCnpj(clienteDTO.getCnpj());
@@ -45,6 +46,7 @@ public class ClienteController {
             Cliente savedCliente = clienteService.saveCliente(cliente);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedCliente);
         } catch (IllegalArgumentException e) {
+            System.out.println("Erro de validação: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
