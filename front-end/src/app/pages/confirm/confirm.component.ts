@@ -6,6 +6,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { Location } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from 'src/app/components/confirmation-dialog/confirmation-dialog.component';
+import { PreReservationService } from 'src/app/services/pre-reservation.service';
 
 @Component({
   selector: 'app-confirm',
@@ -29,7 +30,7 @@ export class ConfirmComponent implements OnInit {
   confirmationMessage: string = '';
   private authSubscription: Subscription = new Subscription();
 
-  constructor(private router: Router, private authService: AuthService, private location: Location, private dialog: MatDialog) {
+  constructor(private router: Router, private authService: AuthService, private location: Location, private dialog: MatDialog, private preReservaService: PreReservationService) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       selectedParkings: any[];
@@ -98,6 +99,7 @@ export class ConfirmComponent implements OnInit {
   
       // Salva os dados no localStorage
       localStorage.setItem('preReservaData', JSON.stringify(preReservaData));
+      this.preReservaService.notifyPreReservaChange(); // Notifica a mudança
   
       // Exibe no console os dados confirmados
       console.log('Pré-reserva salva com sucesso:', preReservaData);

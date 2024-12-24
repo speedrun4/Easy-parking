@@ -65,4 +65,11 @@ export class PreReservationService {
   isPaymentConfirmed(): boolean {
     return this.paymentConfirmed;
   }
+
+  private preReservaChange = new BehaviorSubject<boolean>(false);
+  preReservaChange$ = this.preReservaChange.asObservable();
+
+  notifyPreReservaChange() {
+    this.preReservaChange.next(true);
+  }
 }

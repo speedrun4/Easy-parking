@@ -2,6 +2,7 @@ import { Component, HostListener, ElementRef, OnInit, OnDestroy } from '@angular
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
+import { PreReservationService } from 'src/app/services/pre-reservation.service';
 
 @Component({
   selector: 'app-header',
@@ -23,6 +24,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private authService: AuthService,
+    private preReservaService: PreReservationService,
     private elementRef: ElementRef // Injetando ElementRef para detectar cliques fora
   ) {}
 
@@ -39,6 +41,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.isClient = false;
       }
     });
+    this.preReservaService.preReservaChange$.subscribe(() => {
+      this.checkPreReservaTime(); // Revalida o timer quando houver mudanças
+    });
+    
     this.checkPreReservaTime();
   }
 
