@@ -89,7 +89,7 @@
       </form>
 
       <div class="confirm-button-container" fxLayout="row" fxLayoutAlign="space-between center">
-        <button mat-raised-button color="primary" (click)="confirmPayment()" [disabled]="isProcessingPayment">
+        <button mat-raised-button color="primary" (click)="confirmPayment()" [disabled]="isProcessingPayment || !isPaymentMethodValid()">
           <mat-spinner *ngIf="isProcessingPayment" diameter="24"></mat-spinner>
           <span *ngIf="!isProcessingPayment">Confirmar Pagamento</span>
         </button>

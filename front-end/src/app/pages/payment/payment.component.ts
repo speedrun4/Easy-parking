@@ -35,7 +35,7 @@ export class PaymentComponent implements OnInit {
   selectedTime: string | null = null;
   paymentData: any = null;
 
-  constructor(private router: Router) { 
+  constructor(private router: Router) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       totalValue: number;
@@ -83,6 +83,12 @@ export class PaymentComponent implements OnInit {
     }, 0);
   }
 
+  isPaymentMethodValid() {
+    // O botão de confirmação será habilitado se o método de pagamento for diferente de 'Pix'
+    return this.selectedPaymentMethod === 'Cartão de Crédito' ||
+      this.selectedPaymentMethod === 'Cartão de Débito' ||
+      this.selectedPaymentMethod === 'Boleto';
+  }
   confirmPayment() {
     if (!this.selectedPaymentMethod) {
       alert('Selecione um método de pagamento.');
