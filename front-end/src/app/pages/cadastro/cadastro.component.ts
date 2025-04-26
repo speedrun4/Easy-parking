@@ -4,6 +4,10 @@ import { EstacionamentoService } from '../../services/estacionamento.service';
 import { GeocodingService } from '../../services/geocoding.service';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationDialogComponent } from 'src/app/components/confirmation-dialog/confirmation-dialog.component';
+import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
+import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
 
 @Component({
   selector: 'app-cadastro',
@@ -17,11 +21,14 @@ export class CadastroComponent implements OnInit {
   parkingForm!: FormGroup;
   estacionamentos: any[] = [];
   mostrarModalSucesso = false;
+  hidePassword: boolean = true;
+  mostrarMensagemSucesso: boolean = false;
 
   constructor(private fb: FormBuilder,
     private authService: AuthService,
     private geocodingService: GeocodingService,
-    private router: Router) { }
+    private router: Router, 
+    public dialog: MatDialog) { }
 
   ngOnInit(): void {
     this.initializeUserForm();
@@ -44,7 +51,11 @@ export class CadastroComponent implements OnInit {
     });
   }
 
-
+openConfirmationDialog(message: string): void {
+    this.dialog.open(SucessoModalComponent, {
+      data: { message: message }
+    });
+  }
   onUserSubmit(perfil: string) {
     if (this.userForm.valid) {
       const usuario = {
@@ -59,17 +70,38 @@ export class CadastroComponent implements OnInit {
       this.authService.register(usuario).subscribe(
         (response) => {
           console.log('Usuário cadastrado com sucesso', response);
+          this.openConfirmationDialog("Usuário cadastrado com sucesso!");
+          this.mostrarMensagemSucesso = true; // Exibe a mensagem de sucesso
           // Redirecionar ou mostrar mensagem de sucesso
           this.router.navigate(['/home']);
         },
         (error) => {
           console.error('Erro ao cadastrar usuário', error);
-          // Mostrar mensagem de erro
+  
+          // Verifica o tipo de erro retornado pela API
+          if (error.status === 409) { // Código HTTP 409: Conflito
+            if (error.error.message.includes('CPF')) {
+              this.openErrorDialog("O CPF já está cadastrado. Por favor, use outro CPF.");
+            } else if (error.error.message.includes('Email')) {
+              this.openErrorDialog("O Email já está cadastrado. Por favor, use outro Email.");
+            } else if (error.error.message.includes('Telefone')) {
+              this.openErrorDialog("O Telefone já está cadastrado. Por favor, use outro Telefone.");
+            } else {
+              this.openErrorDialog("Ocorreu um erro de duplicidade. Por favor, verifique os dados.");
+            }
+          } else {
+            this.openErrorDialog("Ocorreu um erro ao cadastrar. Tente novamente mais tarde.");
+          }
         }
       );
     }
   }
 
+  openErrorDialog(message: string): void {
+      this.dialog.open(ErrorDialogComponent, {
+        data: { message: message }
+      });
+    }
   onCpfInput(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     let cpf = inputElement.value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos

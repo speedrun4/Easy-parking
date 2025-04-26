@@ -39,19 +39,22 @@
       </mat-form-field>
 
       <mat-form-field appearance="fill">
-        <mat-label>Senha</mat-label>
-        <input matInput type="password" formControlName="password" required>
-        <mat-error *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
-          <span *ngIf="userForm.get('password')?.errors?.required">Senha é obrigatória.</span>
-          <span *ngIf="userForm.get('password')?.errors?.pattern">Senha deve ter entre 8 e 11 caracteres e conter letras, números e caracteres especiais.</span>
-        </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill">
         <mat-label>CPF</mat-label>
         <input matInput formControlName="cpf" (input)="onCpfInput($event)" maxlength="14" required>
         <mat-error *ngIf="userForm.get('cpf')?.invalid && userForm.get('cpf')?.touched">
           <span *ngIf="userForm.get('cpf')?.errors?.cpfInvalid">CPF inválido. Deve conter 11 dígitos numéricos.</span>
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Senha</mat-label>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" required>
+        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'" [attr.aria-pressed]="!hidePassword">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+          <span *ngIf="userForm.get('password')?.errors?.required">Senha é obrigatória.</span>
+          <span *ngIf="userForm.get('password')?.errors?.pattern">Senha deve ter entre 8 e 11 caracteres e conter letras, números e caracteres especiais.</span>
         </mat-error>
       </mat-form-field>
 
@@ -114,3 +117,4 @@
     </div>
   </ng-template>
 </div>
+
