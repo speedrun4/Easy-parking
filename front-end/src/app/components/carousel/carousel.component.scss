@@ -1,14 +1,15 @@
-.carousel-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 50px auto 0; /* Ajusta a margem superior para 50px */
+/* filepath: c:\Users\moura\Easy-parking\front-end\src\app\components\carousel\carousel.component.scss */
+
+.carousel {
+  width: 100%; /* Garante que o carousel ocupe toda a largura disponível */
+  height: 300px; /* Define uma altura fixa para o carousel */
+  overflow: hidden; /* Evita que imagens maiores "escapem" do container */
+  display: flex; /* Garante que os slides sejam alinhados corretamente */
+  align-items: center; /* Centraliza verticalmente os itens */
 }
 
 .carousel img {
-  width: 100%;
-  height: auto;
-}
-
-.carousel {
-  margin-top: 81px;
+  width: 100%; /* Ajusta a largura para ocupar todo o espaço do container */
+  height: 100%; /* Faz com que a imagem preencha a altura do container */
+  object-fit: cover; /* Garante que a imagem seja cortada proporcionalmente para preencher o espaço */
 }
