@@ -12,7 +12,7 @@ export class PreReservaComponent implements OnInit {
   countdown: number = 10 * 60; // 10 minutos em segundos
   timer: any;
   selectedParkings: any[] = [];
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   ngOnInit(): void {
     // Carregar os dados do localStorage
@@ -64,15 +64,16 @@ export class PreReservaComponent implements OnInit {
   }
 
   proceedToPayment() {
-    if (this.selectedParkings.length > 0) {
+    if (this.preReservaData && this.preReservaData.selectedParkings.length > 0) {
       const paymentData = {
-        selectedParkings: this.selectedParkings,
+        selectedParkings: this.preReservaData.selectedParkings,
+        clienteName: this.preReservaData.clienteName,
         timestamp: new Date().getTime()
       };
-      localStorage.setItem('paymentData', JSON.stringify(paymentData)); // Salva os dados para pagamento
-      this.router.navigate(['/pagamento']); // Redireciona para pagamento
+      localStorage.setItem('paymentData', JSON.stringify(paymentData));
+      this.router.navigate(['/payment']);
     } else {
-      alert('Selecione pelo menos um estacionamento para prosseguir.');
+      alert('Nenhuma reserva encontrada para pagamento.');
     }
   }
 }

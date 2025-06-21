@@ -1,17 +1,20 @@
 <div *ngIf="preReservaData; else emptyState" class="pre-reserva-container">
-    <h2>Pré-Reserva Confirmada</h2>
-    <p>Cliente: {{ preReservaData.clienteName }}</p>
-  
-    <div *ngFor="let parking of preReservaData.selectedParkings">
-      <h3>{{ parking.title }} - {{ parking.label }}</h3>
-      <p>Endereço: {{ parking.address }}</p>
-      <p>Data: {{ parking.selectedDate }}</p>
-      <p>Hora: {{ parking.selectedTime }}</p>
-    </div>
-  
-    <h3>Tempo restante: {{ countdown | date:'mm:ss' }}</h3>
+  <h2>Pré-Reserva Confirmada</h2>
+  <p>Cliente: {{ preReservaData.clienteName }}</p>
+
+  <div *ngFor="let parking of preReservaData.selectedParkings">
+    <h3>{{ parking.title }} - {{ parking.label }}</h3>
+    <p>Endereço: {{ parking.address }}</p>
+    <p>Data: {{ parking.selectedDate }}</p>
+    <p>Hora: {{ parking.selectedTime }}</p>
   </div>
-  
-  <ng-template #emptyState>
-    <h2>Nenhuma pré-reserva ativa.</h2>
-  </ng-template>
+
+  <h3>Tempo restante: {{ countdown | date:'mm:ss' }}</h3>
+  <button (click)="proceedToPayment()" class="btn-pagamento">
+    Ir para Pagamento
+  </button>
+</div>
+
+<ng-template #emptyState>
+  <h2>Nenhuma pré-reserva ativa.</h2>
+</ng-template>
