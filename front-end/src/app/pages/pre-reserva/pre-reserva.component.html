@@ -13,6 +13,9 @@
   <button (click)="proceedToPayment()" class="btn-pagamento">
     Ir para Pagamento
   </button>
+  <div class="confirm-button-container" fxLayout="row" fxLayoutAlign="end center">
+        <button mat-raised-button color="warn" (click)="cancelPayment()">Cancelar</button>
+      </div>
 </div>
 
 <ng-template #emptyState>

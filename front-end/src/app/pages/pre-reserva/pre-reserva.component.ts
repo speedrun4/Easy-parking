@@ -62,6 +62,16 @@ export class PreReservaComponent implements OnInit {
       this.selectedParkings.push(parking); // Adiciona se não estiver selecionado
     }
   }
+   cancelPayment() {
+    localStorage.removeItem('preReservaData');
+    localStorage.removeItem('paymentData');
+    // Apagar dados de pagamento (se necessário) e navegar para a página welcome
+    this.router.navigate(['/welcome'], {
+      state: {
+        paymentCancelled: true // Podemos passar um estado se necessário
+      }
+    });
+  }
 
   proceedToPayment() {
     if (this.preReservaData && this.preReservaData.selectedParkings.length > 0) {

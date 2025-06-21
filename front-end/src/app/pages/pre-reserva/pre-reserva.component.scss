@@ -36,6 +36,12 @@
   cursor: pointer;
   transition: background-color 0.3s;
 }
+.confirm-button-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between; /* Espaço entre os botões */
+  gap: 10px; /* Espaçamento entre os botões */
+}
 
 .btn-pagamento:hover {
   background-color: #0056b3;
