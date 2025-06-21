@@ -176,6 +176,8 @@ export class PaymentComponent implements OnInit {
   }
 
   cancelPayment() {
+    localStorage.removeItem('preReservaData');
+    localStorage.removeItem('paymentData');
     // Apagar dados de pagamento (se necessário) e navegar para a página welcome
     this.router.navigate(['/welcome'], {
       state: {

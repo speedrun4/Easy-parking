@@ -10,6 +10,7 @@ import { PreReservationService } from 'src/app/services/pre-reservation.service'
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit, OnDestroy {
+  [x: string]: any;
   menuOpen = false;
   avatarMenuOpen = false;
   isLoggedIn = false; // Verifica se o usuário está logado
@@ -29,6 +30,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const preReservaData = JSON.parse(localStorage.getItem('preReservaData')!);
+    if (preReservaData) {
+    this.startCountdown(preReservaData.expirationTime);
+  }
     this.authService.autoLogin();
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       this.isLoggedIn = !!user;
@@ -48,6 +53,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.checkPreReservaTime();
   }
 
+  startCountdown(expirationTime: number) {
+  this.intervalId = setInterval(() => {
+    const timeLeft = expirationTime - Date.now();
+    if (timeLeft <= 0) {
+      clearInterval(this.intervalId);
+      this.intervalId = '';
+    } else {
+      this.intervalId = this.formatTime(timeLeft);
+    }
+  }, 1000);
+}
+
   checkPreReservaTime() {
     const storedData = localStorage.getItem('preReservaData');
     if (storedData) {
@@ -61,6 +78,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
   updateTimeLeft(expirationTime: number) {
+     if (this.intervalId) {
+    clearInterval(this.intervalId); // Garante que não há múltiplos intervalos
+  }
+
     this.intervalId = setInterval(() => {
       const currentTime = new Date().getTime();
       const timeLeft = expirationTime - currentTime; // Calcula o tempo restante
@@ -69,6 +90,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.isPreReservaExpired = true;
         clearInterval(this.intervalId); // Limpa o intervalo quando a pré-reserva expirar
         localStorage.removeItem('preReservaData'); // Remove os dados da pré-reserva
+        this.preReservaTimeLeft = ''; // <-- limpa o contador do header
       } else {
         const minutes = Math.floor(timeLeft / 60000); // Calcula os minutos restantes
         const seconds = Math.floor((timeLeft % 60000) / 1000); // Calcula os segundos restantes
@@ -135,6 +157,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.authSubscription.unsubscribe();
+    if (this.intervalId) {
+      clearInterval(this.intervalId); // Limpa o intervalo ao destruir o componente
+    }
   }
 
   closeModal() {
