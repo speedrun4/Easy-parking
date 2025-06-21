@@ -13,16 +13,7 @@
 </div>
 
 <div class="card">
-  <agm-map [latitude]="latitude" [longitude]="longitude" [zoom]="zoom" class="map-container">
-    <agm-marker *ngFor="let marker of filteredMarkers"
-                [latitude]="marker.latitude"
-                [longitude]="marker.longitude"
-                [label]="marker.label"
-                [title]="marker.title"
-                [iconUrl]="marker.iconUrl"
-                (markerClick)="toggleParkingSelection(marker)">
-    </agm-marker>
-  </agm-map>
+  <div id="map" class="map-container" style="height: 400px; width: 100%;"></div>
 </div>
 
 <div *ngIf="selectedParkings.length > 0" class="selected-parkings-list">
@@ -30,11 +21,12 @@
   <div *ngFor="let marker of selectedParkings" class="parking-list-item">
     <h4>{{ marker.title }} - {{ marker.label }}</h4>
     <p>{{ marker.address }}</p>
-    
+
     <!-- Campo para selecionar a data -->
     <mat-form-field appearance="outline" class="date">
       <mat-label>Data</mat-label>
-      <input matInput [matDatepicker]="picker" (dateChange)="updateSelectedParkingDate(marker, $event.value)" placeholder="Escolha a data">
+      <input matInput [matDatepicker]="picker" (dateChange)="updateSelectedParkingDate(marker, $event.value)"
+        placeholder="Escolha a data">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
@@ -54,7 +46,7 @@
         [hour24Mode]="true"
       ></ngx-material-timepicker>
     </mat-form-field> -->
-    
+
     <!-- Campo para selecionar a hora -->
     <mat-form-field appearance="outline" class="time">
       <mat-label>Hora</mat-label>
@@ -66,11 +58,8 @@
 </div>
 
 <div *ngIf="selectedParkings.length > 0" class="confirm-container" fxLayoutAlign="center center">
-  <button mat-raised-button
-          color="primary"
-          class="botao"
-          (click)="confirmSelection()"
-          [disabled]="!areDatesAndTimesSelected()">
+  <button mat-raised-button color="primary" class="botao" (click)="confirmSelection()"
+    [disabled]="!areDatesAndTimesSelected()">
     Confirmar
   </button>
 </div>

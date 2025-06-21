@@ -112,3 +112,21 @@ ngx-material-timepicker {
   color: #9e9e9e;            /* Mesma cor do texto */
   border: 1px solid #bdbdbd; /* Mesma cor da borda */
 }
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.leaflet-container img {
+  image-rendering: auto;
+}
+
+.leaflet-marker-icon, 
+.leaflet-marker-shadow {
+  image-rendering: auto;
+}

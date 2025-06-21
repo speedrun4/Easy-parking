@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { EstacionamentoService } from '../../services/estacionamento.service';
 import { Router } from '@angular/router';
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-welcome',
@@ -14,10 +15,13 @@ export class WelcomeComponent implements OnInit {
   longitude = -46.633308;
   zoom = 12;
   markers: any[] = [];
-  filteredMarkers: any[] = []; // Armazena os resultados da busca
-  selectedParkings: any[] = []; // Array para armazenar estacionamentos selecionados
+  filteredMarkers: any[] = [];
+  selectedParkings: any[] = [];
   paymentConfirmed: boolean = false;
   selectedTime: string | undefined;
+
+  private map!: L.Map;
+  private leafletMarkers: L.Marker[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -36,49 +40,80 @@ export class WelcomeComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    if (this.paymentConfirmed) {
-      this.askForRoute();
-    }
+   ngOnInit(): void {
     this.estacionamentoService.carregarEstacionamentos();
-    
-    this.estacionamentoService.estacionamentos$.subscribe((estacionamentos) => {
-      this.markers = estacionamentos.map((estacionamento) => ({
-        latitude: estacionamento.latitude,
-        longitude: estacionamento.longitude,
-        label: `R$ ${estacionamento.hourlyRate}/h`, // Valor por hora
-        title: estacionamento.companyName, // Nome da empresa
-        address: estacionamento.address, // Endereço
-        iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
-      }));
 
-      this.filteredMarkers = this.markers;
-    });
+  this.estacionamentoService.estacionamentos$.subscribe((data) => {
+    this.filteredMarkers = data.map(est => ({
+      title: est.companyName,
+      label: `R$${est.hourlyRate}/h`,
+      address: est.address,
+      latitude: est.latitude,
+      longitude: est.longitude
+    }));
 
-    const estacionamentosSalvos = JSON.parse(
-      localStorage.getItem('estacionamentos') || '[]'
-    );
-    if (estacionamentosSalvos.length > 0) {
-      estacionamentosSalvos.forEach((estacionamento: any) => {
-        const marcador = {
-          latitude: estacionamento.latitude,
-          longitude: estacionamento.longitude,
-          label: `R$ ${estacionamento.hourlyRate}/h`,
-          title: estacionamento.companyName,
-          address: estacionamento.address,
-          iconUrl:
-            'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
-        };
-        this.markers.push(marcador);
-        this.filteredMarkers.push(marcador);
+    if (this.filteredMarkers.length > 0) {
+      const first = this.filteredMarkers[0];
+      this.initMap(first.latitude, first.longitude);  // ⬅️ Inicializa já centralizado no estacionamento
+    } else {
+      this.initMap(-23.55052, -46.633308); // fallback São Paulo, caso não tenha nenhum estacionamento
+    }
+
+    this.updateMapMarkers();
+  });
+  }
+
+  initMap(lat: number, lng: number): void {
+    if (this.map) {
+  this.map.remove();
+}
+  this.map = L.map('map').setView([lat, lng], 15);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+  }).addTo(this.map);
+}
+
+   private updateMapMarkers() {
+    if (!this.map) return;
+
+    const parkingIcon = L.icon({
+    iconUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+    <svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="30" r="28" fill="#2ecc71" stroke="white" stroke-width="4"/>
+      <text x="30" y="40" font-size="30" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="bold">P</text>
+    </svg>
+  `),
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  });
+
+    // Remove marcadores antigos
+    this.leafletMarkers.forEach(marker => marker.remove());
+    this.leafletMarkers = [];
+
+    // Adiciona novos marcadores
+     this.filteredMarkers.forEach(marker => {
+    const leafletMarker = L.marker([marker.latitude, marker.longitude], {icon: parkingIcon })
+      .addTo(this.map)
+      .bindPopup(
+        `<b>${marker.title}</b><br>${marker.label}<br>${marker.address}<br><i>Clique para selecionar</i>`
+      );
+      leafletMarker.on('click', () => {
+        this.toggleParkingSelection(marker);
       });
 
-      const primeiroEstacionamento = estacionamentosSalvos[0];
-      this.latitude = primeiroEstacionamento.latitude;
-      this.longitude = primeiroEstacionamento.longitude;
-      this.zoom = 12;
+      this.leafletMarkers.push(leafletMarker);
+    });
+
+    // Ajusta o centro do mapa se houver marcadores filtrados
+    if (this.filteredMarkers.length > 0) {
+      const first = this.filteredMarkers[0];
+      this.map.setView([first.latitude, first.longitude], this.zoom);
     }
   }
+
   areDatesAndTimesSelected(): boolean {
     return this.selectedParkings.every(parking => parking.selectedDate && parking.selectedTime);
   }
@@ -87,41 +122,57 @@ export class WelcomeComponent implements OnInit {
     const startRoute = confirm(
       'Pagamento confirmado! Deseja iniciar a rota até o estacionamento agora?'
     );
-    if (startRoute) {
-      this.navigateToGoogleMaps();
-    }
+    
   }
 
-  navigateToGoogleMaps() {
-    // Latitude e longitude do local atual (exemplo fixo para simplificação)
-    const currentLatitude = -23.55052;
-    const currentLongitude = -46.633308;
+  
 
-    // Destino de exemplo, pode ser baseado no estacionamento selecionado
-    const destinationLatitude = -23.5733;
-    const destinationLongitude = -46.6417;
-
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${currentLatitude},${currentLongitude}&destination=${destinationLatitude},${destinationLongitude}`;
-    window.open(url, '_blank');
-  }
   // Função de busca
   onSearch() {
-    const query = this.searchForm.get('search')?.value?.toLowerCase();
+    const query = this.searchForm.get('search')?.value?.trim();
+    const cepRegex = /^\d{5}-?\d{3}$/;
 
-    if (query) {
+    if (query && cepRegex.test(query)) {
+      // Buscar pelo CEP no banco de dados
+      this.estacionamentoService.fetchEstacionamentos().subscribe(estacionamentos => {
+        const filtrados = estacionamentos.filter((e: any) => {
+          // Considera CEPs com ou sem hífen
+          const cepLimpo = e.address.replace(/\D/g, '');
+          const queryLimpo = query.replace(/\D/g, '');
+          return cepLimpo === queryLimpo;
+        });
+        this.markers = filtrados.map((estacionamento: any) => ({
+          latitude: estacionamento.latitude,
+          longitude: estacionamento.longitude,
+          label: `R$ ${estacionamento.hourlyRate}/h`,
+          title: estacionamento.companyName,
+          address: estacionamento.address,
+          iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
+        }));
+        this.filteredMarkers = [...this.markers];
+        if (this.filteredMarkers.length > 0) {
+          this.latitude = this.filteredMarkers[0].latitude;
+          this.longitude = this.filteredMarkers[0].longitude;
+          this.zoom = 16;
+        }
+        this.updateMapMarkers();
+      });
+    } else if (query) {
+      // Busca por nome/endereço (como já faz)
       this.filteredMarkers = this.markers.filter(
         (marker) =>
-          marker.title.toLowerCase().includes(query) ||
-          marker.address.toLowerCase().includes(query)
+          marker.title.toLowerCase().includes(query.toLowerCase()) ||
+          marker.address.toLowerCase().includes(query.toLowerCase())
       );
-
       if (this.filteredMarkers.length > 0) {
         this.latitude = this.filteredMarkers[0].latitude;
         this.longitude = this.filteredMarkers[0].longitude;
         this.zoom = 14;
       }
+      this.updateMapMarkers();
     } else {
-      this.filteredMarkers = this.markers;
+      this.filteredMarkers = [...this.markers];
+      this.updateMapMarkers();
     }
   }
 
@@ -133,10 +184,10 @@ export class WelcomeComponent implements OnInit {
     );
 
     if (index !== -1) {
-      this.selectedParkings.splice(index, 1); // Remove o estacionamento da seleção
+      this.selectedParkings.splice(index, 1);
     }
   }
-  // Função para selecionar/desselecionar estacionamento ao clicar no ícone no mapa
+
   toggleParkingSelection(marker: any) {
     const index = this.selectedParkings.findIndex(
       (selectedMarker) =>
@@ -145,14 +196,12 @@ export class WelcomeComponent implements OnInit {
     );
 
     if (index === -1) {
-      // Se não estiver selecionado, adiciona à lista com data e hora padrão
       this.selectedParkings.push({
         ...marker,
-        selectedDate: '', // Campo para a data
-        selectedTime: '', // Campo para a hora
+        selectedDate: '',
+        selectedTime: '',
       });
     } else {
-      // Se já estiver selecionado, remove da lista
       this.selectedParkings.splice(index, 1);
     }
   }
@@ -174,6 +223,7 @@ export class WelcomeComponent implements OnInit {
       'estacionamentos',
       JSON.stringify(estacionamentosSalvos)
     );
+    this.updateMapMarkers();
   }
 
   updateSelectedParkingDate(marker: any, date: string) {
@@ -186,40 +236,37 @@ export class WelcomeComponent implements OnInit {
       parking.selectedDate = date;
     }
   }
-  
-  updateSelectedParkingTime(marker: any, event: Event) {
-    const inputElement = event.target as HTMLInputElement; // Confirma que o alvo é um elemento de entrada
-  const time = inputElement.value;
-  const parking = this.selectedParkings.find(
-    (selectedMarker) =>
-      selectedMarker.latitude === marker.latitude &&
-      selectedMarker.longitude === marker.longitude
-  );
-  if (parking) {
-    parking.selectedTime = time;
-  }
-  }
-  
 
-  // Função para confirmar a seleção de estacionamentos
+  updateSelectedParkingTime(marker: any, event: Event) {
+    const inputElement = event.target as HTMLInputElement;
+    const time = inputElement.value;
+    const parking = this.selectedParkings.find(
+      (selectedMarker) =>
+        selectedMarker.latitude === marker.latitude &&
+        selectedMarker.longitude === marker.longitude
+    );
+    if (parking) {
+      parking.selectedTime = time;
+    }
+  }
+
   confirmSelection() {
     if (this.selectedParkings.length > 0) {
-      const clienteName = 'João Silva'; // Nome do cliente
-  
+      const clienteName = 'João Silva';
+
       this.router.navigate(['/confirm'], {
         state: {
           selectedParkings: this.selectedParkings.map((parking) => ({
             title: parking.title,
             label: parking.label,
             address: parking.address,
-            selectedDate: parking.selectedDate, // Inclui a data selecionada
-            selectedTime: parking.selectedTime, // Inclui a hora selecionada
+            selectedDate: parking.selectedDate,
+            selectedTime: parking.selectedTime,
           })),
           clienteName: clienteName,
         },
       });
-  
-      // Exibe os dados confirmados no console
+
       console.log('Estacionamentos confirmados:', this.selectedParkings);
     }
   }
