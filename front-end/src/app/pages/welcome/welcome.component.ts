@@ -98,7 +98,7 @@ export class WelcomeComponent implements OnInit {
       const leafletMarker = L.marker([marker.latitude, marker.longitude], { icon: parkingIcon })
         .addTo(this.map)
         .bindPopup(
-          `<b>${marker.title}</b><br>${marker.label}<br>${marker.address}<br><i>Clique para selecionar</i>`
+          `<b>${marker.title}</b><br>${marker.label}<br>${marker.address}<br><i style="color:red;">Preencha os dados abaixo!</i>`
         );
       leafletMarker.on('click', () => {
         this.toggleParkingSelection(marker);
@@ -139,7 +139,7 @@ export class WelcomeComponent implements OnInit {
           label: `R$ ${estacionamento.hourlyRate}/h`,
           title: estacionamento.companyName,
           address: estacionamento.address,
-          iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
+          // iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
         }));
 
         this.filteredMarkers = [...this.markers];
@@ -255,16 +255,24 @@ export class WelcomeComponent implements OnInit {
     this.updateMapMarkers();
   }
 
-  updateSelectedParkingDate(marker: any, date: string) {
-    const parking = this.selectedParkings.find(
-      (selectedMarker) =>
-        selectedMarker.latitude === marker.latitude &&
-        selectedMarker.longitude === marker.longitude
-    );
-    if (parking) {
-      parking.selectedDate = date;
-    }
+  updateSelectedParkingDate(marker: any, date: Date) {
+  const formattedDate = this.formatDate(date);
+  const parking = this.selectedParkings.find(
+    (selectedMarker) =>
+      selectedMarker.latitude === marker.latitude &&
+      selectedMarker.longitude === marker.longitude
+  );
+  if (parking) {
+    parking.selectedDate = formattedDate;
   }
+}
+
+formatDate(date: Date): string {
+  const day = ('0' + date.getDate()).slice(-2);
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
   updateSelectedParkingTime(marker: any, event: Event) {
     const inputElement = event.target as HTMLInputElement;

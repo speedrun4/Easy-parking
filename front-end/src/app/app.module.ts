@@ -54,6 +54,12 @@ import { CommonModule } from '@angular/common';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { PreReservaComponent } from './pages/pre-reserva/pre-reserva.component';
 import { ExpiradoModalComponent } from './components/expirado-modal/expirado-modal.component';
+import { LOCALE_ID } from '@angular/core';
+import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
+registerLocaleData(localePt);
+
 @NgModule({
   declarations: [
     ConfirmationDialogComponent,
@@ -122,7 +128,10 @@ import { ExpiradoModalComponent } from './components/expirado-modal/expirado-mod
     
   ],
   entryComponents: [ErrorDialogComponent],
-  providers: [],
+  providers: [
+    { provide: LOCALE_ID, useValue: 'pt-BR' },
+    { provide: MAT_DATE_LOCALE, useValue: 'pt-BR' }
+  ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
