@@ -3,7 +3,9 @@
   <p>Cliente: {{ preReservaData.clienteName }}</p>
 
   <div *ngFor="let parking of preReservaData.selectedParkings">
-    <h3>{{ parking.title }} - {{ parking.label }}</h3>
+    <h3>{{ parking.title }} -
+      {{ parking.total | currency:'BRL':'symbol':'1.2-2':'pt' }}
+    </h3>
     <p>Endereço: {{ parking.address }}</p>
     <p>Data: {{ parking.selectedDate }}</p>
     <p>Hora: {{ parking.selectedTime }}</p>
@@ -14,8 +16,8 @@
     Ir para Pagamento
   </button>
   <div class="confirm-button-container" fxLayout="row" fxLayoutAlign="end center">
-        <button mat-raised-button color="warn" (click)="cancelPayment()">Cancelar</button>
-      </div>
+    <button mat-raised-button color="warn" (click)="cancelPayment()">Cancelar</button>
+  </div>
 </div>
 
 <ng-template #emptyState>
