@@ -11,10 +11,14 @@
       <h3>Estacionamentos Selecionados</h3>
       <div *ngFor="let parking of selectedParkings">
         <p><strong>Nome:</strong> {{ parking.title }}</p>
-        <p><strong>Valor:</strong> {{ parking.label }}</p>
+        <p><strong>Valor por Hora:</strong> {{ parking.label }}</p>
         <p><strong>Endereço:</strong> {{ parking.address }}</p>
         <p><strong>Data:</strong> {{ parking.selectedDate | date:'dd/MM/yyyy' }}</p>
-        <p><strong>Hora:</strong> {{ parking.selectedTime || selectedTime }}</p>
+        <p><strong>Hora de Entrada:</strong> {{ parking.selectedTime }}</p>
+        <p><strong>Hora de Saída:</strong> {{ parking.selectedExitTime }}</p>
+        <p><strong>Valor Total:</strong>
+          {{ calculateParkingTotal(parking) | currency:'BRL':'symbol':'1.2-2':'pt' }}
+        </p>
         <hr />
       </div>
 

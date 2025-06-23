@@ -76,8 +76,35 @@ export class ConfirmComponent implements OnInit {
   }
   calculateTotalValue() {
     this.totalValue = this.selectedParkings.reduce((total, parking) => {
-      return total + parking.hourlyRate;  // Supondo que o valor esteja em hourlyRate
+      return total + this.calculateParkingTotal(parking);
     }, 0);
+  }
+
+  calculateParkingTotal(parking: any): number {
+    if (!parking.selectedTime || !parking.selectedExitTime) return 0;
+
+    const [startHour, startMinute] = parking.selectedTime.split(':').map(Number);
+    const [endHour, endMinute] = parking.selectedExitTime.split(':').map(Number);
+
+    const start = new Date();
+    start.setHours(startHour, startMinute, 0);
+
+    const end = new Date();
+    end.setHours(endHour, endMinute, 0);
+
+    let diffMs = end.getTime() - start.getTime();
+
+    if (diffMs <= 0) {
+      // Se a saída for no dia seguinte
+      diffMs += 24 * 60 * 60 * 1000;
+    }
+
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    const hourlyRate = Number(parking.label.replace(/[^\d.-]/g, '')) || 0;
+
+    const total = diffHours * hourlyRate;
+    return Math.ceil(total * 100) / 100;
   }
 
   onDateChange(event: any) {
@@ -85,24 +112,26 @@ export class ConfirmComponent implements OnInit {
   }
 
   confirmReservation() {
-       // Preparando os dados da pré-reserva
-       const preReservaData = {
-        selectedParkings: this.selectedParkings.map((parking) => ({
-          title: parking.title,
-          label: parking.label,
-          address: parking.address,
-          selectedDate: parking.selectedDate,
-          selectedTime: parking.selectedTime,
-        })),
-        timestamp: new Date().getTime(), // Salva o timestamp para controle de expiração
-      };
-  
-      // Salva os dados no localStorage
-      localStorage.setItem('preReservaData', JSON.stringify(preReservaData));
-      this.preReservaService.notifyPreReservaChange(); // Notifica a mudança
-  
-      // Exibe no console os dados confirmados
-      console.log('Pré-reserva salva com sucesso:', preReservaData);
+    // Preparando os dados da pré-reserva
+    const preReservaData = {
+      selectedParkings: this.selectedParkings.map((parking) => ({
+        title: parking.title,
+        label: parking.label,
+        address: parking.address,
+        selectedDate: parking.selectedDate,
+        selectedTime: parking.selectedTime,
+        selectedExitTime: parking.selectedExitTime,
+        total: this.calculateParkingTotal(parking)
+      })),
+      timestamp: new Date().getTime(), // Salva o timestamp para controle de expiração
+    };
+
+    // Salva os dados no localStorage
+    localStorage.setItem('preReservaData', JSON.stringify(preReservaData));
+    this.preReservaService.notifyPreReservaChange(); // Notifica a mudança
+
+    // Exibe no console os dados confirmados
+    console.log('Pré-reserva salva com sucesso:', preReservaData);
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '350px',
       data: {
@@ -115,7 +144,8 @@ export class ConfirmComponent implements OnInit {
         state: {
           totalValue: this.totalValue,
           selectedDate: this.selectedDate || null, // Inclua a data, mesmo que seja nula
-          selectedTime: this.selectedTime || null // Inclua o horário, mesmo que seja nulo
+          selectedTime: this.selectedTime || null, // Inclua o horário, mesmo que seja nulo
+          selectedParkings: preReservaData.selectedParkings
         }
       });
     });

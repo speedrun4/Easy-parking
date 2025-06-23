@@ -115,7 +115,11 @@ export class WelcomeComponent implements OnInit {
   }
 
   areDatesAndTimesSelected(): boolean {
-    return this.selectedParkings.every(parking => parking.selectedDate && parking.selectedTime);
+    return this.selectedParkings.every(parking =>
+       parking.selectedDate &&
+       parking.selectedTime &&
+       parking.selectedExitTime
+      );
   }
 
   askForRoute() {
@@ -229,11 +233,25 @@ export class WelcomeComponent implements OnInit {
         ...marker,
         selectedDate: '',
         selectedTime: '',
+        selectedExitTime: '',
       });
     } else {
       this.selectedParkings.splice(index, 1);
     }
   }
+
+  updateSelectedParkingExitTime(marker: any, event: Event) {
+  const inputElement = event.target as HTMLInputElement;
+  const time = inputElement.value;
+  const parking = this.selectedParkings.find(
+    (selectedMarker) =>
+      selectedMarker.latitude === marker.latitude &&
+      selectedMarker.longitude === marker.longitude
+  );
+  if (parking) {
+    parking.selectedExitTime = time;
+  }
+}
 
   deleteParking(markerToDelete: any) {
     this.markers = this.markers.filter((marker) => marker !== markerToDelete);
@@ -287,6 +305,33 @@ formatDate(date: Date): string {
     }
   }
 
+  calculateTotal(marker: any): number {
+  if (!marker.selectedTime || !marker.selectedExitTime) return 0;
+
+  const [startHour, startMinute] = marker.selectedTime.split(':').map(Number);
+  const [endHour, endMinute] = marker.selectedExitTime.split(':').map(Number);
+
+  const start = new Date();
+  start.setHours(startHour, startMinute, 0);
+
+  const end = new Date();
+  end.setHours(endHour, endMinute, 0);
+
+  let diffMs = end.getTime() - start.getTime();
+
+  if (diffMs <= 0) {
+    // Se a hora de saída for menor ou igual à entrada, assume que é no dia seguinte.
+    diffMs += 24 * 60 * 60 * 1000;
+  }
+
+  const diffHours = diffMs / (1000 * 60 * 60);
+
+  const hourlyRate = Number(marker.label.replace(/[^\d.-]/g, '')); // Extrai o número do label "R$10/h"
+
+  const total = diffHours * hourlyRate;
+  return Math.ceil(total * 100) / 100; // Arredonda para 2 casas decimais
+}
+
   confirmSelection() {
     if (this.selectedParkings.length > 0) {
       const clienteName = 'João Silva';
@@ -299,6 +344,8 @@ formatDate(date: Date): string {
             address: parking.address,
             selectedDate: parking.selectedDate,
             selectedTime: parking.selectedTime,
+            selectedExitTime: parking.selectedExitTime,
+            total: this.calculateTotal(parking),
           })),
           clienteName: clienteName,
         },
