@@ -27,13 +27,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private preReservaService: PreReservationService,
     private elementRef: ElementRef // Injetando ElementRef para detectar cliques fora
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const preReservaData = JSON.parse(localStorage.getItem('preReservaData')!);
     if (preReservaData) {
-    this.startCountdown(preReservaData.expirationTime);
-  }
+      this.startCountdown(preReservaData.expirationTime);
+    }
     this.authService.autoLogin();
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       this.isLoggedIn = !!user;
@@ -49,21 +49,29 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.preReservaService.preReservaChange$.subscribe(() => {
       this.checkPreReservaTime(); // Revalida o timer quando houver mudanças
     });
-    
+
+    this.preReservaService.preReservaCancelled$.subscribe(() => {
+      this.preReservaTimeLeft = '';
+      this.isPreReservaExpired = false;
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+      }
+    });
+
     this.checkPreReservaTime();
   }
 
   startCountdown(expirationTime: number) {
-  this.intervalId = setInterval(() => {
-    const timeLeft = expirationTime - Date.now();
-    if (timeLeft <= 0) {
-      clearInterval(this.intervalId);
-      this.intervalId = '';
-    } else {
-      this.intervalId = this.formatTime(timeLeft);
-    }
-  }, 1000);
-}
+    this.intervalId = setInterval(() => {
+      const timeLeft = expirationTime - Date.now();
+      if (timeLeft <= 0) {
+        clearInterval(this.intervalId);
+        this.intervalId = '';
+      } else {
+        this.intervalId = this.formatTime(timeLeft);
+      }
+    }, 1000);
+  }
 
   checkPreReservaTime() {
     const storedData = localStorage.getItem('preReservaData');
@@ -78,9 +86,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
   updateTimeLeft(expirationTime: number) {
-     if (this.intervalId) {
-    clearInterval(this.intervalId); // Garante que não há múltiplos intervalos
-  }
+    if (this.intervalId) {
+      clearInterval(this.intervalId); // Garante que não há múltiplos intervalos
+    }
 
     this.intervalId = setInterval(() => {
       const currentTime = new Date().getTime();
@@ -98,7 +106,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       }
     }, 1000); // Atualiza a cada segundo
   }
-  
+
 
   // Alterna o estado do menu
   toggleMenu() {

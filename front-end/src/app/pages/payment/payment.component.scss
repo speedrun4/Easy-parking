@@ -86,3 +86,9 @@ mat-form-field {
 input, textarea {
   padding: 10px; /* Aumenta a área clicável dos campos de input */
 }
+
+.snackbar-cancel {
+  background-color: #d32f2f; /* Vermelho */
+  color: white;
+  font-weight: bold;
+}

@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import * as QRCode from 'qrcode';
+import { PreReservationService } from 'src/app/services/pre-reservation.service';
+import { MatDialog } from '@angular/material/dialog';
+import { AlertDialogCancelComponent } from 'src/app/components/alert-dialog-cancel/alert-dialog-cancel.component';
 
 @Component({
   selector: 'app-payment',
@@ -9,7 +12,7 @@ import * as QRCode from 'qrcode';
 })
 export class PaymentComponent implements OnInit {
 
-   totalValue: number = 0;
+  totalValue: number = 0;
   selectedPaymentMethod: string = '';
   paymentMethods = ['Pix', 'Cartão de Crédito', 'Cartão de Débito', 'Boleto'];
   qrCodeData: string = '';
@@ -34,7 +37,7 @@ export class PaymentComponent implements OnInit {
   selectedTime: string | null = null;
   paymentData: any = null;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private preReservaService: PreReservationService, private dialog: MatDialog) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       totalValue: number;
@@ -152,6 +155,19 @@ export class PaymentComponent implements OnInit {
   cancelPayment() {
     localStorage.removeItem('paymentData');
     localStorage.removeItem('preReservaData');
+    this.preReservaService.notifyPreReservaCancelled();
+    const dialogRef = this.dialog.open(AlertDialogCancelComponent, {
+      width: '350px',
+      data: {
+        title: 'Pagamento Cancelado',
+        message: 'Seu pagamento foi cancelado. Você foi redirecionado para a página de estacionamentos'
+      }
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.router.navigate(['/welcome'], {
+        state: { paymentCancelled: true }
+      });
+    });
     this.router.navigate(['/welcome'], {
       state: {
         paymentCancelled: true

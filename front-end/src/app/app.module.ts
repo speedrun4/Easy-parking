@@ -58,6 +58,7 @@ import { LOCALE_ID } from '@angular/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { registerLocaleData } from '@angular/common';
 import localePt from '@angular/common/locales/pt';
+import { AlertDialogCancelComponent } from './components/alert-dialog-cancel/alert-dialog-cancel.component';
 registerLocaleData(localePt);
 
 @NgModule({
@@ -90,6 +91,7 @@ registerLocaleData(localePt);
     SucessoModalComponent,
     UserProfileComponent,
     PreReservaComponent,
+    AlertDialogCancelComponent,
   ],
   imports: [
     MatButtonModule,

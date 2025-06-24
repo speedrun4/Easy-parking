@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, timer, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, timer, Subscription, Subject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +14,13 @@ export class PreReservationService {
   private timerSubscription: Subscription | null = null;
   private paymentConfirmed = false;
 
-  constructor() {}
+  preReservaCancelled$ = new Subject<void>();
+
+  notifyPreReservaCancelled() {
+    this.preReservaCancelled$.next();
+  }
+
+  constructor() { }
 
   getCurrentReservation(): any {
     return this.reservationData.getValue();
@@ -26,23 +32,27 @@ export class PreReservationService {
     this.startCountdown();
   }
 
+  cancelPreReserva() {
+    localStorage.removeItem('preReservaData');
+    this.notifyPreReservaChange();
+  }
   // Inicia o temporizador de 10 minutos
   private startCountdown() {
     this.countdownTime.next(600); // Reseta o contador para 10 minutos
 
-  if (this.timerSubscription) {
-    this.timerSubscription.unsubscribe();
-  }
-
-  this.timerSubscription = timer(0, 1000).subscribe(() => {
-    const currentTime = this.countdownTime.getValue(); // Use getValue()
-
-    if (currentTime > 0) {
-      this.countdownTime.next(currentTime - 1);
-    } else {
-      this.clearPreReservation();
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
     }
-  });
+
+    this.timerSubscription = timer(0, 1000).subscribe(() => {
+      const currentTime = this.countdownTime.getValue(); // Use getValue()
+
+      if (currentTime > 0) {
+        this.countdownTime.next(currentTime - 1);
+      } else {
+        this.clearPreReservation();
+      }
+    });
   }
 
   // Confirma o pagamento e para o temporizador

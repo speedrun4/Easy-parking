@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { AlertDialogCancelComponent } from 'src/app/components/alert-dialog-cancel/alert-dialog-cancel.component';
+import { PreReservationService } from 'src/app/services/pre-reservation.service';
 
 @Component({
   selector: 'app-pre-reserva',
@@ -12,7 +15,7 @@ export class PreReservaComponent implements OnInit {
   countdown: number = 10 * 60; // 10 minutos em segundos
   timer: any;
   selectedParkings: any[] = [];
-  constructor(private router: Router) { }
+  constructor(private router: Router, private preReservaService: PreReservationService, private dialog: MatDialog) { }
 
   ngOnInit(): void {
     // Carregar os dados do localStorage
@@ -62,17 +65,29 @@ export class PreReservaComponent implements OnInit {
       this.selectedParkings.push(parking); // Adiciona se não estiver selecionado
     }
   }
-   cancelPayment() {
-    localStorage.removeItem('preReservaData');
-    localStorage.removeItem('paymentData');
-    // Apagar dados de pagamento (se necessário) e navegar para a página welcome
-    this.router.navigate(['/welcome'], {
-      state: {
-        paymentCancelled: true // Podemos passar um estado se necessário
-      }
-    });
-  }
-
+  
+  cancelPayment() {
+      localStorage.removeItem('paymentData');
+      localStorage.removeItem('preReservaData');
+      this.preReservaService.notifyPreReservaCancelled();
+      const dialogRef = this.dialog.open(AlertDialogCancelComponent, {
+        width: '350px',
+        data: {
+          title: 'Pagamento Cancelado',
+          message: 'Seu pagamento foi cancelado. Você foi redirecionado para a página de estacionamentos'
+        }
+      });
+      dialogRef.afterClosed().subscribe(() => {
+        this.router.navigate(['/welcome'], {
+          state: { paymentCancelled: true }
+        });
+      });
+      this.router.navigate(['/welcome'], {
+        state: {
+          paymentCancelled: true
+        }
+      });
+    }
   proceedToPayment() {
     if (this.preReservaData && this.preReservaData.selectedParkings.length > 0) {
       const paymentData = {
