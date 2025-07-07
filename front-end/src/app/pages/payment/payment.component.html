@@ -92,8 +92,11 @@
 
       <div class="confirm-button-container" fxLayout="row" fxLayoutAlign="end center">
         <button mat-raised-button color="warn" (click)="cancelPayment()">Cancelar</button>
+        <button mat-raised-button color="primary" [disabled]="loading" (click)="confirmPayment()">
+          {{ loading ? 'Processando...' : 'Confirmar Pagamento' }}
+        </button>
       </div>
-      
+
       <ng-template #loadingTemplate>
         <mat-spinner diameter="20"></mat-spinner> <!-- Spinner de carregamento -->
       </ng-template>

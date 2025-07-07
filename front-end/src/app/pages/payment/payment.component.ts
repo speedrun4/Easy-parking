@@ -131,26 +131,52 @@ export class PaymentComponent implements OnInit {
         this.isProcessingPayment = false;
         this.loading = false;
         alert('Pagamento via Pix confirmado com sucesso!');
-        this.navigateToWelcome();
+        this.navigateToRoutePage();
       }, 3000);
     } else {
       setTimeout(() => {
         this.loading = false;
         alert(`Pagamento realizado com sucesso via ${this.selectedPaymentMethod}.`);
-        this.navigateToWelcome();
+        this.navigateToRoutePage();
       }, 2000);
     }
   }
 
-  navigateToWelcome() {
-    localStorage.removeItem('paymentData');
-    localStorage.removeItem('preReservaData');
-    this.router.navigate(['/welcome'], {
-      state: {
-        paymentConfirmed: true
-      }
-    });
+  navigateToRoutePage() {
+  if (!navigator.geolocation) {
+    alert('Geolocalização não suportada pelo navegador.');
+    return;
   }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const userLocation = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude
+      };
+
+      const parking = this.selectedParkings[0];
+      const parkingLocation = {
+        lat: parking.latitude,
+        lon: parking.longitude
+      };
+
+      localStorage.removeItem('paymentData');
+      localStorage.removeItem('preReservaData');
+
+      this.router.navigate(['/route'], {
+        state: {
+          origin: userLocation,
+          destination: parkingLocation
+        }
+      });
+    },
+    (error) => {
+      console.error('Erro ao obter localização:', error);
+      alert('Não foi possível obter sua localização atual.');
+    }
+  );
+}
 
   cancelPayment() {
     localStorage.removeItem('paymentData');

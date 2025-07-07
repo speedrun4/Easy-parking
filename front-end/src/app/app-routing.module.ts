@@ -17,14 +17,15 @@ import { CadastroEstacionamentoComponent } from './pages/cadastro-estacionamento
 import { FinancasComponent } from './pages/financas/financas.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 import { PreReservaComponent } from './pages/pre-reserva/pre-reserva.component';
+import { RouteComponent } from './pages/route/route.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
   { path: 'home', component: HomeComponent },
   { path: 'esqueci-senha', component: EsqueciSenhaComponent },
   { path: 'financas', component: FinancasComponent },
-  {path: 'reset-password', component: ResetPasswordComponent},
-  {path: 'cadastro-estacionamento', component: CadastroEstacionamentoComponent},
+  { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'cadastro-estacionamento', component: CadastroEstacionamentoComponent },
   { path: 'login', component: LoginComponent }, // rota para a página de login
   { path: 'cadastro', component: CadastroComponent },
   { path: 'cliente', component: ClienteComponent },
@@ -36,7 +37,7 @@ const routes: Routes = [
   { path: 'history', component: PaymentHistoryComponent },
   { path: 'user-profile', component: UserProfileComponent },
   { path: 'pre-reserva', component: PreReservaComponent },
-
+  { path: 'route', component: RouteComponent }, // rota para a página de rota
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
   { path: 'splash', component: SplashComponent }, // rota para página não encontrada
