@@ -30,24 +30,24 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    const preReservaData = JSON.parse(localStorage.getItem('preReservaData')!);
-    if (preReservaData) {
-      this.startCountdown(preReservaData.expirationTime);
-    }
     this.authService.autoLogin();
     this.authSubscription = this.authService.currentUser.subscribe(user => {
       this.isLoggedIn = !!user;
       if (user) {
         this.userName = user.nomeCompleto?.split(' ').slice(0, 2).join(' ') || '';
-        this.isClient = user.isClient; // Perfil cliente
-        this.loginAsUser = user.loginAsUser; // Tipo de login realizado
+        this.isClient = user.isClient;
+        this.loginAsUser = user.loginAsUser;
+        this.checkPreReservaTime(); // <-- Chame aqui, após login
       } else {
         this.userName = '';
         this.isClient = false;
+        this.preReservaTimeLeft = ''; // Limpa a contagem se deslogar
+        if (this.intervalId) clearInterval(this.intervalId);
       }
     });
+
     this.preReservaService.preReservaChange$.subscribe(() => {
-      this.checkPreReservaTime(); // Revalida o timer quando houver mudanças
+      this.checkPreReservaTime();
     });
 
     this.preReservaService.preReservaCancelled$.subscribe(() => {
@@ -57,8 +57,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
         clearInterval(this.intervalId);
       }
     });
-
-    this.checkPreReservaTime();
   }
 
   startCountdown(expirationTime: number) {
