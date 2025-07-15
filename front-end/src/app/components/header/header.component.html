@@ -6,7 +6,7 @@
   </nav>
   <span class="app-name">Easy Parking</span>
 
-  <div class="pre-reserva-time" *ngIf="preReservaTimeLeft">
+  <div class="pre-reserva-time" *ngIf="isLoggedIn && preReservaTimeLeft">
     <span>{{ preReservaTimeLeft }}</span>
   </div>
 

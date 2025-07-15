@@ -62,13 +62,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   startCountdown(expirationTime: number) {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
     this.intervalId = setInterval(() => {
       const timeLeft = expirationTime - Date.now();
       if (timeLeft <= 0) {
         clearInterval(this.intervalId);
-        this.intervalId = '';
+        this.preReservaTimeLeft = '';
       } else {
-        this.intervalId = this.formatTime(timeLeft);
+        const minutes = Math.floor(timeLeft / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+        this.preReservaTimeLeft = `${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
       }
     }, 1000);
   }
@@ -139,6 +144,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.isClient = false;
     this.userName = '';
     this.avatarMenuOpen = false;
+    this.preReservaTimeLeft = ''; // Limpa o contador visual
+    this.isPreReservaExpired = false;
+    if (this.intervalId) {
+      clearInterval(this.intervalId); // Limpa o intervalo do timer
+    }
     this.router.navigate(['/']);
   }
 

@@ -10,9 +10,8 @@ import { PreReservationService } from 'src/app/services/pre-reservation.service'
   styleUrls: ['./pre-reserva.component.scss']
 })
 export class PreReservaComponent implements OnInit {
-
-  preReservaData: any = null; // Dados da pré-reserva
-  countdown: number = 10 * 60; // 10 minutos em segundos
+  preReservaData: any = null;
+  countdown: string = '';
   timer: any;
   selectedParkings: any[] = [];
   constructor(private router: Router, private preReservaService: PreReservationService, private dialog: MatDialog) { }
@@ -23,17 +22,8 @@ export class PreReservaComponent implements OnInit {
 
     if (storedData) {
       this.preReservaData = JSON.parse(storedData);
-      const currentTime = new Date().getTime();
-      const elapsedTime = (currentTime - this.preReservaData.timestamp) / 1000;
-
-      if (elapsedTime >= 10 * 60) {
-        // Se o tempo expirou
-        this.clearPreReserva();
-      } else {
-        // Ajustar o countdown com o tempo restante
-        this.countdown = 10 * 60 - Math.floor(elapsedTime);
-        this.startCountdown();
-      }
+      this.updateCountdown();
+      this.startCountdown();
     } else {
       // Redirecionar se não houver dados
       this.router.navigate(['/']);
@@ -42,11 +32,23 @@ export class PreReservaComponent implements OnInit {
 
   startCountdown() {
     this.timer = setInterval(() => {
-      this.countdown--;
-      if (this.countdown <= 0) {
-        this.clearPreReserva();
-      }
+      this.updateCountdown();
     }, 1000);
+  }
+
+  updateCountdown() {
+    if (!this.preReservaData) return;
+    const expirationTime = this.preReservaData.timestamp + 10 * 60 * 1000;
+    const now = Date.now();
+    const timeLeft = expirationTime - now;
+
+    if (timeLeft <= 0) {
+      this.clearPreReserva();
+    } else {
+      const minutes = Math.floor(timeLeft / 60000);
+      const seconds = Math.floor((timeLeft % 60000) / 1000);
+      this.countdown = `${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+    }
   }
 
   clearPreReserva() {
