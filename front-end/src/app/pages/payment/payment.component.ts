@@ -63,6 +63,11 @@ export class PaymentComponent implements OnInit {
         if (Array.isArray(this.paymentData?.selectedParkings) && this.paymentData.selectedParkings.length > 0) {
           this.selectedParkings = this.selectedParkings.length > 0 ? this.selectedParkings : this.paymentData.selectedParkings;
         }
+
+        // Corrige o valor total vindo do localStorage
+        if (this.paymentData.totalValue) {
+          this.totalValue = this.paymentData.totalValue;
+        }
       }
 
       if (!this.selectedParkings || this.selectedParkings.length === 0) {

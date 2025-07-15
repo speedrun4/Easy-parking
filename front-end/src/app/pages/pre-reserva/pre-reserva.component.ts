@@ -92,10 +92,16 @@ export class PreReservaComponent implements OnInit {
     }
   proceedToPayment() {
     if (this.preReservaData && this.preReservaData.selectedParkings.length > 0) {
+      // Soma o total de todos os estacionamentos selecionados
+      const totalValue = this.preReservaData.selectedParkings
+        .map((p: any) => p.total || 0)
+        .reduce((acc: number, val: number) => acc + val, 0);
+
       const paymentData = {
         selectedParkings: this.preReservaData.selectedParkings,
         clienteName: this.preReservaData.clienteName,
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
+        totalValue // Adiciona o valor total
       };
       localStorage.setItem('paymentData', JSON.stringify(paymentData));
       this.router.navigate(['/payment']);
