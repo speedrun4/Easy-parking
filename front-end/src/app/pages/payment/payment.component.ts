@@ -131,12 +131,16 @@ export class PaymentComponent implements OnInit {
         this.isProcessingPayment = false;
         this.loading = false;
         alert('Pagamento via Pix confirmado com sucesso!');
+        // Notifica o header para parar o contador
+        this.preReservaService.notifyPreReservaCancelled();
         this.navigateToRoutePage();
       }, 3000);
     } else {
       setTimeout(() => {
         this.loading = false;
         alert(`Pagamento realizado com sucesso via ${this.selectedPaymentMethod}.`);
+        // Notifica o header para parar o contador
+        this.preReservaService.notifyPreReservaCancelled();
         this.navigateToRoutePage();
       }, 2000);
     }
