@@ -16,6 +16,8 @@ import org.example.services.UsuariosService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.Column;
+import javax.persistence.Lob;
 import java.util.List;
 
 @RestController
@@ -48,6 +50,7 @@ public class UsuariosController {
     }
     @PostMapping
     public ResponseEntity<Usuarios> register(@RequestBody Usuarios usuario) {
+        System.out.println("Foto recebida: " + usuario.getFotoBase64());
         // Validação e verificação do perfil
         if (usuario.getPerfil() == null ||
                 (!usuario.getPerfil().equals("usuario") && !usuario.getPerfil().equals("cliente"))) {
@@ -114,6 +117,10 @@ public class UsuariosController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @Column(name = "foto") // ou "foto_base64" conforme o banco
+    @Lob
+    private String fotoBase64; // Foto em base64
 }
 
 

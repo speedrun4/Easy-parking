@@ -15,6 +15,9 @@ public class Usuarios {
     private String senha;
     private String cpf;
     private String perfil;
+    @Column(name = "foto")
+    @Lob
+    private String fotoBase64; // Foto em base64
     // Construtores
     public Usuarios() {}
 
@@ -82,6 +85,14 @@ public class Usuarios {
 
     public void setPerfil(String perfil) {
         this.perfil = perfil;
+    }
+
+    public String getFotoBase64() {
+        return fotoBase64;
+    }
+
+    public void setFotoBase64(String fotoBase64) {
+        this.fotoBase64 = fotoBase64;
     }
 
 }

@@ -5,6 +5,7 @@ public class AuthResponse {
     private Integer id;
     private String nomeCompleto;
     private String perfil;
+    private String fotoBase64; // <-- Adicione este campo
 
     // Construtor com 4 argumentos
     public AuthResponse(String token, Integer id, String nomeCompleto, String perfil) {
@@ -45,5 +46,13 @@ public class AuthResponse {
 
     public void setPerfil(String perfil) {
         this.perfil = perfil;
+    }
+
+    public String getFotoBase64() {
+        return fotoBase64;
+    }
+
+    public void setFotoBase64(String fotoBase64) {
+        this.fotoBase64 = fotoBase64;
     }
 }
