@@ -20,6 +20,9 @@ export class WelcomeComponent implements OnInit {
   paymentConfirmed: boolean = false;
   selectedTime: string | undefined;
 
+  timeOptions: string[] = [];
+  exitTimeOptions: { [key: string]: string[] } = {};
+
   private map!: L.Map;
   private leafletMarkers: L.Marker[] = [];
 
@@ -61,6 +64,8 @@ export class WelcomeComponent implements OnInit {
 
       this.updateMapMarkers();
     });
+
+    this.timeOptions = this.generateTimeOptions();
   }
 
   initMap(lat: number, lng: number): void {
@@ -72,6 +77,54 @@ export class WelcomeComponent implements OnInit {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
     }).addTo(this.map);
+  }
+
+  generateTimeOptions(): string[] {
+    const options: string[] = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 5) {
+        options.push(
+          `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+        );
+      }
+    }
+    return options;
+  }
+
+  getExitTimeOptions(entryTime: string): string[] {
+    const entryIndex = this.timeOptions.indexOf(entryTime);
+    if (entryIndex === -1) return this.timeOptions;
+    return this.timeOptions.slice(entryIndex + 1);
+  }
+
+  getEntryTimeOptions(selectedDate: string): string[] {
+    if (!selectedDate) return this.timeOptions;
+
+    // Formato esperado: dd/MM/yyyy
+    const [day, month, year] = selectedDate.split('/').map(Number);
+    const today = new Date();
+    const isToday =
+      day === today.getDate() &&
+      month === today.getMonth() + 1 &&
+      year === today.getFullYear();
+
+    if (!isToday) return this.timeOptions;
+
+    // Hora atual arredondada para cima de 5 em 5 minutos
+    const now = new Date();
+    let hour = now.getHours();
+    let minute = now.getMinutes();
+    minute = Math.ceil(minute / 5) * 5;
+    if (minute === 60) {
+      hour += 1;
+      minute = 0;
+    }
+    const minTime = `${hour.toString().padStart(2, '0')}:${minute
+      .toString()
+      .padStart(2, '0')}`;
+
+    // Retorna apenas horários a partir do horário mínimo
+    return this.timeOptions.filter((time) => time >= minTime);
   }
 
   private updateMapMarkers() {
@@ -240,18 +293,30 @@ export class WelcomeComponent implements OnInit {
     }
   }
 
-  updateSelectedParkingExitTime(marker: any, event: Event) {
-  const inputElement = event.target as HTMLInputElement;
-  const time = inputElement.value;
-  const parking = this.selectedParkings.find(
-    (selectedMarker) =>
-      selectedMarker.latitude === marker.latitude &&
-      selectedMarker.longitude === marker.longitude
-  );
-  if (parking) {
-    parking.selectedExitTime = time;
+  updateSelectedParkingTime(marker: any, event: any) {
+    const time = event.value;
+    const parking = this.selectedParkings.find(
+      (selectedMarker) =>
+        selectedMarker.latitude === marker.latitude &&
+        selectedMarker.longitude === marker.longitude
+    );
+    if (parking) {
+      parking.selectedTime = time;
+      parking.selectedExitTime = ''; // Limpa saída ao mudar entrada
+    }
   }
-}
+
+  updateSelectedParkingExitTime(marker: any, event: any) {
+    const time = event.value;
+    const parking = this.selectedParkings.find(
+      (selectedMarker) =>
+        selectedMarker.latitude === marker.latitude &&
+        selectedMarker.longitude === marker.longitude
+    );
+    if (parking) {
+      parking.selectedExitTime = time;
+    }
+  }
 
   deleteParking(markerToDelete: any) {
     this.markers = this.markers.filter((marker) => marker !== markerToDelete);
@@ -282,6 +347,8 @@ export class WelcomeComponent implements OnInit {
   );
   if (parking) {
     parking.selectedDate = formattedDate;
+    parking.selectedTime = '';
+    parking.selectedExitTime = '';
   }
 }
 
@@ -291,19 +358,6 @@ formatDate(date: Date): string {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 }
-
-  updateSelectedParkingTime(marker: any, event: Event) {
-    const inputElement = event.target as HTMLInputElement;
-    const time = inputElement.value;
-    const parking = this.selectedParkings.find(
-      (selectedMarker) =>
-        selectedMarker.latitude === marker.latitude &&
-        selectedMarker.longitude === marker.longitude
-    );
-    if (parking) {
-      parking.selectedTime = time;
-    }
-  }
 
   calculateTotal(marker: any): number {
   if (!marker.selectedTime || !marker.selectedExitTime) return 0;

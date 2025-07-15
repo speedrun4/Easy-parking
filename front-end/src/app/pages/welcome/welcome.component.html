@@ -34,13 +34,19 @@
     <!-- Campo para selecionar a hora de entrada -->
     <mat-form-field appearance="outline" class="time">
       <mat-label>Hora de Entrada</mat-label>
-      <input matInput type="time" step="600" (change)="updateSelectedParkingTime(marker, $event)">
+      <mat-select [(value)]="marker.selectedTime" (selectionChange)="updateSelectedParkingTime(marker, $event)">
+        <mat-option value="">Selecione</mat-option>
+        <mat-option *ngFor="let time of getEntryTimeOptions(marker.selectedDate)" [value]="time">{{ time }}</mat-option>
+      </mat-select>
     </mat-form-field>
 
     <!-- Campo para selecionar a hora de saída -->
     <mat-form-field appearance="outline" class="time">
       <mat-label>Hora de Saída</mat-label>
-      <input matInput type="time" step="600" (change)="updateSelectedParkingExitTime(marker, $event)">
+      <mat-select [(value)]="marker.selectedExitTime" (selectionChange)="updateSelectedParkingExitTime(marker, $event)">
+        <mat-option value="">Selecione</mat-option>
+        <mat-option *ngFor="let time of getExitTimeOptions(marker.selectedTime)" [value]="time">{{ time }}</mat-option>
+      </mat-select>
     </mat-form-field>
 
     <p>
