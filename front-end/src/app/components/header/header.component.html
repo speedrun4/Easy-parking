@@ -12,7 +12,10 @@
 
   <!-- Avatar com Dropdown -->
   <div class="login-avatar" (click)="toggleAvatarMenu()">
-    <img src="assets/images/avatar.png" alt="Avatar">
+    <img *ngIf="userPhotoUrl; else defaultAvatar" [src]="userPhotoUrl" alt="Avatar">
+    <ng-template #defaultAvatar>
+      <img src="assets/images/avatar.png" alt="Avatar">
+    </ng-template>
     <!-- Nome do usuário -->
     <div *ngIf="isLoggedIn" class="user-name">{{ userName }}</div>
   </div>

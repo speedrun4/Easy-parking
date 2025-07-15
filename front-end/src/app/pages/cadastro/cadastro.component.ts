@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { EstacionamentoService } from '../../services/estacionamento.service';
 import { GeocodingService } from '../../services/geocoding.service';
@@ -23,6 +23,11 @@ export class CadastroComponent implements OnInit {
   mostrarModalSucesso = false;
   hidePassword: boolean = true;
   mostrarMensagemSucesso: boolean = false;
+  fotoBase64: string | null = null;
+  previewUrl: string | null = null;
+
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
 
   constructor(private fb: FormBuilder,
     private authService: AuthService,
@@ -51,7 +56,7 @@ export class CadastroComponent implements OnInit {
     });
   }
 
-openConfirmationDialog(message: string): void {
+  openConfirmationDialog(message: string): void {
     this.dialog.open(SucessoModalComponent, {
       data: { message: message }
     });
@@ -64,12 +69,20 @@ openConfirmationDialog(message: string): void {
         telefone: this.userForm.get('phone')?.value,
         senha: this.userForm.get('password')?.value,
         cpf: this.userForm.get('cpf')?.value,
-        perfil: perfil
+        perfil: perfil,
+        fotoBase64: this.fotoBase64 // Adiciona a foto
       };
+  
+      console.log(usuario.fotoBase64); // Deve mostrar uma string grande (base64)
   
       this.authService.register(usuario).subscribe(
         (response) => {
           console.log('Usuário cadastrado com sucesso', response);
+          if (response.fotoBase64) {
+            console.log('Imagem cadastrada com sucesso!');
+          } else {
+            console.log('Imagem NÃO cadastrada.');
+          }
           this.openConfirmationDialog("Usuário cadastrado com sucesso!");
           this.mostrarMensagemSucesso = true; // Exibe a mensagem de sucesso
           // Redirecionar ou mostrar mensagem de sucesso
@@ -157,5 +170,35 @@ openConfirmationDialog(message: string): void {
   }
   goToLogin() {
     this.router.navigate(['/home']);
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.fotoBase64 = e.target.result.split(',')[1]; // Remove o prefixo data:image/...
+        this.previewUrl = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  openCamera(): void {
+    const video = this.videoElement.nativeElement;
+    const canvas = this.canvasElement.nativeElement;
+    video.style.display = 'block';
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      video.srcObject = stream;
+      video.play();
+      setTimeout(() => {
+        canvas.getContext('2d')!.drawImage(video, 0, 0, canvas.width, canvas.height);
+        this.fotoBase64 = canvas.toDataURL('image/png').split(',')[1];
+        this.previewUrl = canvas.toDataURL('image/png');
+        video.pause();
+        video.srcObject = null;
+        video.style.display = 'none';
+      }, 2000); // tira a foto após 2 segundos
+    });
   }
 }

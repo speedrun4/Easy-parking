@@ -58,6 +58,16 @@
         </mat-error>
       </mat-form-field>
 
+      <!-- NÃO coloque input type="file" dentro de mat-form-field -->
+      <div class="foto-upload">
+        <label for="foto">Foto:</label>
+        <input id="foto" type="file" accept="image/*" (change)="onFileSelected($event)">
+      </div>
+      <button mat-raised-button type="button" (click)="openCamera()">Tirar Foto</button>
+      <img *ngIf="previewUrl" [src]="previewUrl" alt="Prévia da Foto" width="120" style="margin-top:10px;">
+      <video #videoElement width="120" height="90" autoplay style="display:none"></video>
+      <canvas #canvasElement width="120" height="90" style="display:none"></canvas>
+
       <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">Cadastrar</button>
     </form>
   </mat-card>

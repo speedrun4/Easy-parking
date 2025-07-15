@@ -19,6 +19,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   loginAsUser: boolean = false;
   preReservaTimeLeft: string = '';
   isPreReservaExpired: boolean = false;
+  userPhotoUrl: string | null = null;
   private authSubscription: Subscription = new Subscription(); // Subscription para escutar as mudanças
   private intervalId: any;
 
@@ -37,11 +38,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.userName = user.nomeCompleto?.split(' ').slice(0, 2).join(' ') || '';
         this.isClient = user.isClient;
         this.loginAsUser = user.loginAsUser;
-        this.checkPreReservaTime(); // <-- Chame aqui, após login
+        this.userPhotoUrl = user.fotoBase64 ? 'data:image/png;base64,' + user.fotoBase64 : null;
+        this.checkPreReservaTime();
       } else {
         this.userName = '';
         this.isClient = false;
-        this.preReservaTimeLeft = ''; // Limpa a contagem se deslogar
+        this.userPhotoUrl = null;
+        this.preReservaTimeLeft = '';
         if (this.intervalId) clearInterval(this.intervalId);
       }
     });
