@@ -156,9 +156,15 @@ export class PaymentComponent implements OnInit {
       };
 
       const parking = this.selectedParkings[0];
+      console.log('Parking selecionado:', parking); // Veja o que aparece no console
+
       const parkingLocation = {
-        lat: parking.latitude,
-        lon: parking.longitude
+        lat: parking.latitude ?? parking.lat,
+        lon: parking.longitude ?? parking.lon,
+        title: parking.title,
+        address: parking.address,
+        phone: parking.phone,
+        cep: parking.cep
       };
 
       localStorage.removeItem('paymentData');
@@ -208,4 +214,12 @@ export class PaymentComponent implements OnInit {
       console.error('Erro ao copiar o código: ', err);
     });
   }
+
+  filteredMarkers = this.selectedParkings.map(est => ({
+    title: est.companyName,
+    label: `R$${est.hourlyRate}/h`,
+    address: est.address,
+    latitude: est.latitude,
+    longitude: est.longitude
+  }));
 }

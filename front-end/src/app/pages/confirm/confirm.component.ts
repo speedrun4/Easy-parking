@@ -118,12 +118,14 @@ export class ConfirmComponent implements OnInit {
         title: parking.title,
         label: parking.label,
         address: parking.address,
+        latitude: parking.latitude,        // <-- Adicione isto
+        longitude: parking.longitude,      // <-- Adicione isto
         selectedDate: parking.selectedDate,
         selectedTime: parking.selectedTime,
         selectedExitTime: parking.selectedExitTime,
         total: this.calculateParkingTotal(parking)
       })),
-      timestamp: new Date().getTime(), // Salva o timestamp para controle de expiração
+      timestamp: new Date().getTime(),
     };
 
     // Salva os dados no localStorage
@@ -143,8 +145,8 @@ export class ConfirmComponent implements OnInit {
       this.router.navigate(['/payment'], {
         state: {
           totalValue: this.totalValue,
-          selectedDate: this.selectedDate || null, // Inclua a data, mesmo que seja nula
-          selectedTime: this.selectedTime || null, // Inclua o horário, mesmo que seja nulo
+          selectedDate: this.selectedDate || null,
+          selectedTime: this.selectedTime || null,
           selectedParkings: preReservaData.selectedParkings
         }
       });

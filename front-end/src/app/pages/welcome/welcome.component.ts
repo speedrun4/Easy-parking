@@ -342,6 +342,8 @@ formatDate(date: Date): string {
             title: parking.title,
             label: parking.label,
             address: parking.address,
+            latitude: parking.latitude,        // <-- Adicione isto
+            longitude: parking.longitude,      // <-- Adicione isto
             selectedDate: parking.selectedDate,
             selectedTime: parking.selectedTime,
             selectedExitTime: parking.selectedExitTime,

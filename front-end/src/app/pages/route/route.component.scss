@@ -1,0 +1,89 @@
+.route-header {
+  position: fixed;
+  top: 70px; // ajuste para a altura EXATA do seu header principal
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  background: transparent;
+    border-radius: 5px;
+  padding: 10px 16px;
+  color: #fff;
+  font-size: 16px;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.address-bar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  color: #333;
+  border-radius: 8px;
+  padding: 6px 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 16px;
+  margin-left: 37px;
+}
+.address-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+.route-card {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -2px 16px rgba(0,0,0,0.12);
+  padding: 24px 16px 16px 16px;
+  z-index: 1000;
+}
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.card-title {
+  font-weight: bold;
+  font-size: 20px;
+}
+.card-address {
+  color: #666;
+  font-size: 15px;
+}
+.card-phone {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: bold;
+}
+.card-info {
+  display: flex;
+  gap: 16px;
+  color: #888;
+  font-size: 14px;
+  align-items: center;
+}
+button {
+  margin-top: 12px;
+  width: 100%;
+}
+
+#map {
+  margin-top: -34px; // Remova o margin-top
+}
+
+.route-content {
+  padding-top: 104px; // 56px do header + 48px do .route-header (ajuste conforme necessário)
+}
+
+.button-route {
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
+  border-radius: 5px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+}
