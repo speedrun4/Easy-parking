@@ -1,8 +1,12 @@
 export interface PaymentHistory {
-    id: number;
-    parkingName: string;
-    date: Date;
-    amountPaid: number;
-    location: string;
-  }
-  
+  id: number;
+  nome: string;
+  formaPagamento: string;
+  valorPago: number;
+  horario: string;
+  data: string;
+  estacionamento: string;
+  latitude: number;
+  longitude: number;
+  endereco: string;
+}

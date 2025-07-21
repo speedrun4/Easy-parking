@@ -5,6 +5,7 @@ import { PreReservationService } from 'src/app/services/pre-reservation.service'
 import { MatDialog } from '@angular/material/dialog';
 import { AlertDialogCancelComponent } from 'src/app/components/alert-dialog-cancel/alert-dialog-cancel.component';
 import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
+import { PaymentHistoryService } from 'src/app/services/payment-history.service';
 
 
 @Component({
@@ -39,7 +40,7 @@ export class PaymentComponent implements OnInit {
   selectedTime: string | null = null;
   paymentData: any = null;
 
-  constructor(private router: Router, private preReservaService: PreReservationService, private dialog: MatDialog) {
+  constructor(private router: Router, private preReservaService: PreReservationService, private dialog: MatDialog, private paymentHistoryService: PaymentHistoryService) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       totalValue: number;
@@ -109,6 +110,26 @@ export class PaymentComponent implements OnInit {
   }
 
   confirmPayment() {
+    const selected = this.selectedParkings[0];
+    const pagamento = {
+      nome: this.cardName || this.payerName || 'Usuário Pix',
+      formaPagamento: this.selectedPaymentMethod,
+      valorPago: this.totalValue,
+      estacionamento: selected.title,
+      latitude: selected.latitude ?? selected.lat,
+      longitude: selected.longitude ?? selected.lon,
+      endereco: selected.address
+    };
+    this.paymentHistoryService.salvarPagamento(pagamento).subscribe({
+      next: (res) => {
+        console.log('Pagamento salvo com sucesso', res);
+      },
+      error: (error) => {
+        console.error('Erro ao salvar pagamento:', error);
+      }
+    });
+
+    // Validação de método de pagamento
     if (!this.selectedPaymentMethod) {
       this.dialog.open(SucessoModalComponent, {
         data: {
@@ -181,46 +202,46 @@ export class PaymentComponent implements OnInit {
   }
 
   navigateToRoutePage() {
-  if (!navigator.geolocation) {
-    alert('Geolocalização não suportada pelo navegador.');
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const userLocation = {
-        lat: position.coords.latitude,
-        lon: position.coords.longitude
-      };
-
-      const parking = this.selectedParkings[0];
-      console.log('Parking selecionado:', parking); // Veja o que aparece no console
-
-      const parkingLocation = {
-        lat: parking.latitude ?? parking.lat,
-        lon: parking.longitude ?? parking.lon,
-        title: parking.title,
-        address: parking.address,
-        phone: parking.phone,
-        cep: parking.cep
-      };
-
-      localStorage.removeItem('paymentData');
-      localStorage.removeItem('preReservaData');
-
-      this.router.navigate(['/route'], {
-        state: {
-          origin: userLocation,
-          destination: parkingLocation
-        }
-      });
-    },
-    (error) => {
-      console.error('Erro ao obter localização:', error);
-      alert('Não foi possível obter sua localização atual.');
+    if (!navigator.geolocation) {
+      alert('Geolocalização não suportada pelo navegador.');
+      return;
     }
-  );
-}
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLocation = {
+          lat: position.coords.latitude,
+          lon: position.coords.longitude
+        };
+
+        const parking = this.selectedParkings[0];
+        console.log('Parking selecionado:', parking); // Veja o que aparece no console
+
+        const parkingLocation = {
+          lat: parking.latitude ?? parking.lat,
+          lon: parking.longitude ?? parking.lon,
+          title: parking.title,
+          address: parking.address,
+          phone: parking.phone,
+          cep: parking.cep
+        };
+
+        localStorage.removeItem('paymentData');
+        localStorage.removeItem('preReservaData');
+
+        this.router.navigate(['/route'], {
+          state: {
+            origin: userLocation,
+            destination: parkingLocation
+          }
+        });
+      },
+      (error) => {
+        console.error('Erro ao obter localização:', error);
+        alert('Não foi possível obter sua localização atual.');
+      }
+    );
+  }
 
   cancelPayment() {
     localStorage.removeItem('paymentData');

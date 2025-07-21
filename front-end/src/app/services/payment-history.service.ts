@@ -1,22 +1,26 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { PaymentHistory } from '../models/payment-history.model';
-import { Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PaymentHistoryService {
 
-  private paymentHistory: PaymentHistory[] = [
-    { id: 1, parkingName: 'Estacionamento Central', date: new Date('2024-09-10'), amountPaid: 15.00, location: 'Rua A, Centro' },
-    { id: 2, parkingName: 'Estacionamento Shopping', date: new Date('2024-09-12'), amountPaid: 20.00, location: 'Shopping B' },
-    { id: 3, parkingName: 'Estacionamento Aeroporto', date: new Date('2024-09-15'), amountPaid: 30.00, location: 'Aeroporto Internacional' }
-  ];
+  private apiUrl = 'http://localhost:8080/api/pagamentos';
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
-  // Função para obter os dados de pagamento
-  getPaymentHistory(): Observable<PaymentHistory[]> {
-    return of(this.paymentHistory);
+   getPaymentHistory(): Observable<PaymentHistory[]> {
+    return this.http.get<PaymentHistory[]>(this.apiUrl);
+  }
+
+  deletePayment(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+salvarPagamento(dadosPagamento: any) {
+    return this.http.post(this.apiUrl, dadosPagamento);
   }
 }

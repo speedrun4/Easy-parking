@@ -6,16 +6,21 @@
       <tr>
         <th>Data</th>
         <th>Estacionamento</th>
-        <th>Localização</th>
-        <th>Valor Pago</th>
+        <th>Forma de Pagamento</th>
+        <th>Valor</th>
+        <th>Ações</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let payment of paymentHistory">
-        <td>{{ payment.date | date: 'dd/MM/yyyy' }}</td>
-        <td>{{ payment.parkingName }}</td>
-        <td>{{ payment.location }}</td>
-        <td>{{ payment.amountPaid | currency: 'BRL' }}</td>
+        <td>{{ payment.data | date: 'dd/MM/yyyy' }}</td>
+        <td>{{ payment.estacionamento }}</td>
+        <td>{{ payment.formaPagamento }}</td>
+        <td>{{ payment.valorPago | currency: 'BRL' }}</td>
+        <td>
+          <button mat-button color="primary" (click)="goToRoute(payment)">Ir para Rota</button>
+          <button mat-button color="warn" (click)="deletePayment(payment.id)">Excluir</button>
+        </td>
       </tr>
     </tbody>
   </table>
