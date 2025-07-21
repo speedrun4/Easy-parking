@@ -40,6 +40,7 @@ public class UsuariosController {
                 String token = "fake-jwt-token"; // Substitua pelo seu gerador de token real
                 // Cria o objeto AuthResponse
                 AuthResponse response = new AuthResponse(token, usuario.getId(), usuario.getNomeCompleto(), usuario.getPerfil());
+                response.setFotoBase64(usuario.getFotoBase64()); // <-- Adiciona a foto à resposta
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta");
