@@ -4,6 +4,8 @@ import * as QRCode from 'qrcode';
 import { PreReservationService } from 'src/app/services/pre-reservation.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AlertDialogCancelComponent } from 'src/app/components/alert-dialog-cancel/alert-dialog-cancel.component';
+import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
+
 
 @Component({
   selector: 'app-payment',
@@ -108,21 +110,36 @@ export class PaymentComponent implements OnInit {
 
   confirmPayment() {
     if (!this.selectedPaymentMethod) {
-      alert('Selecione um método de pagamento.');
+      this.dialog.open(SucessoModalComponent, {
+        data: {
+          title: 'Atenção',
+          message: 'Selecione um método de pagamento.'
+        }
+      });
       return;
     }
 
     // Validação de dados
     if (this.selectedPaymentMethod === 'Cartão de Crédito' || this.selectedPaymentMethod === 'Cartão de Débito') {
       if (!this.cardNumber || !this.cardName || !this.cardExpiry || !this.cardCVV) {
-        alert('Por favor, preencha todos os campos do cartão.');
+        this.dialog.open(SucessoModalComponent, {
+          data: {
+            title: 'Atenção',
+            message: 'Por favor, preencha todos os campos do cartão.'
+          }
+        });
         return;
       }
     }
 
     if (this.selectedPaymentMethod === 'Boleto') {
       if (!this.payerName || !this.payerDocument) {
-        alert('Por favor, preencha o nome e CPF/CNPJ para gerar o boleto.');
+        this.dialog.open(SucessoModalComponent, {
+          data: {
+            title: 'Atenção',
+            message: 'Por favor, preencha o nome e CPF/CNPJ para gerar o boleto.'
+          }
+        });
         return;
       }
     }
@@ -135,18 +152,30 @@ export class PaymentComponent implements OnInit {
       setTimeout(() => {
         this.isProcessingPayment = false;
         this.loading = false;
-        alert('Pagamento via Pix confirmado com sucesso!');
-        // Notifica o header para parar o contador
+        const dialogRef = this.dialog.open(SucessoModalComponent, {
+          data: {
+            title: 'Pagamento Confirmado',
+            message: 'Pagamento via Pix confirmado com sucesso!'
+          }
+        });
         this.preReservaService.notifyPreReservaCancelled();
-        this.navigateToRoutePage();
+        dialogRef.afterClosed().subscribe(() => {
+          this.navigateToRoutePage();
+        });
       }, 3000);
     } else {
       setTimeout(() => {
         this.loading = false;
-        alert(`Pagamento realizado com sucesso via ${this.selectedPaymentMethod}.`);
-        // Notifica o header para parar o contador
+        const dialogRef = this.dialog.open(SucessoModalComponent, {
+          data: {
+            title: 'Pagamento Confirmado',
+            message: `Pagamento realizado com sucesso via ${this.selectedPaymentMethod}.`
+          }
+        });
         this.preReservaService.notifyPreReservaCancelled();
-        this.navigateToRoutePage();
+        dialogRef.afterClosed().subscribe(() => {
+          this.navigateToRoutePage();
+        });
       }, 2000);
     }
   }
