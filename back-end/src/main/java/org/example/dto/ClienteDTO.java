@@ -8,6 +8,9 @@ public class ClienteDTO {
     @NotBlank(message = "Nome da empresa é obrigatório")
     private String nomeEmpresa;
 
+    @NotNull(message = "Usuário é obrigatório")
+    private Long usuarioId;
+
     @NotBlank(message = "CNPJ é obrigatório")
     private String cnpj;
 
@@ -74,5 +77,13 @@ public class ClienteDTO {
 
     public void setValorPorHora(BigDecimal valorPorHora) {
         this.valorPorHora = valorPorHora;
+    }
+
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
     }
 }

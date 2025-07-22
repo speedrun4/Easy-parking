@@ -20,6 +20,10 @@ public class PagamentoService {
         return repository.findAll();
     }
 
+    public List<Pagamentos> listarPorUsuario(Integer usuarioId) {
+        return repository.findByUsuarioId(usuarioId);
+    }
+
     public void deletarPorId(Long id) {
         repository.deleteById(id);
     }

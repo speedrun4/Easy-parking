@@ -2,6 +2,8 @@ package org.example.controllers;
 import org.example.dto.ClienteDTO;
 import org.example.models.Cliente;
 import org.example.services.ClienteService;
+import org.example.models.Usuarios;
+import org.example.repositories.UsuariosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,9 @@ public class ClienteController {
 
     @Autowired
     private ClienteService clienteService;
+
+    @Autowired
+    private UsuariosRepository usuariosRepository;
     @GetMapping
     public ResponseEntity<List<Cliente>> getAllClientes() {
         try {
@@ -42,6 +47,23 @@ public class ClienteController {
             cliente.setCepFiliais(clienteDTO.getCepFiliais());
             cliente.setTelefone(clienteDTO.getTelefone());
             cliente.setValorPorHora(clienteDTO.getValorPorHora());
+
+            // Vínculo com usuário
+            if (clienteDTO.getUsuarioId() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário não informado.");
+            }
+            Integer usuarioIdInt;
+            try {
+                usuarioIdInt = Math.toIntExact(clienteDTO.getUsuarioId());
+            } catch (ArithmeticException ex) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ID de usuário inválido.");
+            }
+            Usuarios usuario = usuariosRepository.findById(usuarioIdInt)
+                    .orElse(null);
+            if (usuario == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário não encontrado.");
+            }
+            cliente.setUsuario(usuario);
 
             Cliente savedCliente = clienteService.saveCliente(cliente);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedCliente);

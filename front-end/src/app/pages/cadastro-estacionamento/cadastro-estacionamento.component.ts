@@ -5,6 +5,7 @@ import { GeocodingService } from 'src/app/services/geocoding.service';
 import { Router } from '@angular/router';
 import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
 import { MatDialog } from '@angular/material/dialog';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-cadastro-estacionamento',
@@ -20,7 +21,14 @@ export class CadastroEstacionamentoComponent implements OnInit {
   showErrorModal: boolean = false;
 
 
-  constructor(private fb: FormBuilder, private estacionamentoService: EstacionamentoService, private geocodingService: GeocodingService, private router: Router, public dialog: MatDialog) { 
+  constructor(
+    private fb: FormBuilder,
+    private estacionamentoService: EstacionamentoService,
+    private geocodingService: GeocodingService,
+    private router: Router,
+    public dialog: MatDialog,
+    private authService: AuthService
+  ) {
     this.parkingForm = this.fb.group({
       companyName: ['', Validators.required],
       cnpj: ['', Validators.required],
@@ -54,6 +62,14 @@ export class CadastroEstacionamentoComponent implements OnInit {
     }
 
     // Criação do objeto estacionamento com os dados do formulário
+    // Obtém o usuário logado
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser || !currentUser.id) {
+      this.errorMessage = 'Usuário não autenticado. Faça login para cadastrar um estacionamento.';
+      this.showErrorModal = true;
+      return;
+    }
+
     const estacionamento = {
       nomeEmpresa: this.parkingForm.get('companyName')?.value,
       cnpj: this.parkingForm.get('cnpj')?.value,
@@ -61,7 +77,8 @@ export class CadastroEstacionamentoComponent implements OnInit {
       enderecoCompleto: this.parkingForm.get('address')?.value,
       cep: this.parkingForm.get('cep')?.value,
       cepFiliais: this.parkingForm.get('branchCeps')?.value,
-      telefone: this.parkingForm.get('phone')?.value
+      telefone: this.parkingForm.get('phone')?.value,
+      usuarioId: currentUser.id // Vínculo com usuário logado
     };
 
     // Chama o serviço para fazer a requisição POST para a API

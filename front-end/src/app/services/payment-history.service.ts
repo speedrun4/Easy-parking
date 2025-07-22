@@ -12,7 +12,10 @@ export class PaymentHistoryService {
 
   constructor(private http: HttpClient) {}
 
-   getPaymentHistory(): Observable<PaymentHistory[]> {
+   getPaymentHistory(usuarioId?: number): Observable<PaymentHistory[]> {
+    if (usuarioId) {
+      return this.http.get<PaymentHistory[]>(`${this.apiUrl}?usuarioId=${usuarioId}`);
+    }
     return this.http.get<PaymentHistory[]>(this.apiUrl);
   }
 

@@ -1,9 +1,14 @@
 package org.example.models;
 import javax.persistence.*;
 import java.math.BigDecimal;
+import org.example.models.Usuarios;
 @Entity
 @Table(name = "cliente")
 public class Cliente {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private Usuarios usuario;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cliente_seq")
@@ -95,4 +100,12 @@ public class Cliente {
         this.telefone = telefone;
     }
     // Getters and Setters
+
+    public Usuarios getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuarios usuario) {
+        this.usuario = usuario;
+    }
 }

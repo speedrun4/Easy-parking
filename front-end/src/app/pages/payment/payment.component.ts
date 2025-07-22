@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AlertDialogCancelComponent } from 'src/app/components/alert-dialog-cancel/alert-dialog-cancel.component';
 import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
 import { PaymentHistoryService } from 'src/app/services/payment-history.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 
 @Component({
@@ -40,7 +41,13 @@ export class PaymentComponent implements OnInit {
   selectedTime: string | null = null;
   paymentData: any = null;
 
-  constructor(private router: Router, private preReservaService: PreReservationService, private dialog: MatDialog, private paymentHistoryService: PaymentHistoryService) {
+  constructor(
+    private router: Router,
+    private preReservaService: PreReservationService,
+    private dialog: MatDialog,
+    private paymentHistoryService: PaymentHistoryService,
+    private authService: AuthService
+  ) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       totalValue: number;
@@ -111,6 +118,16 @@ export class PaymentComponent implements OnInit {
 
   confirmPayment() {
     const selected = this.selectedParkings[0];
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser || !currentUser.id) {
+      this.dialog.open(SucessoModalComponent, {
+        data: {
+          title: 'Atenção',
+          message: 'Usuário não autenticado. Faça login para realizar o pagamento.'
+        }
+      });
+      return;
+    }
     const pagamento = {
       nome: this.cardName || this.payerName || 'Usuário Pix',
       formaPagamento: this.selectedPaymentMethod,
@@ -118,7 +135,8 @@ export class PaymentComponent implements OnInit {
       estacionamento: selected.title,
       latitude: selected.latitude ?? selected.lat,
       longitude: selected.longitude ?? selected.lon,
-      endereco: selected.address
+      endereco: selected.address,
+      usuario: { id: currentUser.id }
     };
     this.paymentHistoryService.salvarPagamento(pagamento).subscribe({
       next: (res) => {
