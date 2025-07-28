@@ -1,6 +1,8 @@
 package org.example.models;
 import javax.persistence.*;
 import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.example.models.Usuarios;
 @Entity
 @Table(name = "cliente")
@@ -8,6 +10,7 @@ public class Cliente {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
+    @JsonIgnore
     private Usuarios usuario;
 
     @Id

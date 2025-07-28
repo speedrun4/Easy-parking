@@ -7,6 +7,7 @@ import org.example.repositories.UsuariosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.example.repositories.PagamentoRepository;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -18,7 +19,8 @@ public class PagamentoController {
 
     @Autowired
     private PagamentoService service;
-
+    @Autowired
+    private PagamentoRepository pagamentosRepository;
     @Autowired
     private UsuariosRepository usuariosRepository;
 
@@ -28,9 +30,7 @@ public class PagamentoController {
         pagamento.setHorario(LocalTime.now());
 
         // Vínculo com usuário
-        if (pagamento.getUsuario() == null && pagamento.getUsuario() == null) {
-            return ResponseEntity.badRequest().build();
-        }
+       
         Usuarios usuario = null;
         if (pagamento.getUsuario() != null && pagamento.getUsuario().getId() != null) {
             usuario = usuariosRepository.findById(pagamento.getUsuario().getId()).orElse(null);
@@ -45,11 +45,12 @@ public class PagamentoController {
     }
 
     @GetMapping
-    public List<Pagamentos> listarTodos(@RequestParam(value = "usuarioId", required = false) Integer usuarioId) {
+    public List<Pagamentos> getPagamentos(@RequestParam(required = false) Long usuarioId) {
         if (usuarioId != null) {
-            return service.listarPorUsuario(usuarioId);
+            return pagamentosRepository.findByUsuarioId(Math.toIntExact(usuarioId));
+        } else {
+            return pagamentosRepository.findAll();
         }
-        return service.listarTodos();
     }
 
     @DeleteMapping("/{id}")

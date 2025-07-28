@@ -1,5 +1,7 @@
 package org.example.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,7 +12,8 @@ import java.time.LocalTime;
 public class Pagamentos {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id")
+    @JoinColumn(name = "cliente_id")
+    @JsonIgnore
     private Usuarios usuario;
 
     @Id
