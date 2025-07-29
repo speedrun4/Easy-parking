@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PaymentHistory } from 'src/app/models/payment-history.model';
+import { AuthService } from 'src/app/services/auth.service';
 import { PaymentHistoryService } from 'src/app/services/payment-history.service';
 
 @Component({
@@ -11,13 +12,18 @@ import { PaymentHistoryService } from 'src/app/services/payment-history.service'
 export class PaymentHistoryComponent implements OnInit {
   paymentHistory: PaymentHistory[] = [];
 
-  constructor(private paymentHistoryService: PaymentHistoryService, private router: Router) { }
+  constructor(private paymentHistoryService: PaymentHistoryService, private authService: AuthService, private router: Router) { }
 
   ngOnInit(): void {
     this.loadPayments();
   }
 
   loadPayments() {
+    const currentUser = this.authService.getCurrentUser();
+  if (!currentUser || !currentUser.id) {
+    console.error('Usuário não autenticado!');
+    return;
+  }
     this.paymentHistoryService.getPaymentHistory().subscribe(data => {
       this.paymentHistory = data;
     });

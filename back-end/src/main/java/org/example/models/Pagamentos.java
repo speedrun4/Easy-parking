@@ -1,6 +1,7 @@
 package org.example.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ public class Pagamentos {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Usuarios usuario;
 
     @Id
