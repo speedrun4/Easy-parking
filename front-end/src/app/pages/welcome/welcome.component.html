@@ -4,9 +4,15 @@
 
 <div class="search-container" fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="20px">
   <form [formGroup]="searchForm" (ngSubmit)="onSearch()" fxFlex="100" fxFlex.xs="90" fxFlex.sm="95" fxFlex.md="80">
-    <mat-form-field fxFlex="100%">
+    <mat-form-field fxFlex="100%" appearance="outline">
       <mat-label>Buscar estacionamento (Nome ou Endereço)</mat-label>
-      <input matInput formControlName="search" placeholder="Digite o nome ou endereço do estacionamento">
+      <input matInput formControlName="search" placeholder="Digite o nome ou endereço do estacionamento" 
+        [matAutocomplete]="auto">
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onOptionSelected($event)">
+        <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+          <span>{{ option.title }}</span> <small style="color: #888;">{{ option.address }}</small>
+        </mat-option>
+      </mat-autocomplete>
     </mat-form-field>
     <button class="botao" mat-raised-button color="primary" type="submit">Buscar</button>
   </form>

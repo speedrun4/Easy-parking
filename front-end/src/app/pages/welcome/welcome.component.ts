@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { Observable, of } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { EstacionamentoService } from '../../services/estacionamento.service';
 import { Router } from '@angular/router';
 import * as L from 'leaflet';
@@ -22,6 +24,8 @@ export class WelcomeComponent implements OnInit {
 
   timeOptions: string[] = [];
   exitTimeOptions: { [key: string]: string[] } = {};
+
+  filteredOptions!: Observable<any[]>;
 
   private map!: L.Map;
   private leafletMarkers: L.Marker[] = [];
@@ -55,6 +59,8 @@ export class WelcomeComponent implements OnInit {
         longitude: est.longitude
       }));
 
+      this.markers = [...this.filteredMarkers];
+
       if (this.filteredMarkers.length > 0) {
         const first = this.filteredMarkers[0];
         this.initMap(first.latitude, first.longitude);  // ⬅️ Inicializa já centralizado no estacionamento
@@ -66,6 +72,38 @@ export class WelcomeComponent implements OnInit {
     });
 
     this.timeOptions = this.generateTimeOptions();
+
+    // Autocomplete: filtra opções conforme digita
+    this.filteredOptions = this.searchForm.get('search')!.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterEstacionamentos(value || ''))
+    );
+  }
+
+  private _filterEstacionamentos(value: string): any[] {
+    const filterValue = value.toLowerCase();
+    return this.markers.filter(option =>
+      this.normalizeText(option.title).includes(filterValue) ||
+      this.normalizeText(option.address).includes(filterValue)
+    );
+  }
+
+  onOptionSelected(event: any) {
+    const selected = event.option.value;
+    // Se já estiver selecionado, não adiciona de novo
+    const exists = this.selectedParkings.some(
+      (m) => m.latitude === selected.latitude && m.longitude === selected.longitude
+    );
+    if (!exists) {
+      this.selectedParkings.push({
+        ...selected,
+        selectedDate: '',
+        selectedTime: '',
+        selectedExitTime: '',
+      });
+    }
+    // Limpa o campo de busca
+    this.searchForm.get('search')?.setValue('');
   }
 
   initMap(lat: number, lng: number): void {
