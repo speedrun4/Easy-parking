@@ -80,7 +80,9 @@ export class WelcomeComponent implements OnInit {
     );
   }
 
-  private _filterEstacionamentos(value: string): any[] {
+  private _filterEstacionamentos(value: any): any[] {
+    // Se value for objeto (seleção), retorna lista vazia
+    if (typeof value !== 'string') return [];
     const filterValue = value.toLowerCase();
     return this.markers.filter(option =>
       this.normalizeText(option.title).includes(filterValue) ||
