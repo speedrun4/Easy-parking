@@ -1,4 +1,4 @@
-package org.example.controllers;
+package org.example.dto;
 
 public class AuthResponse {
     private String token;
