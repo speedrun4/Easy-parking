@@ -1,6 +1,6 @@
 <div class="reservas-container">
   <h2 class="titulo-reservas">Reservas em meu estacionamento</h2>
-  <div *ngIf="reservas && reservas.length; else semReservas">
+  <div *ngIf="reservas && reservas.length; else semReservas" class="reservas-table-wrapper">
     <table>
       <thead>
         <tr>
