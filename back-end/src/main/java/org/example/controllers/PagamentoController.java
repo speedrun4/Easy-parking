@@ -1,6 +1,13 @@
 package org.example.controllers;
 
 import org.example.models.Pagamentos;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
+
+
+import org.example.models.Pagamentos;
 import org.example.services.PagamentoService;
 import org.example.models.Usuarios;
 import org.example.repositories.UsuariosRepository;
@@ -17,6 +24,11 @@ import java.util.List;
 @RequestMapping("/api/pagamentos")
 public class PagamentoController {
 
+    @GetMapping("/estacionamento/{nomeEstacionamento}")
+    public List<Pagamentos> getPagamentosPorEstacionamento(@PathVariable String nomeEstacionamento) {
+        return pagamentosRepository.findByEstacionamento(nomeEstacionamento);
+    }
+    
     @Autowired
     private PagamentoService service;
     @Autowired
@@ -28,6 +40,7 @@ public class PagamentoController {
     public ResponseEntity<Pagamentos> criarPagamento(@RequestBody Pagamentos pagamento) {
         pagamento.setData(LocalDate.now());
         pagamento.setHorario(LocalTime.now());
+        pagamento.setStatus("pago");
 
         // Vínculo com usuário
        

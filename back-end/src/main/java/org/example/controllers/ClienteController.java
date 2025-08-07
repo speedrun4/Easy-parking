@@ -1,4 +1,5 @@
 package org.example.controllers;
+
 import org.example.dto.ClienteDTO;
 import org.example.models.Cliente;
 import org.example.services.ClienteService;
@@ -8,14 +9,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+
 @RestController
 @RequestMapping("api/clientes")
 @CrossOrigin(origins = "http://localhost:4200") // Permite o domínio do frontend
 public class ClienteController {
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<?> getClienteByUsuarioId(@PathVariable Integer usuarioId) {
+        try {
+            Cliente cliente = clienteService.getClienteByUsuarioId(usuarioId);
+            if (cliente != null) {
+                return ResponseEntity.ok(cliente);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente não encontrado para o usuarioId: " + usuarioId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao buscar cliente: " + e.getMessage());
+        }
+    }
 
     @Autowired
     private ClienteService clienteService;

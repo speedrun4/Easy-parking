@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PagamentoRepository extends JpaRepository<Pagamentos, Long> {
     List<Pagamentos> findByUsuarioId(Integer usuarioId);
+    List<Pagamentos> findByEstacionamento(String estacionamento);
 }

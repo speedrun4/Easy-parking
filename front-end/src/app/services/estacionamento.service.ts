@@ -1,3 +1,4 @@
+// ...existing code...
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
@@ -7,6 +8,10 @@ import { map, mergeMap } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class EstacionamentoService {
+
+  getEstacionamentoPorUsuarioId(usuarioId: number) {
+    return this.http.get<any>(`${this.apiUrl}/usuario/${usuarioId}`);
+  }
 
   private estacionamentosSubject = new BehaviorSubject<any[]>([]);
   estacionamentos$ = this.estacionamentosSubject.asObservable();

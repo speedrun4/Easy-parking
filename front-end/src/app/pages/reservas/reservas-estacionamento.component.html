@@ -1,0 +1,31 @@
+<div class="reservas-container">
+  <h2 class="titulo-reservas">Reservas em meu estacionamento</h2>
+  <div *ngIf="reservas && reservas.length; else semReservas">
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Data</th>
+          <th>Horário</th>
+          <th>Status</th>
+          <th>Método Pagamento</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let reserva of reservas">
+          <td>{{ reserva.usuario?.nome || reserva.usuario?.email || '-' }}</td>
+          <td>{{ reserva.data || '-' }}</td>
+          <td>{{ reserva.horario || '-' }}</td>
+          <td>{{ reserva.status || '-' }}</td>
+          <td>{{ reserva.metodoPagamento || reserva.formaPagamento || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <ng-template #semReservas>
+    <div class="sem-reservas-msg">
+      <span class="sem-reservas-icone">📅</span>
+      <span>Nenhuma reserva encontrada para este estacionamento.</span>
+    </div>
+  </ng-template>
+</div>

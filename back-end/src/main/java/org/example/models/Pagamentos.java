@@ -11,6 +11,8 @@ import java.time.LocalTime;
 @Entity
 @Table(name = "pagamentos")
 public class Pagamentos {
+    @Column(name = "status")
+    private String status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
@@ -108,6 +110,14 @@ public class Pagamentos {
 
     public void setUsuario(Usuarios usuario) {
         this.usuario = usuario;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
 

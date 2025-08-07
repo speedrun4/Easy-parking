@@ -1,4 +1,5 @@
 package org.example.services;
+
 import org.example.models.Cliente;
 import org.example.repositories.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,5 +22,12 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
+    public Cliente getClienteByUsuarioId(Integer usuarioId) {
+        return clienteRepository.findByUsuarioId(usuarioId).orElse(null);
+    }
+
+    public Cliente getClienteById(Long id) {
+        return clienteRepository.findById(id).orElse(null);
+    }
 
 }

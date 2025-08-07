@@ -7,6 +7,7 @@ import { AlertDialogCancelComponent } from 'src/app/components/alert-dialog-canc
 import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
 import { PaymentHistoryService } from 'src/app/services/payment-history.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { ReservaService } from 'src/app/services/reserva.service';
 
 
 @Component({
@@ -46,7 +47,8 @@ export class PaymentComponent implements OnInit {
     private preReservaService: PreReservationService,
     private dialog: MatDialog,
     private paymentHistoryService: PaymentHistoryService,
-    private authService: AuthService
+    private authService: AuthService,
+    private reservaService: ReservaService
   ) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
@@ -136,11 +138,22 @@ export class PaymentComponent implements OnInit {
       latitude: selected.latitude ?? selected.lat,
       longitude: selected.longitude ?? selected.lon,
       endereco: selected.address,
-      usuario: { id: currentUser.id }
+      usuario: { id: currentUser.id },
+      status: 'pago'
     };
+
     this.paymentHistoryService.salvarPagamento(pagamento).subscribe({
       next: (res) => {
         console.log('Pagamento salvo com sucesso', res);
+        // Criar reserva vinculada ao estacionamento e cliente
+        const reserva = {
+          cliente: { id: currentUser.id },
+          estacionamento: { id: selected.id || selected.estacionamentoId || selected.idEstacionamento },
+          horario: new Date()
+        };
+        this.reservaService.criarReserva(reserva).subscribe(() => {
+          console.log('Reserva criada e vinculada ao estacionamento!');
+        });
       },
       error: (error) => {
         console.error('Erro ao salvar pagamento:', error);
