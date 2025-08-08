@@ -20,11 +20,11 @@ export class PaymentHistoryComponent implements OnInit {
 
   loadPayments() {
     const currentUser = this.authService.getCurrentUser();
-  if (!currentUser || !currentUser.id) {
-    console.error('Usuário não autenticado!');
-    return;
-  }
-    this.paymentHistoryService.getPaymentHistory().subscribe(data => {
+    if (!currentUser || !currentUser.id) {
+      console.error('Usuário não autenticado!');
+      return;
+    }
+    this.paymentHistoryService.getPaymentHistory(currentUser.id).subscribe(data => {
       this.paymentHistory = data;
     });
   }
