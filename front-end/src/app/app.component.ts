@@ -12,8 +12,8 @@ export class AppComponent {
   constructor(private router: Router) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
-        // Verifica se a navegação é para a página splash
-        this.isSplashScreenActive = this.router.url === '/splash';
+        // Oculta o header tanto na rota inicial quanto na splash
+        this.isSplashScreenActive = this.router.url === '/splash' || this.router.url === '/' || this.router.url === '';
       }
     });
   }
