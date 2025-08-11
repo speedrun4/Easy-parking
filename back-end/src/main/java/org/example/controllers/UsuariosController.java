@@ -29,6 +29,9 @@ public class UsuariosController {
     @Autowired
     private EmailService emailService;
 
+    // Mapa estático para armazenar dados temporários de cadastro
+    private static final Map<String, Usuarios> cadastroTemp = new HashMap<>();
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Optional<Usuarios> usuarioOpt = usuariosService.findByEmail(loginRequest.getEmail());
@@ -49,20 +52,79 @@ public class UsuariosController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário não encontrado");
         }
     }
+
     @PostMapping
     public ResponseEntity<Usuarios> register(@RequestBody Usuarios usuario) {
-        System.out.println("Foto recebida: " + usuario.getFotoBase64());
         // Validação e verificação do perfil
         if (usuario.getPerfil() == null ||
                 (!usuario.getPerfil().equals("usuario") && !usuario.getPerfil().equals("cliente"))) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
 
-        // Criptografar a senha antes de salvar
-        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        // Gerar código de confirmação
+        String codigo = String.valueOf(new Random().nextInt(899999) + 100000); // 6 dígitos
+        usuario.setCodigoConfirmacao(codigo);
 
-        Usuarios savedUsuario = usuariosService.saveUsuario(usuario);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUsuario);
+        // Enviar e-mail com código
+        String subject = "Confirmação de cadastro";
+        String body = "Seu código de confirmação é: " + codigo;
+        emailService.sendEmail(usuario.getEmail(), subject, body);
+
+        // Armazena temporariamente os dados do usuário
+        cadastroTemp.put(usuario.getEmail(), usuario);
+
+        // Retorna o usuário (com o código) para o front-end, sem salvar
+        return ResponseEntity.ok(usuario);
+    }
+
+    @PostMapping("/confirm-email")
+    public ResponseEntity<Map<String, String>> confirmEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String codigo = request.get("codigo");
+        if (email == null || codigo == null) {
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "Preencha todos os campos para confirmar o cadastro.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
+        Usuarios usuarioTemp = cadastroTemp.get(email);
+        if (usuarioTemp == null) {
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "Cadastro não encontrado ou já expirado. Inicie o cadastro novamente.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
+        if (usuarioTemp.getCodigoConfirmacao() == null) {
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "Código de confirmação não foi gerado. Solicite novo cadastro.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
+        if (!codigo.equals(usuarioTemp.getCodigoConfirmacao())) {
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "O código informado está incorreto ou expirou. Verifique e tente novamente.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
+        // Remover máscara do CPF antes de salvar
+        if (usuarioTemp.getCpf() != null) {
+            usuarioTemp.setCpf(usuarioTemp.getCpf().replaceAll("\\D", ""));
+        }
+        // Criptografar a senha antes de salvar
+        usuarioTemp.setSenha(passwordEncoder.encode(usuarioTemp.getSenha()));
+
+        // Verifica se o e-mail já está cadastrado
+        Optional<Usuarios> usuarioExistente = usuariosService.findByEmail(email);
+        if (usuarioExistente.isPresent()) {
+            cadastroTemp.remove(email);
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "Este e-mail já está cadastrado. Faça login ou utilize outro e-mail.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(resp);
+        }
+
+        // Salva o usuário
+        usuarioTemp.setCodigoConfirmacao(null); // Limpa o código
+        usuariosService.saveUsuario(usuarioTemp);
+        cadastroTemp.remove(email); // Remove do temporário
+        Map<String, String> resp = new HashMap<>();
+        resp.put("message", "Cadastro realizado com sucesso! Seu e-mail foi confirmado e você já pode acessar o sistema.");
+        return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/forgot-password")

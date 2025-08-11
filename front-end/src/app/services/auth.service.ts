@@ -7,6 +7,12 @@ import { catchError, map } from "rxjs/operators";
   providedIn: 'root'
 })
 export class AuthService {
+  // Confirmação de e-mail
+  confirmEmail(email: string, codigo: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/confirm-email`, { email, codigo }).pipe(
+      catchError(this.handleError)
+    );
+  }
   private apiUrl = 'http://localhost:8080/api/usuarios'; // URL da API do backend
   private currentUserSubject: BehaviorSubject<any | null>;
   public currentUser: Observable<any | null>;
@@ -89,7 +95,13 @@ getCurrentUser(): any {
     errorMessage = `Erro: ${error.error.message}`;
   } else {
     // Erro do lado do servidor
-    errorMessage = `Erro: ${error.status} - ${error.message}`;
+    if (typeof error.error === 'string' && error.error) {
+      errorMessage = error.error;
+    } else if (error.error && error.error.message) {
+      errorMessage = error.error.message;
+    } else {
+      errorMessage = `Erro: ${error.status} - ${error.message}`;
+    }
   }
   return throwError(() => new Error(errorMessage));
 }

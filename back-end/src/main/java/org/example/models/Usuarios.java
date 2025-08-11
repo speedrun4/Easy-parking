@@ -18,6 +18,7 @@ public class Usuarios {
     @Column(name = "foto")
     @Lob
     private String fotoBase64; // Foto em base64
+    private String codigoConfirmacao;
     // Construtores
     public Usuarios() {}
 
@@ -93,6 +94,14 @@ public class Usuarios {
 
     public void setFotoBase64(String fotoBase64) {
         this.fotoBase64 = fotoBase64;
+    }
+
+    public String getCodigoConfirmacao() {
+        return codigoConfirmacao;
+    }
+
+    public void setCodigoConfirmacao(String codigoConfirmacao) {
+        this.codigoConfirmacao = codigoConfirmacao;
     }
 
 }

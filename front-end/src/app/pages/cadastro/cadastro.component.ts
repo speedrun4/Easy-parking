@@ -15,6 +15,45 @@ import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dial
   styleUrls: ['./cadastro.component.scss']
 })
 export class CadastroComponent implements OnInit {
+  // Validador customizado para telefone
+  phoneValidator(control: AbstractControl) {
+    const value = control.value ? control.value.replace(/\D/g, '') : '';
+    // Aceita 10 ou 11 dígitos (fixo ou celular)
+    if (value.length !== 10 && value.length !== 11) {
+      return { phoneInvalid: true };
+    }
+    return null;
+  }
+
+  // Máscara para telefone
+  onPhoneInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    let value = inputElement.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.substring(0, 11);
+    let masked = value;
+    if (value.length > 10) {
+      masked = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    } else if (value.length > 6) {
+      masked = value.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+    } else if (value.length > 2) {
+      masked = value.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+    } else if (value.length > 0) {
+      masked = value.replace(/(\d{0,2})/, '($1');
+    }
+    this.userForm.get('phone')?.setValue(masked, { emitEvent: false });
+    inputElement.value = masked;
+  }
+  // Validador customizado para CPF com máscara
+  cpfValidator(control: AbstractControl) {
+    const value = control.value ? control.value.replace(/\D/g, '') : '';
+    if (value.length !== 11) {
+      return { cpfInvalid: true };
+    }
+    return null;
+  }
+  aguardandoConfirmacao = false;
+  codigoConfirmacao: string = '';
+  erroConfirmacao: string = '';
 
   showUserForm = true; // Controle de qual formulário mostrar
   userForm!: FormGroup;
@@ -44,7 +83,7 @@ export class CadastroComponent implements OnInit {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', Validators.required],
+      phone: ['', [Validators.required, this.phoneValidator]],
       password: [
         '',
         [
@@ -52,7 +91,7 @@ export class CadastroComponent implements OnInit {
           Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,11}$/)
         ]
       ],
-      cpf: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],  // Aceita apenas 11 dígitos numéricos
+      cpf: ['', [Validators.required, this.cpfValidator]],  // Aceita CPF com máscara
     });
   }
 
@@ -72,42 +111,51 @@ export class CadastroComponent implements OnInit {
         perfil: perfil,
         fotoBase64: this.fotoBase64 // Adiciona a foto
       };
-  
-      console.log(usuario.fotoBase64); // Deve mostrar uma string grande (base64)
-  
+
+      // Chama o serviço para enviar o código de confirmação
       this.authService.register(usuario).subscribe(
         (response) => {
-          console.log('Usuário cadastrado com sucesso', response);
-          if (response.fotoBase64) {
-            console.log('Imagem cadastrada com sucesso!');
-          } else {
-            console.log('Imagem NÃO cadastrada.');
-          }
-          this.openConfirmationDialog("Usuário cadastrado com sucesso!");
-          this.mostrarMensagemSucesso = true; // Exibe a mensagem de sucesso
-          // Redirecionar ou mostrar mensagem de sucesso
-          this.router.navigate(['/home']);
+          // Sucesso: exibe campo para confirmação
+          this.aguardandoConfirmacao = true;
         },
         (error) => {
-          console.error('Erro ao cadastrar usuário', error);
-  
-          // Verifica o tipo de erro retornado pela API
-          if (error.status === 409) { // Código HTTP 409: Conflito
-            if (error.error.message.includes('CPF')) {
-              this.openErrorDialog("O CPF já está cadastrado. Por favor, use outro CPF.");
-            } else if (error.error.message.includes('Email')) {
-              this.openErrorDialog("O Email já está cadastrado. Por favor, use outro Email.");
-            } else if (error.error.message.includes('Telefone')) {
-              this.openErrorDialog("O Telefone já está cadastrado. Por favor, use outro Telefone.");
-            } else {
-              this.openErrorDialog("Ocorreu um erro de duplicidade. Por favor, verifique os dados.");
-            }
-          } else {
-            this.openErrorDialog("Ocorreu um erro ao cadastrar. Tente novamente mais tarde.");
-          }
+          // ...existing code...
         }
       );
     }
+  }
+
+  // Método para validar o código de confirmação
+  validarCodigoConfirmacao() {
+    if (!this.codigoConfirmacao) {
+      this.erroConfirmacao = 'Digite o código recebido no e-mail.';
+      return;
+    }
+    this.authService.confirmEmail(this.userForm.get('email')?.value, this.codigoConfirmacao).subscribe({
+      next: (response: any) => {
+        // Sucesso: exibe popup e redireciona após OK
+        this.erroConfirmacao = '';
+        this.mostrarMensagemSucesso = false;
+        this.aguardandoConfirmacao = false;
+        const dialogRef = this.dialog.open(SucessoModalComponent, {
+          data: { message: response.message || 'Cadastro realizado com sucesso!' }
+        });
+        dialogRef.afterClosed().subscribe(() => {
+          this.router.navigate(['/home']);
+        });
+      },
+      error: (error: any) => {
+        // Exibe mensagem do back-end se disponível
+        if (error && error.message) {
+          this.erroConfirmacao = error.message;
+        } else if (error && error.error) {
+          this.erroConfirmacao = error.error;
+        } else {
+          this.erroConfirmacao = 'Erro ao confirmar o código.';
+        }
+        this.mostrarMensagemSucesso = false;
+      }
+    });
   }
 
   openErrorDialog(message: string): void {
@@ -117,29 +165,22 @@ export class CadastroComponent implements OnInit {
     }
   onCpfInput(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
-    let cpf = inputElement.value.replace(/\D/g, ''); // Remove todos os caracteres não numéricos
-
-    // Limita a 11 dígitos
-    if (cpf.length > 11) {
-      cpf = cpf.substring(0, 11);
+    let value = inputElement.value.replace(/\D/g, '');
+    if (value.length > 11) value = value.substring(0, 11);
+    let masked = value;
+    if (value.length > 9) {
+      masked = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    } else if (value.length > 6) {
+      masked = value.replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
+    } else if (value.length > 3) {
+      masked = value.replace(/(\d{3})(\d{3})/, '$1.$2');
+    } else if (value.length > 0) {
+      masked = value.replace(/(\d{3})/, '$1');
     }
-
-    // Aplica a máscara CPF: XXX.XXX.XXX-XX
-    if (cpf.length > 9) {
-      cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    } else if (cpf.length > 6) {
-      cpf = cpf.replace(/(\d{3})(\d{3})(\d{3})/, '$1.$2.$3');
-    } else if (cpf.length > 3) {
-      cpf = cpf.replace(/(\d{3})(\d{3})/, '$1.$2');
-    } else {
-      cpf = cpf.replace(/(\d{3})/, '$1');
-    }
-
-    // Atualiza o valor do campo com a máscara aplicada
-    inputElement.value = cpf;
-
-    // Atualiza o valor do formulário com o CPF sem a máscara (só números)
-    this.userForm.get('cpf')?.setValue(cpf.replace(/\D/g, ''));
+    // Atualiza o valor do formulário com a máscara
+    this.userForm.get('cpf')?.setValue(masked, { emitEvent: false });
+    // Atualiza o valor do input manualmente para garantir exibição
+    inputElement.value = masked;
   }
 
   onCnpjInput(event: Event): void {

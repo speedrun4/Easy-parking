@@ -16,7 +16,7 @@
   <!-- Formulário de Cadastro de Usuário -->
   <mat-card *ngIf="showUserForm" class="form-container">
     <h2>Cadastro de Usuário</h2>
-    <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('usuario')">
+    <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('usuario')" *ngIf="!aguardandoConfirmacao">
       <mat-form-field appearance="fill" class="wide-field">
         <mat-label>Nome Completo</mat-label>
         <input matInput formControlName="name" required>
@@ -34,8 +34,11 @@
 
       <mat-form-field appearance="fill">
         <mat-label>Telefone</mat-label>
-        <input matInput type="tel" formControlName="phone" required>
-        <mat-error *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">Telefone é obrigatório.</mat-error>
+        <input matInput type="tel" formControlName="phone" required maxlength="15" (input)="onPhoneInput($event)">
+        <mat-error *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">
+          <span *ngIf="userForm.get('phone')?.errors?.required">Telefone é obrigatório.</span>
+          <span *ngIf="userForm.get('phone')?.errors?.phoneInvalid">Telefone inválido.</span>
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="fill">
@@ -68,8 +71,23 @@
       <video #videoElement width="120" height="90" autoplay style="display:none"></video>
       <canvas #canvasElement width="120" height="90" style="display:none"></canvas>
 
+      <div style="margin-top: 16px;"></div>
       <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">Cadastrar</button>
     </form>
+    <!-- Campo para confirmação de e-mail -->
+    <div *ngIf="aguardandoConfirmacao">
+      <mat-form-field appearance="fill">
+        <mat-label>Código de confirmação</mat-label>
+        <input matInput [(ngModel)]="codigoConfirmacao" name="codigoConfirmacao" required>
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="validarCodigoConfirmacao()">Confirmar e-mail</button>
+      <mat-error *ngIf="erroConfirmacao">{{ erroConfirmacao }}</mat-error>
+      <div *ngIf="mostrarMensagemSucesso" class="mensagem-sucesso">
+        <mat-card color="primary" style="margin-top:16px; background:#e0ffe0; color:#2e7d32; text-align:center;">
+          Cadastro salvo com sucesso!
+        </mat-card>
+      </div>
+    </div>
   </mat-card>
 
   <!-- Formulário de Cadastro de Clientes -->
