@@ -5,14 +5,33 @@ public class AuthResponse {
     private Integer id;
     private String nomeCompleto;
     private String perfil;
-    private String fotoBase64; // <-- Adicione este campo
+    private String email;
+    private String telefone;
+    private String fotoBase64;
 
-    // Construtor com 4 argumentos
-    public AuthResponse(String token, Integer id, String nomeCompleto, String perfil) {
+    // Construtor com todos os argumentos
+    public AuthResponse(String token, Integer id, String nomeCompleto, String perfil, String email, String telefone) {
         this.token = token;
         this.id = id;
         this.nomeCompleto = nomeCompleto;
         this.perfil = perfil;
+        this.email = email;
+        this.telefone = telefone;
+    }
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
     }
 
     // Getters e Setters

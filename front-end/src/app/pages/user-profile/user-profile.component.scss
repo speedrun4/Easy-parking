@@ -1,15 +1,86 @@
 .user-card {
   max-width: 600px;
-  padding: 20px;
-}
-table {
-  width: 100%;
-  margin-top: 81px;
-}
-button {
-  margin: 5px;
+  margin: 24px auto 16px auto;
+  padding: 0;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  border: 1px solid #e0e0e0;
 }
 
-.table-move{
-  margin-top: 81px;
+.user-info-block {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1.05em;
+}
+.user-info-block:last-child {
+  border-bottom: none;
+}
+.user-info-label {
+  font-weight: 600;
+  color: #222;
+  margin-right: 8px;
+}
+.user-info-value {
+  color: #444;
+}
+.user-info-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.user-info-actions button {
+  min-width: 120px;
+  font-size: 0.95rem;
+}
+
+.user-card-header {
+  background: #f8f8f8;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 16px;
+  font-size: 1.2em;
+  color: #00bfae;
+}
+
+
+// Removido estilos de tabela para layout em blocos
+button {
+  margin: 5px 0;
+  min-width: 120px;
+}
+
+@media (max-width: 600px) {
+  .user-card {
+    max-width: 98vw;
+    margin: 55px 2vw 12px 2vw;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    border: 1px solid #e0e0e0;
+  }
+  .user-info-block {
+    padding: 12px 8px;
+    font-size: 1em;
+  }
+  .user-info-label {
+    margin-right: 6px;
+    font-size: 1em;
+  }
+  .user-info-actions {
+    gap: 10px;
+  }
+  table,
+  th,
+  td {
+    font-size: 0.95rem;
+  }
+  th,
+  td {
+    padding: 6px 2px;
+  }
+  button {
+    min-width: 100px;
+    font-size: 0.95rem;
+  }
 }

@@ -41,9 +41,16 @@ public class UsuariosController {
             // Usar BCrypt para comparar a senha enviada com o hash no banco
             if (passwordEncoder.matches(loginRequest.getPassword(), usuario.getSenha())) {
                 String token = "fake-jwt-token"; // Substitua pelo seu gerador de token real
-                // Cria o objeto AuthResponse
-                AuthResponse response = new AuthResponse(token, usuario.getId(), usuario.getNomeCompleto(), usuario.getPerfil());
-                response.setFotoBase64(usuario.getFotoBase64()); // <-- Adiciona a foto à resposta
+                // Cria o objeto AuthResponse com email e telefone
+                AuthResponse response = new AuthResponse(
+                    token,
+                    usuario.getId(),
+                    usuario.getNomeCompleto(),
+                    usuario.getPerfil(),
+                    usuario.getEmail(),
+                    usuario.getTelefone()
+                );
+                response.setFotoBase64(usuario.getFotoBase64());
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta");
