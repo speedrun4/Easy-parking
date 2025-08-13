@@ -36,6 +36,8 @@ export class CadastroEstacionamentoComponent implements OnInit {
       address: ['', Validators.required],
       cep: ['', Validators.required],
       branchCeps: [''],
+      horarioAbertura: ['', Validators.required],
+      horarioFechamento: ['', Validators.required],
       phone: ['', Validators.required]
     });
   }
@@ -47,11 +49,13 @@ export class CadastroEstacionamentoComponent implements OnInit {
   initializeParkingForm() {
     this.parkingForm = this.fb.group({
       companyName: ['', Validators.required],
-      cnpj: ['', [Validators.required, Validators.pattern(/^\d{14}$/)]],  // Aceita apenas 14 dígitos numéricos
+      cnpj: ['', [Validators.required, Validators.pattern(/^[\d]{14}$/)]],  // Aceita apenas 14 dígitos numéricos
       hourlyRate: ['', Validators.required],
       address: ['', Validators.required],
       cep: ['', Validators.required],
       branchCeps: ['', Validators.required],
+      horarioAbertura: ['', Validators.required],
+      horarioFechamento: ['', Validators.required],
       phone: ['', Validators.required]
     });
   }
@@ -72,12 +76,14 @@ export class CadastroEstacionamentoComponent implements OnInit {
 
     const estacionamento = {
       nomeEmpresa: this.parkingForm.get('companyName')?.value,
-      cnpj: this.parkingForm.get('cnpj')?.value,
-      valorPorHora: this.parkingForm.get('hourlyRate')?.value,
+      cnpj: this.parkingForm.get('cnpj')?.value.replace(/\D/g, ''),
+      valorPorHora: this.parkingForm.get('hourlyRate')?.value.replace(/[^\d,]/g, '').replace(',', '.'),
       enderecoCompleto: this.parkingForm.get('address')?.value,
-      cep: this.parkingForm.get('cep')?.value,
+      cep: this.parkingForm.get('cep')?.value.replace(/\D/g, ''),
       cepFiliais: this.parkingForm.get('branchCeps')?.value,
-      telefone: this.parkingForm.get('phone')?.value,
+      horarioAbertura: this.parkingForm.get('horarioAbertura')?.value,
+      horarioFechamento: this.parkingForm.get('horarioFechamento')?.value,
+      telefone: this.parkingForm.get('phone')?.value.replace(/\D/g, ''),
       usuarioId: currentUser.id // Vínculo com usuário logado
     };
 
@@ -135,6 +141,55 @@ export class CadastroEstacionamentoComponent implements OnInit {
     inputElement.value = cnpj;
 
     // Atualiza o valor do formulário com o CNPJ sem a máscara (só números)
-    this.parkingForm.get('cnpj')?.setValue(cnpj.replace(/\D/g, ''));
+    this.parkingForm.get('cnpj')?.setValue(cnpj);
+  }
+
+  onPhoneInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    let phone = inputElement.value.replace(/\D/g, ''); // Remove tudo que não for número
+
+    // Limita a 11 dígitos
+    if (phone.length > 11) {
+      phone = phone.substring(0, 11);
+    }
+
+    // Aplica a máscara: (99) 99999-9999 ou (99) 9999-9999
+    if (phone.length > 10) {
+      phone = phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    } else if (phone.length > 6) {
+      phone = phone.replace(/(\d{2})(\d{4,5})(\d{0,4})/, '($1) $2-$3');
+    } else if (phone.length > 2) {
+      phone = phone.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+    }
+
+    inputElement.value = phone;
+    this.parkingForm.get('phone')?.setValue(phone);
+  }
+
+  onCepInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    let cep = inputElement.value.replace(/\D/g, '');
+    if (cep.length > 8) {
+      cep = cep.substring(0, 8);
+    }
+    if (cep.length > 5) {
+      cep = cep.replace(/(\d{5})(\d{0,3})/, '$1-$2');
+    }
+    inputElement.value = cep;
+    this.parkingForm.get('cep')?.setValue(cep);
+  }
+
+  onHourlyRateInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    let value = inputElement.value.replace(/\D/g, '');
+    if (value.length === 0) {
+      inputElement.value = '';
+      this.parkingForm.get('hourlyRate')?.setValue('');
+      return;
+    }
+    value = (parseInt(value, 10) / 100).toFixed(2);
+    const formatted = value.replace('.', ',');
+    inputElement.value = 'R$ ' + formatted;
+    this.parkingForm.get('hourlyRate')?.setValue(formatted);
   }
 }

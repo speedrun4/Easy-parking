@@ -37,7 +37,27 @@ public class Cliente {
 
     @Column(name = "telefone", length = 15)
     private String telefone;
+    @Column(name = "horario_abertura")
+    private String horarioAbertura;
+
+    @Column(name = "horario_fechamento")
+    private String horarioFechamento;
     // Getters e Setters
+    public String getHorarioAbertura() {
+        return horarioAbertura;
+    }
+
+    public void setHorarioAbertura(String horarioAbertura) {
+        this.horarioAbertura = horarioAbertura;
+    }
+
+    public String getHorarioFechamento() {
+        return horarioFechamento;
+    }
+
+    public void setHorarioFechamento(String horarioFechamento) {
+        this.horarioFechamento = horarioFechamento;
+    }
 
     public Long getId() {
         return id;

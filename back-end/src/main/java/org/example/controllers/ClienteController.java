@@ -63,6 +63,8 @@ public class ClienteController {
             cliente.setCepFiliais(clienteDTO.getCepFiliais());
             cliente.setTelefone(clienteDTO.getTelefone());
             cliente.setValorPorHora(clienteDTO.getValorPorHora());
+            cliente.setHorarioAbertura(clienteDTO.getHorarioAbertura());
+            cliente.setHorarioFechamento(clienteDTO.getHorarioFechamento());
 
             // Vínculo com usuário
             if (clienteDTO.getUsuarioId() == null) {

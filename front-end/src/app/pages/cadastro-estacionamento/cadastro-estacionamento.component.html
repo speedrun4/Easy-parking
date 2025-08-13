@@ -20,7 +20,7 @@
 
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Valor por Hora</mat-label>
-        <input matInput id="hourlyRate" formControlName="hourlyRate" type="number" step="0.01">
+  <input matInput id="hourlyRate" formControlName="hourlyRate" (input)="onHourlyRateInput($event)">
         <mat-error *ngIf="parkingForm.get('hourlyRate')?.invalid && parkingForm.get('hourlyRate')?.touched">
           Valor por hora é obrigatório.
         </mat-error>
@@ -36,7 +36,7 @@
 
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>CEP</mat-label>
-        <input matInput id="cep" formControlName="cep">
+  <input matInput id="cep" formControlName="cep" (input)="onCepInput($event)">
         <mat-error *ngIf="parkingForm.get('cep')?.invalid && parkingForm.get('cep')?.touched">
           CEP é obrigatório.
         </mat-error>
@@ -50,9 +50,26 @@
         </mat-error>
       </mat-form-field>
 
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Horário de Abertura</mat-label>
+        <input matInput id="horarioAbertura" formControlName="horarioAbertura" type="time">
+        <mat-error *ngIf="parkingForm.get('horarioAbertura')?.invalid && parkingForm.get('horarioAbertura')?.touched">
+          Horário de abertura é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Horário de Fechamento</mat-label>
+        <input matInput id="horarioFechamento" formControlName="horarioFechamento" type="time">
+        <mat-error *ngIf="parkingForm.get('horarioFechamento')?.invalid && parkingForm.get('horarioFechamento')?.touched">
+          Horário de fechamento é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Telefone</mat-label>
-        <input matInput id="phone" formControlName="phone">
+        <input matInput id="phone" formControlName="phone" (input)="onPhoneInput($event)">
         <mat-error *ngIf="parkingForm.get('phone')?.invalid && parkingForm.get('phone')?.touched">
           Telefone é obrigatório.
         </mat-error>

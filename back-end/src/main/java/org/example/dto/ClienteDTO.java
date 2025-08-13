@@ -5,6 +5,23 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public class ClienteDTO {
+    private String horarioAbertura;
+    private String horarioFechamento;
+    public String getHorarioAbertura() {
+        return horarioAbertura;
+    }
+
+    public void setHorarioAbertura(String horarioAbertura) {
+        this.horarioAbertura = horarioAbertura;
+    }
+
+    public String getHorarioFechamento() {
+        return horarioFechamento;
+    }
+
+    public void setHorarioFechamento(String horarioFechamento) {
+        this.horarioFechamento = horarioFechamento;
+    }
     @NotBlank(message = "Nome da empresa é obrigatório")
     private String nomeEmpresa;
 
