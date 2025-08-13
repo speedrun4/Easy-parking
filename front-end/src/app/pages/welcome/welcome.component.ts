@@ -30,6 +30,9 @@ export class WelcomeComponent implements OnInit {
   private map!: L.Map;
   private leafletMarkers: L.Marker[] = [];
 
+  minDate: Date;
+  maxDate: Date;
+
   constructor(
     private fb: FormBuilder,
     private estacionamentoService: EstacionamentoService,
@@ -45,6 +48,11 @@ export class WelcomeComponent implements OnInit {
     this.searchForm = this.fb.group({
       search: [''],
     });
+
+    // Define minDate como hoje e maxDate como dois meses à frente
+    this.minDate = new Date();
+    this.maxDate = new Date();
+    this.maxDate.setMonth(this.maxDate.getMonth() + 2);
   }
 
   ngOnInit(): void {

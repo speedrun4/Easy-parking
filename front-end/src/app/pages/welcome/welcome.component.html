@@ -32,7 +32,9 @@
     <mat-form-field appearance="outline" class="date">
       <mat-label>Data</mat-label>
       <input matInput [matDatepicker]="picker" (dateChange)="updateSelectedParkingDate(marker, $event.value)"
-        placeholder="Escolha a data">
+        placeholder="Escolha a data"
+        [min]="minDate"
+        [max]="maxDate">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
