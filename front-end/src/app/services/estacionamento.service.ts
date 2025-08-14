@@ -27,18 +27,19 @@ export class EstacionamentoService {
       mergeMap((clientes) => {
         const requests = clientes.map((cliente) => this.getCoordinatesByCep(cliente.cep).pipe(
           map((coords) => {
-            console.log('Nome da Empresa:', cliente.nomeEmpresa); // Verifique o nome da empresa
+            console.log('DEBUG horarioAbertura:', cliente.nomeEmpresa, cliente.horarioAbertura, cliente.horarioFechamento);
             return {
+              id: cliente.id,
               latitude: coords.latitude,
               longitude: coords.longitude,
               companyName: cliente.nomeEmpresa,
               hourlyRate: cliente.valorPorHora,
               address: cliente.enderecoCompleto,
+              horarioAbertura: cliente.horarioAbertura,
+              horarioFechamento: cliente.horarioFechamento
             };
           })
         ));
-
-        // Executa todas as requisições de geocodificação de uma vez com forkJoin
         return forkJoin(requests);
       })
     );

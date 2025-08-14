@@ -64,7 +64,9 @@ export class WelcomeComponent implements OnInit {
         label: `R$${est.hourlyRate}/h`,
         address: est.address,
         latitude: est.latitude,
-        longitude: est.longitude
+        longitude: est.longitude,
+        horarioAbertura: est.horarioAbertura,
+        horarioFechamento: est.horarioFechamento
       }));
 
       this.markers = [...this.filteredMarkers];
@@ -139,40 +141,48 @@ export class WelcomeComponent implements OnInit {
     return options;
   }
 
-  getExitTimeOptions(entryTime: string): string[] {
-    const entryIndex = this.timeOptions.indexOf(entryTime);
-    if (entryIndex === -1) return this.timeOptions;
-    return this.timeOptions.slice(entryIndex + 1);
+  getExitTimeOptions(marker: any): string[] {
+    if (!marker || !marker.selectedTime) return [];
+    const entryIndex = this.timeOptions.indexOf(marker.selectedTime);
+    if (entryIndex === -1) return [];
+    let horarioFechamento = marker.horarioFechamento || '23:55';
+    // Filtra horários após a entrada e até o fechamento
+    return this.timeOptions.slice(entryIndex + 1).filter(time => time <= horarioFechamento);
   }
 
-  getEntryTimeOptions(selectedDate: string): string[] {
-    if (!selectedDate) return this.timeOptions;
+  getEntryTimeOptions(marker: any): string[] {
+    if (!marker || !marker.selectedDate) return this.timeOptions;
 
     // Formato esperado: dd/MM/yyyy
-    const [day, month, year] = selectedDate.split('/').map(Number);
+    const [day, month, year] = marker.selectedDate.split('/').map(Number);
     const today = new Date();
     const isToday =
       day === today.getDate() &&
       month === today.getMonth() + 1 &&
       year === today.getFullYear();
 
-    if (!isToday) return this.timeOptions;
+    let horarioAbertura = marker.horarioAbertura || '00:00';
+    let horarioFechamento = marker.horarioFechamento || '23:55';
 
-    // Hora atual arredondada para cima de 5 em 5 minutos
-    const now = new Date();
-    let hour = now.getHours();
-    let minute = now.getMinutes();
-    minute = Math.ceil(minute / 5) * 5;
-    if (minute === 60) {
-      hour += 1;
-      minute = 0;
+    // Se for hoje, o mínimo é o maior entre agora e o horário de abertura
+    let minTime = horarioAbertura;
+    if (isToday) {
+      const now = new Date();
+      let hour = now.getHours();
+      let minute = now.getMinutes();
+      minute = Math.ceil(minute / 5) * 5;
+      if (minute === 60) {
+        hour += 1;
+        minute = 0;
+      }
+      const nowTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      if (nowTime > horarioAbertura) {
+        minTime = nowTime;
+      }
     }
-    const minTime = `${hour.toString().padStart(2, '0')}:${minute
-      .toString()
-      .padStart(2, '0')}`;
 
-    // Retorna apenas horários a partir do horário mínimo
-    return this.timeOptions.filter((time) => time >= minTime);
+    // Filtra horários entre abertura e fechamento
+    return this.timeOptions.filter((time) => time >= minTime && time <= horarioFechamento);
   }
 
   private updateMapMarkers() {

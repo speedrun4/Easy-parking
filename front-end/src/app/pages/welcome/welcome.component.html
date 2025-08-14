@@ -27,6 +27,9 @@
   <div *ngFor="let marker of selectedParkings" class="parking-list-item">
     <h4>{{ marker.title }} - {{ marker.label }}</h4>
     <p>{{ marker.address }}</p>
+    <p *ngIf="marker.horarioAbertura || marker.horarioFechamento" style="color: #2ecc71; font-weight: bold;">
+      Horário: {{ marker.horarioAbertura || '--:--' }} às {{ marker.horarioFechamento || '--:--' }}
+    </p>
 
     <!-- Campo para selecionar a data -->
     <mat-form-field appearance="outline" class="date">
@@ -44,7 +47,7 @@
       <mat-label>Hora de Entrada</mat-label>
       <mat-select [(value)]="marker.selectedTime" (selectionChange)="updateSelectedParkingTime(marker, $event)">
         <mat-option value="">Selecione</mat-option>
-        <mat-option *ngFor="let time of getEntryTimeOptions(marker.selectedDate)" [value]="time">{{ time }}</mat-option>
+        <mat-option *ngFor="let time of getEntryTimeOptions(marker)" [value]="time">{{ time }}</mat-option>
       </mat-select>
     </mat-form-field>
 
@@ -53,7 +56,7 @@
       <mat-label>Hora de Saída</mat-label>
       <mat-select [(value)]="marker.selectedExitTime" (selectionChange)="updateSelectedParkingExitTime(marker, $event)">
         <mat-option value="">Selecione</mat-option>
-        <mat-option *ngFor="let time of getExitTimeOptions(marker.selectedTime)" [value]="time">{{ time }}</mat-option>
+        <mat-option *ngFor="let time of getExitTimeOptions(marker)" [value]="time">{{ time }}</mat-option>
       </mat-select>
     </mat-form-field>
 
