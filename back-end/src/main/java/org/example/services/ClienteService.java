@@ -1,3 +1,4 @@
+// ...existing code...
 package org.example.services;
 
 import org.example.models.Cliente;
@@ -22,12 +23,15 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
-    public Cliente getClienteByUsuarioId(Integer usuarioId) {
-        return clienteRepository.findByUsuarioId(usuarioId).orElse(null);
+    public List<Cliente> getClientesByUsuarioId(Integer usuarioId) {
+        return clienteRepository.findByUsuarioId(usuarioId);
     }
 
     public Cliente getClienteById(Long id) {
         return clienteRepository.findById(id).orElse(null);
     }
 
+    public void deleteCliente(Long id) {
+        clienteRepository.deleteById(id);
+    }
 }

@@ -19,17 +19,17 @@ import java.util.List;
 public class ClienteController {
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<?> getClienteByUsuarioId(@PathVariable Integer usuarioId) {
+    public ResponseEntity<?> getClientesByUsuarioId(@PathVariable Integer usuarioId) {
         try {
-            Cliente cliente = clienteService.getClienteByUsuarioId(usuarioId);
-            if (cliente != null) {
-                return ResponseEntity.ok(cliente);
+            List<Cliente> clientes = clienteService.getClientesByUsuarioId(usuarioId);
+            if (clientes != null && !clientes.isEmpty()) {
+                return ResponseEntity.ok(clientes);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente não encontrado para o usuarioId: " + usuarioId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhum cliente encontrado para o usuarioId: " + usuarioId);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao buscar cliente: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao buscar clientes: " + e.getMessage());
         }
     }
 

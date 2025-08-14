@@ -1,13 +1,17 @@
 package org.example.services;
 import org.example.models.Usuarios;
 import org.example.repositories.UsuariosRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import org.example.services.ClienteService;
+import org.example.services.PagamentoService;
+import org.example.models.Cliente;
+import org.example.models.Pagamentos;
 
 @Service
 public class UsuariosService {
@@ -16,6 +20,12 @@ public class UsuariosService {
 
     @Autowired
     private UsuariosRepository usuariosRepository;
+
+    @Autowired
+    private ClienteService clienteService;
+
+    @Autowired
+    private PagamentoService pagamentoService;
 
     public Optional<Usuarios> findById(Integer id) {
         return usuariosRepository.findById(id);
@@ -49,10 +59,27 @@ public class UsuariosService {
 
     @Transactional
     public void deleteById(Integer id) {
-        if (usuariosRepository.existsById(id)) {
-            usuariosRepository.deleteById(id);
-        } else {
+        if (!usuariosRepository.existsById(id)) {
             throw new IllegalArgumentException("Usuário com ID " + id + " não encontrado.");
         }
+
+        // Deletar todos os clientes e pagamentos relacionados ao usuário
+        List<Cliente> clientes = clienteService.getClientesByUsuarioId(id);
+        if (clientes != null && !clientes.isEmpty()) {
+            for (Cliente cliente : clientes) {
+                // Deletar pagamentos relacionados ao cliente
+                List<Pagamentos> pagamentos = pagamentoService.listarPorUsuario(id);
+                if (pagamentos != null) {
+                    for (Pagamentos p : pagamentos) {
+                        pagamentoService.deletarPorId(p.getId());
+                    }
+                }
+                // Deletar cliente
+                clienteService.deleteCliente(cliente.getId());
+            }
+        }
+
+        // Por fim, deletar o usuário
+        usuariosRepository.deleteById(id);
     }
 }
