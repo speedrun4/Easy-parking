@@ -48,8 +48,13 @@ public class PagamentoController {
 
     @PostMapping
     public ResponseEntity<Pagamentos> criarPagamento(@RequestBody Pagamentos pagamento) {
-        pagamento.setData(LocalDate.now());
-        pagamento.setHorario(LocalTime.now());
+        // Se não vier do front, define data e horário atuais
+        if (pagamento.getData() == null) {
+            pagamento.setData(LocalDate.now());
+        }
+        if (pagamento.getHorario() == null) {
+            pagamento.setHorario(LocalTime.now());
+        }
         pagamento.setStatus("pago");
 
         // Vínculo com usuário

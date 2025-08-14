@@ -119,7 +119,14 @@ export class PaymentComponent implements OnInit {
   }
 
   confirmPayment() {
-    const selected = this.selectedParkings[0];
+  console.log('selectedParkings no pagamento:', this.selectedParkings);
+  // Força o campo horaSaida a existir, mesmo que venha como selectedExitTime
+  this.selectedParkings = this.selectedParkings.map(p => ({
+    ...p,
+    horaSaida: p.horaSaida || p.selectedExitTime || p.selectedHoraSaida || null
+  }));
+  const selected = this.selectedParkings[0];
+  console.log('Valor de horário de saída enviado:', selected.horaSaida);
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser || !currentUser.id) {
       this.dialog.open(SucessoModalComponent, {
@@ -130,6 +137,15 @@ export class PaymentComponent implements OnInit {
       });
       return;
     }
+    const formatDateISO = (dateStr: string) => {
+      if (!dateStr) return null;
+      if (dateStr.includes('-')) return dateStr; // já está no formato ISO
+      const [dia, mes, ano] = dateStr.split('/');
+      return `${ano}-${mes}-${dia}`;
+    };
+
+    const padTime = (t: string) => t && t.length === 5 ? t + ':00' : t;
+
     const pagamento = {
       nome: this.cardName || this.payerName || 'Usuário Pix',
       formaPagamento: this.selectedPaymentMethod,
@@ -139,16 +155,30 @@ export class PaymentComponent implements OnInit {
       longitude: selected.longitude ?? selected.lon,
       endereco: selected.address,
       usuario: { id: currentUser.id },
-      status: 'pago'
+      status: 'pago',
+  dataReservaEntrada: formatDateISO(selected.selectedDate || selected.data || null),
+  horarioReservaEntrada: selected.selectedTime || selected.horaEntrada || selected.horarioEntrada || null,
+  horarioReservaSaida: padTime(selected.horaSaida || null)
     };
 
     this.paymentHistoryService.salvarPagamento(pagamento).subscribe({
       next: (res) => {
         console.log('Pagamento salvo com sucesso', res);
         // Criar reserva vinculada ao estacionamento e cliente
+        // Busca o id do estacionamento de forma robusta
+        const estacionamentoId = selected.id || selected.estacionamentoId || selected.idEstacionamento || selected.parkingId;
+        if (!estacionamentoId) {
+          this.dialog.open(SucessoModalComponent, {
+            data: {
+              title: 'Atenção',
+              message: 'Estacionamento selecionado inválido. Não foi possível criar a reserva.'
+            }
+          });
+          return;
+        }
         const reserva = {
           cliente: { id: currentUser.id },
-          estacionamento: { id: selected.id || selected.estacionamentoId || selected.idEstacionamento },
+          estacionamento: { id: estacionamentoId },
           horario: new Date()
         };
         this.reservaService.criarReserva(reserva).subscribe(() => {

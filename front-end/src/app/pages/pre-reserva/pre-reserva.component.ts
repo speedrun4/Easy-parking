@@ -10,6 +10,7 @@ import { PreReservationService } from 'src/app/services/pre-reservation.service'
   styleUrls: ['./pre-reserva.component.scss']
 })
 export class PreReservaComponent implements OnInit {
+  showSaidaError = false;
   preReservaData: any = null;
   countdown: string = '';
   timer: any;
@@ -92,16 +93,31 @@ export class PreReservaComponent implements OnInit {
     }
   proceedToPayment() {
     if (this.preReservaData && this.preReservaData.selectedParkings.length > 0) {
+      // Validação: todos os estacionamentos precisam ter horário de saída preenchido
+      const algumSemSaida = this.preReservaData.selectedParkings.some((p: any) => !p.selectedHoraSaida);
+      if (algumSemSaida) {
+        this.showSaidaError = true;
+        setTimeout(() => this.showSaidaError = false, 3000);
+        return;
+      }
       // Soma o total de todos os estacionamentos selecionados
       const totalValue = this.preReservaData.selectedParkings
         .map((p: any) => p.total || 0)
         .reduce((acc: number, val: number) => acc + val, 0);
 
+      // Adiciona data e horários de reserva em cada estacionamento
+      const selectedParkings = this.preReservaData.selectedParkings.map((p: any) => ({
+  ...p,
+  data: p.selectedDate || this.preReservaData.selectedDate || null,
+  horaEntrada: p.selectedTime || this.preReservaData.selectedTime || null,
+  horaSaida: p.selectedExitTime || p.selectedHoraSaida || null // cobre ambos os casos
+      }));
+
       const paymentData = {
-        selectedParkings: this.preReservaData.selectedParkings,
+        selectedParkings,
         clienteName: this.preReservaData.clienteName,
         timestamp: new Date().getTime(),
-        totalValue // Adiciona o valor total
+        totalValue
       };
       localStorage.setItem('paymentData', JSON.stringify(paymentData));
       this.router.navigate(['/payment']);

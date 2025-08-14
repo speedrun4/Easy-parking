@@ -2,19 +2,22 @@
   <h2>Pré-Reserva Confirmada</h2>
   <p>Cliente: {{ preReservaData.clienteName }}</p>
 
-  <div *ngFor="let parking of preReservaData.selectedParkings">
+  <div *ngFor="let parking of preReservaData.selectedParkings; let i = index">
     <h3>{{ parking.title }} -
       {{ parking.total | currency:'BRL':'symbol':'1.2-2':'pt' }}
     </h3>
     <p>Endereço: {{ parking.address }}</p>
     <p>Data: {{ parking.selectedDate }}</p>
-    <p>Hora: {{ parking.selectedTime }}</p>
+    <p>Hora de Entrada: {{ parking.selectedTime }}</p>
+  <label for="saida-{{i}}">Hora de Saída:</label>
+  <input id="saida-{{i}}" type="time" [(ngModel)]="parking.selectedHoraSaida" name="saida-{{i}}" style="margin-bottom: 10px;" required>
   </div>
 
   <h3>Tempo restante para pagamento: {{ countdown }}</h3>
   <button (click)="proceedToPayment()" class="btn-pagamento">
     Ir para Pagamento
   </button>
+  <div *ngIf="showSaidaError" style="color: red; margin-top: 5px;">Preencha o horário de saída para todos os estacionamentos.</div>
   <div class="confirm-button-container" fxLayout="row" fxLayoutAlign="end center">
     <button mat-raised-button color="warn" (click)="cancelPayment()">Cancelar</button>
   </div>

@@ -40,6 +40,39 @@ public class Pagamentos {
     private Double longitude;
     private String endereco;
 
+    // Novos campos para reserva
+    @Column(name = "data_reserva_entrada")
+    private LocalDate dataReservaEntrada;
+
+    @Column(name = "horario_reserva_entrada")
+    private LocalTime horarioReservaEntrada;
+
+    @Column(name = "horario_reserva_saida")
+    private LocalTime horarioReservaSaida;
+    public LocalDate getDataReservaEntrada() {
+        return dataReservaEntrada;
+    }
+
+    public void setDataReservaEntrada(LocalDate dataReservaEntrada) {
+        this.dataReservaEntrada = dataReservaEntrada;
+    }
+
+    public LocalTime getHorarioReservaEntrada() {
+        return horarioReservaEntrada;
+    }
+
+    public void setHorarioReservaEntrada(LocalTime horarioReservaEntrada) {
+        this.horarioReservaEntrada = horarioReservaEntrada;
+    }
+
+    public LocalTime getHorarioReservaSaida() {
+        return horarioReservaSaida;
+    }
+
+    public void setHorarioReservaSaida(LocalTime horarioReservaSaida) {
+        this.horarioReservaSaida = horarioReservaSaida;
+    }
+
     public Long getId() {
         return id;
     }
