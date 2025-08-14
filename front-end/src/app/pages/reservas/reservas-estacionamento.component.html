@@ -5,8 +5,10 @@
       <thead>
         <tr>
           <th>Cliente</th>
-          <th>Data</th>
-          <th>Horário</th>
+          <th>Data Entrada</th>
+          <th>Horário Entrada</th>
+          <th>Horário Saída</th>
+          <th>Estacionamento</th>
           <th>Status</th>
           <th>Método Pagamento</th>
         </tr>
@@ -14,8 +16,10 @@
       <tbody>
         <tr *ngFor="let reserva of reservas">
           <td>{{ reserva.usuario?.nome || reserva.usuario?.email || '-' }}</td>
-          <td>{{ reserva.data || '-' }}</td>
-          <td>{{ reserva.horario || '-' }}</td>
+          <td>{{ reserva.dataReservaEntrada ? (reserva.dataReservaEntrada | date: 'dd/MM/yyyy') : (reserva.data || '-') }}</td>
+          <td>{{ reserva.horarioReservaEntrada || reserva.horario || '-' }}</td>
+          <td>{{ reserva.horarioReservaSaida || '-' }}</td>
+          <td>{{ reserva.estacionamento?.nome || reserva.estacionamento || '-' }}</td>
           <td>{{ reserva.status || '-' }}</td>
           <td>{{ reserva.metodoPagamento || reserva.formaPagamento || '-' }}</td>
         </tr>

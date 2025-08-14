@@ -34,7 +34,7 @@
   <div *ngIf="isLoggedIn && isClient && !loginAsUser" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
     <ul>
       <li><a (click)="closeMenu()" [routerLink]="['/cadastro-estacionamento']">Cadastrar Estacionamento</a></li>
-      <li><a (click)="closeMenu()" [routerLink]="['/financas']">Valores Pagos</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/financas']">Valores Recebidos</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/reservas-estacionamento']">Reservas no Meu Estacionamento</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/enviar-mensagem']">Enviar Mensagem para Usuário</a></li>
     </ul>
