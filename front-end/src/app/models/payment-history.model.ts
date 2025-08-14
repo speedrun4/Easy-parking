@@ -9,4 +9,7 @@ export interface PaymentHistory {
   latitude: number;
   longitude: number;
   endereco: string;
+  dataReservaEntrada?: string;
+  horarioReservaEntrada?: string;
+  horarioReservaSaida?: string;
 }

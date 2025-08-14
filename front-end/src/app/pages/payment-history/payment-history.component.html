@@ -4,19 +4,25 @@
   <table>
     <thead>
       <tr>
-        <th>Data</th>
-        <th>Estacionamento</th>
-        <th>Forma de Pagamento</th>
-        <th>Valor</th>
-        <th>Ações</th>
+  <th>Data</th>
+  <th>Data Entrada</th>
+  <th>Horário Entrada</th>
+  <th>Horário Saída</th>
+  <th>Estacionamento</th>
+  <th>Forma de Pagamento</th>
+  <th>Valor</th>
+  <th>Ações</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let payment of paymentHistory">
-        <td>{{ payment.data | date: 'dd/MM/yyyy' }}</td>
-        <td>{{ payment.estacionamento }}</td>
-        <td>{{ payment.formaPagamento }}</td>
-        <td>{{ payment.valorPago | currency: 'BRL' }}</td>
+  <td title="Data do pagamento">Data: {{ payment.data | date: 'dd/MM/yyyy' }}</td>
+  <td title="Data de entrada da reserva">Entrada: {{ payment.dataReservaEntrada ? (payment.dataReservaEntrada | date: 'dd/MM/yyyy') : '-' }}</td>
+  <td title="Horário de entrada da reserva">Entrada: {{ payment.horarioReservaEntrada || '-' }}</td>
+  <td title="Horário de saída da reserva">Saída: {{ payment.horarioReservaSaida || '-' }}</td>
+  <td title="Nome do estacionamento">Estacionamento: {{ payment.estacionamento }}</td>
+  <td title="Forma de pagamento utilizada">Forma: {{ payment.formaPagamento }}</td>
+  <td title="Valor pago">Valor: {{ payment.valorPago | currency: 'BRL' }}</td>
         <td>
           <button mat-button color="primary" (click)="goToRoute(payment)">Ir para Rota</button>
           <button mat-button color="warn" (click)="deletePayment(payment.id)">Excluir</button>
