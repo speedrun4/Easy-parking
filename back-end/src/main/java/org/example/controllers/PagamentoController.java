@@ -24,6 +24,16 @@ import java.util.List;
 @RequestMapping("/api/pagamentos")
 public class PagamentoController {
 
+    // Endpoint para buscar reservas do cliente (pagamentos com status 'pago')
+    @GetMapping("/cliente/{clienteId}")
+    public List<Pagamentos> getPagamentosPorCliente(@PathVariable Integer clienteId) {
+        List<Pagamentos> pagamentos = pagamentosRepository.findByUsuarioId(clienteId);
+        // Filtra apenas os pagos
+    return pagamentos.stream()
+        .filter(p -> p.getStatus() != null && p.getStatus().equalsIgnoreCase("pago"))
+        .collect(java.util.stream.Collectors.toList());
+    }
+
     @GetMapping("/estacionamento/{nomeEstacionamento}")
     public List<Pagamentos> getPagamentosPorEstacionamento(@PathVariable String nomeEstacionamento) {
         return pagamentosRepository.findByEstacionamento(nomeEstacionamento);

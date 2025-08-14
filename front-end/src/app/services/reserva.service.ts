@@ -15,4 +15,8 @@ export class ReservaService {
   getReservasPorEstacionamentoNome(estacionamentoNome: string): Observable<any[]> {
     return this.http.get<any[]>(`http://localhost:8080/api/pagamentos/estacionamento/${encodeURIComponent(estacionamentoNome)}`);
   }
+
+  getReservasPorCliente(clienteId: number): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:8080/api/pagamentos/cliente/${clienteId}`);
+  }
 }

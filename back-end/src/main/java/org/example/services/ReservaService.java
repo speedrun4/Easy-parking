@@ -19,4 +19,8 @@ public class ReservaService {
     public List<Reserva> getReservasPorEstacionamento(Long estacionamentoId) {
         return reservaRepository.findByEstacionamentoId(estacionamentoId);
     }
+
+    public List<Reserva> getReservasPorCliente(Long clienteId) {
+        return reservaRepository.findByClienteId(clienteId);
+    }
 }

@@ -22,14 +22,15 @@ export class ReservasEstacionamentoComponent implements OnInit {
     if (usuario && usuario.perfil === 'cliente') {
       this.estacionamentoService.getEstacionamentoPorUsuarioId(usuario.id).subscribe((estacionamento: any) => {
         if (estacionamento && estacionamento.nomeEmpresa) {
+          // Se for dono de estacionamento, mostra reservas do estacionamento
           this.reservaService.getReservasPorEstacionamentoNome(estacionamento.nomeEmpresa).subscribe((reservas: any[]) => {
-            console.log('Reservas recebidas do backend:', reservas);
-            // Exibe todas as reservas com status 'pago', independente do horário
             this.reservas = reservas.filter(r => r.status && r.status.toLowerCase() === 'pago');
-            console.log('Reservas após filtro de status e horário:', this.reservas);
           });
         } else {
-          this.reservas = [];
+          // Se não for dono, mostra reservas do próprio cliente
+          this.reservaService.getReservasPorCliente(usuario.id).subscribe((reservas: any[]) => {
+            this.reservas = reservas.filter(r => r.status && r.status.toLowerCase() === 'pago');
+          });
         }
       });
     }

@@ -51,6 +51,11 @@ public class UsuariosController {
                     usuario.getTelefone()
                 );
                 response.setFotoBase64(usuario.getFotoBase64());
+                // LOG extra para debug
+                System.out.println("AuthResponse enviado: id=" + response.getId() + ", perfil=" + response.getPerfil());
+                if (response.getId() == null || response.getPerfil() == null) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro: id ou perfil do usuário não definidos no backend!");
+                }
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta");

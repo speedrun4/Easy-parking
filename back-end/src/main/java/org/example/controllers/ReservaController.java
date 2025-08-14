@@ -62,4 +62,19 @@ public class ReservaController {
         }
         return ResponseEntity.ok(reservas);
     }
+
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<Reserva>> getReservasPorCliente(@PathVariable Long clienteId) {
+        logger.info("Buscando reservas para clienteId={}", clienteId);
+        List<Reserva> reservas = reservaService.getReservasPorCliente(clienteId);
+        logger.info("Reservas encontradas: {}", reservas.size());
+        for (Reserva r : reservas) {
+            logger.info("Reserva: id={}, clienteId={}, estacionamentoId={}, horario={}",
+                r.getId(),
+                r.getCliente() != null ? r.getCliente().getId() : null,
+                r.getEstacionamento() != null ? r.getEstacionamento().getId() : null,
+                r.getHorario());
+        }
+        return ResponseEntity.ok(reservas);
+    }
 }
