@@ -13,7 +13,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         <p>{{ data.message }}</p>
       </div>
       <div mat-dialog-actions>
-        <button mat-raised-button color="primary" (click)="close()">Ok</button>
+        <button mat-raised-button color="primary" (click)="onConfirm()">Sim</button>
+        <button mat-raised-button color="warn" (click)="onCancel()">Não</button>
       </div>
     </div>
   `,
@@ -51,7 +52,11 @@ export class ConfirmationDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: { message: string }
   ) {}
 
-  close(): void {
-    this.dialogRef.close();
+  onConfirm(): void {
+    this.dialogRef.close(true);
+  }
+
+  onCancel(): void {
+    this.dialogRef.close(false);
   }
 }

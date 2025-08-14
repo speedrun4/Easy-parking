@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { PaymentHistory } from 'src/app/models/payment-history.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { PaymentHistoryService } from 'src/app/services/payment-history.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationDialogComponent } from '../../components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-payment-history',
@@ -12,7 +14,12 @@ import { PaymentHistoryService } from 'src/app/services/payment-history.service'
 export class PaymentHistoryComponent implements OnInit {
   paymentHistory: PaymentHistory[] = [];
 
-  constructor(private paymentHistoryService: PaymentHistoryService, private authService: AuthService, private router: Router) { }
+  constructor(
+    private paymentHistoryService: PaymentHistoryService,
+    private authService: AuthService,
+    private router: Router,
+    private dialog: MatDialog
+  ) { }
 
   ngOnInit(): void {
     this.loadPayments();
@@ -30,11 +37,16 @@ export class PaymentHistoryComponent implements OnInit {
   }
 
   deletePayment(id: number) {
-    if (confirm('Tem certeza que deseja excluir este pagamento?')) {
-      this.paymentHistoryService.deletePayment(id).subscribe(() => {
-        this.loadPayments(); // Recarrega a lista após exclusão
-      });
-    }
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+      data: { message: 'Tem certeza que deseja excluir este pagamento?' }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.paymentHistoryService.deletePayment(id).subscribe(() => {
+          this.loadPayments();
+        });
+      }
+    });
   }
 
   goToRoute(payment: PaymentHistory) {
