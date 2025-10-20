@@ -28,7 +28,16 @@
 
     <mat-form-field appearance="fill" class="form-group">
       <mat-label>Senha</mat-label>
-      <input matInput type="password" formControlName="password" placeholder="Digite sua senha" />
+      <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Digite sua senha" />
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        (click)="hidePassword = !hidePassword"
+        [attr.aria-label]="hidePassword ? 'Mostrar senha' : 'Ocultar senha'"
+        [attr.aria-pressed]="!hidePassword">
+        <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
       <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
         A senha é obrigatória
       </mat-error>
@@ -51,7 +60,16 @@
 
     <mat-form-field appearance="fill" class="form-group">
       <mat-label>Senha</mat-label>
-      <input matInput type="password" formControlName="password" placeholder="Digite a senha do cliente" />
+      <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Digite a senha do cliente" />
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        (click)="hidePassword = !hidePassword"
+        [attr.aria-label]="hidePassword ? 'Mostrar senha' : 'Ocultar senha'"
+        [attr.aria-pressed]="!hidePassword">
+        <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
       <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
         A senha é obrigatória
       </mat-error>

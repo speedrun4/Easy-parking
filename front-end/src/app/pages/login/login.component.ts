@@ -14,6 +14,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   errorMessage: string = '';
   showErrorModal: boolean = false;
+  hidePassword: boolean = true;
 
   // Variável para controlar a exibição dos formulários
   showUserForm: boolean = true;
