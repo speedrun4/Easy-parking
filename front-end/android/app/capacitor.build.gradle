@@ -1,0 +1,22 @@
+// Minimal Capacitor gradle script to copy web assets into the Android app
+
+def webDir = file('../../dist/easy-parking')
+def assetsDir = file('src/main/assets/public')
+
+tasks.register('cleanWebAssets', Delete) {
+	delete assetsDir
+}
+
+tasks.register('copyWebAssets', Copy) {
+	dependsOn 'cleanWebAssets'
+	from webDir
+	into assetsDir
+	doFirst {
+		if (!webDir.exists()) {
+			logger.lifecycle("Web build not found at ${webDir}. Build Angular before assembling the APK.")
+		}
+	}
+}
+
+// Ensure assets are copied before building
+preBuild.dependsOn 'copyWebAssets'

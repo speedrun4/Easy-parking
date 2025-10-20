@@ -23,6 +23,17 @@ export class AuthService {
     this.currentUser = this.currentUserSubject.asObservable();
   }
 
+  // Atualiza a foto do usuário apenas no front (localStorage + observable)
+  updateUserPhoto(fotoBase64: string): void {
+    const current = this.getCurrentUser();
+    if (!current) {
+      console.error('Nenhum usuário logado para atualizar a foto.');
+      return;
+    }
+    const updated = { ...current, fotoBase64 };
+    this.setCurrentUser(updated);
+  }
+
   // Registro de usuário (opcional, conforme necessário)
   register(usuario: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}`, usuario).pipe(
