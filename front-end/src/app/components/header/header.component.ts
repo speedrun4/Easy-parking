@@ -38,7 +38,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.userName = user.nomeCompleto?.split(' ').slice(0, 2).join(' ') || '';
         this.isClient = user.isClient;
         this.loginAsUser = user.loginAsUser;
-        this.userPhotoUrl = user.fotoBase64 ? 'data:image/png;base64,' + user.fotoBase64 : null;
+  this.userPhotoUrl = user.fotoDataUrl || (user.fotoBase64 ? 'data:image/png;base64,' + user.fotoBase64 : null);
         this.checkPreReservaTime();
       } else {
         this.userName = '';

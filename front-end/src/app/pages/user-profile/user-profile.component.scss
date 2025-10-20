@@ -1,3 +1,26 @@
+.user-avatar-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.user-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #008080;
+}
+
+.upload-btn {
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: #008080;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
 .user-card {
   max-width: 600px;
   margin: 24px auto 16px auto;

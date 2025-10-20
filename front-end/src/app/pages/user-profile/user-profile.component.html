@@ -4,6 +4,13 @@
     <mat-card-title>Informações do Usuário</mat-card-title>
   </mat-card-header>
   <mat-card-content *ngIf="userData; else noUser">
+      <div class="user-avatar-block">
+        <img class="user-avatar" [src]="previewPhotoUrl || (userData.fotoBase64 ? 'data:image/png;base64,' + userData.fotoBase64 : 'assets/images/avatar.png')" alt="Avatar do usuário">
+        <div class="avatar-actions">
+          <label class="upload-btn" for="photoInput">Adicionar/Tirar Foto</label>
+          <input id="photoInput" type="file" accept="image/*" capture="environment" (change)="onPhotoSelected($event)" hidden>
+        </div>
+      </div>
     <div class="user-info-block">
       <span class="user-info-label">Nome Completo:</span>
       <span class="user-info-value">{{ userData.nomeCompleto }}</span>

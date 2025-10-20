@@ -24,13 +24,13 @@ export class AuthService {
   }
 
   // Atualiza a foto do usuário apenas no front (localStorage + observable)
-  updateUserPhoto(fotoBase64: string): void {
+  updateUserPhoto(fotoBase64: string, dataUrl?: string): void {
     const current = this.getCurrentUser();
     if (!current) {
       console.error('Nenhum usuário logado para atualizar a foto.');
       return;
     }
-    const updated = { ...current, fotoBase64 };
+    const updated = { ...current, fotoBase64, ...(dataUrl ? { fotoDataUrl: dataUrl } : {}) };
     this.setCurrentUser(updated);
   }
 
