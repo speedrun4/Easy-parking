@@ -23,15 +23,31 @@ export class AuthService {
     this.currentUser = this.currentUserSubject.asObservable();
   }
 
-  // Atualiza a foto do usuário apenas no front (localStorage + observable)
+  // Atualiza a foto do usuário: persiste no backend e reflete no front
   updateUserPhoto(fotoBase64: string, dataUrl?: string): void {
     const current = this.getCurrentUser();
-    if (!current) {
+    if (!current || !current.id) {
       console.error('Nenhum usuário logado para atualizar a foto.');
       return;
     }
-    const updated = { ...current, fotoBase64, ...(dataUrl ? { fotoDataUrl: dataUrl } : {}) };
-    this.setCurrentUser(updated);
+
+    // Atualização otimista no front para feedback imediato
+    const optimistic = { ...current, fotoBase64, ...(dataUrl ? { fotoDataUrl: dataUrl } : {}) };
+    this.setCurrentUser(optimistic);
+
+    // Persiste no backend
+    this.http.put<any>(`${this.apiUrl}/${current.id}/foto`, { fotoBase64 })
+      .pipe(catchError(this.handleError))
+      .subscribe({
+        next: (resp) => {
+          const updated = { ...this.getCurrentUser(), fotoBase64: resp?.fotoBase64 ?? fotoBase64 };
+          this.setCurrentUser(updated);
+        },
+        error: (err) => {
+          console.error('Falha ao salvar foto no servidor:', err);
+          // Em caso de erro, podemos manter a foto localmente ou desfazer. Aqui manteremos a foto local.
+        }
+      });
   }
 
   // Registro de usuário (opcional, conforme necessário)

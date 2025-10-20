@@ -1,6 +1,7 @@
 package org.example.controllers;
 
 import org.example.dto.AuthResponse;
+import org.example.dto.UpdateFotoRequest;
 import org.example.dto.ResetPasswordRequest;
 import org.example.models.Usuarios;
 import org.example.services.EmailService;
@@ -21,7 +22,7 @@ import javax.persistence.Lob;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/usuarios")
+@RequestMapping("/api/usuarios")
 @CrossOrigin(origins = "http://localhost:4200") // Permitir requisições do Angular no localhost
 public class UsuariosController {
     @Autowired
@@ -193,9 +194,23 @@ public class UsuariosController {
         }
     }
 
-    @Column(name = "foto") // ou "foto_base64" conforme o banco
-    @Lob
-    private String fotoBase64; // Foto em base64
+    @PutMapping("/{id}/foto")
+    public ResponseEntity<?> updateFoto(@PathVariable Integer id, @RequestBody UpdateFotoRequest request) {
+        try {
+            Optional<Usuarios> usuarioOpt = usuariosService.findById(id);
+            if (!usuarioOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
+            }
+            usuariosService.updateFoto(id, request.getFotoBase64());
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("message", "Foto atualizada com sucesso");
+            resp.put("fotoBase64", request.getFotoBase64());
+            return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar a foto");
+        }
+    }
 }
 
 

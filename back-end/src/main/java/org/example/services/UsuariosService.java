@@ -82,4 +82,10 @@ public class UsuariosService {
         // Por fim, deletar o usuário
         usuariosRepository.deleteById(id);
     }
+
+    public void updateFoto(Integer id, String fotoBase64) {
+        Usuarios usuario = usuariosRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        usuario.setFotoBase64(fotoBase64);
+        usuariosRepository.save(usuario);
+    }
 }
