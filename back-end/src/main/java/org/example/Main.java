@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.List;
 
 @RequestMapping("/clientes")
 @CrossOrigin(origins = "http://localhost:4200") // Permitir requisições do Angular no localhost
 @SpringBootApplication
+@EnableScheduling
 @RestController
 public class Main {
     // Injeção de dependência do ClienteService

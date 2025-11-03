@@ -164,6 +164,7 @@ export class PaymentComponent implements OnInit {
     this.paymentHistoryService.salvarPagamento(pagamento).subscribe({
       next: (res) => {
         console.log('Pagamento salvo com sucesso', res);
+        const savedPaymentId = (res as any)?.id;
         // Criar reserva vinculada ao estacionamento e cliente
         // Busca o id do estacionamento de forma robusta
         const estacionamentoId = selected.id || selected.estacionamentoId || selected.idEstacionamento || selected.parkingId;
@@ -184,6 +185,11 @@ export class PaymentComponent implements OnInit {
         this.reservaService.criarReserva(reserva).subscribe(() => {
           console.log('Reserva criada e vinculada ao estacionamento!');
         });
+
+        // Navega para a página de QR Code com o id do pagamento
+        if (savedPaymentId) {
+          this.router.navigate(['/qr-code'], { state: { paymentId: savedPaymentId } });
+        }
       },
       error: (error) => {
         console.error('Erro ao salvar pagamento:', error);
@@ -242,7 +248,11 @@ export class PaymentComponent implements OnInit {
         });
         this.preReservaService.notifyPreReservaCancelled();
         dialogRef.afterClosed().subscribe(() => {
-          this.navigateToRoutePage();
+          // Após confirmação, permanece/navega para a página de QRs; rota já foi iniciada ao salvar
+          if (!(window.history.state && window.history.state.paymentId)) {
+            // fallback se id não veio
+            this.router.navigate(['/qr-code']);
+          }
         });
       }, 3000);
     } else {
@@ -256,7 +266,9 @@ export class PaymentComponent implements OnInit {
         });
         this.preReservaService.notifyPreReservaCancelled();
         dialogRef.afterClosed().subscribe(() => {
-          this.navigateToRoutePage();
+          if (!(window.history.state && window.history.state.paymentId)) {
+            this.router.navigate(['/qr-code']);
+          }
         });
       }, 2000);
     }

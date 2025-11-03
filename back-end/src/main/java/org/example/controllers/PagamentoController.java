@@ -22,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/pagamentos")
+@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*", allowCredentials = "true")
 public class PagamentoController {
 
     // Endpoint para buscar reservas do cliente (pagamentos com status 'pago')
@@ -45,6 +46,8 @@ public class PagamentoController {
     private PagamentoRepository pagamentosRepository;
     @Autowired
     private UsuariosRepository usuariosRepository;
+    @Autowired
+    private org.example.services.PagamentoService pagamentoService;
 
     @PostMapping
     public ResponseEntity<Pagamentos> criarPagamento(@RequestBody Pagamentos pagamento) {
@@ -85,5 +88,98 @@ public class PagamentoController {
     public ResponseEntity<Void> deletarPagamento(@PathVariable Long id) {
         service.deletarPorId(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // --- QR Codes ---
+    @GetMapping("/{id}/qrcodes")
+    public ResponseEntity<?> getQRCodes(@PathVariable Long id) {
+        return pagamentosRepository.findById(id)
+        .<ResponseEntity<?>>map(p -> {
+            // Garante geração do QR de entrada se não existir e QR de saída se já for devido
+            pagamentoService.ensureEntryQr(p);
+            pagamentoService.ensureExitQrIfDue(p);
+            // Recarrega estado atual
+            Pagamentos atualizado = pagamentosRepository.findById(id).orElse(p);
+
+            java.util.Map<String, Object> entry = new java.util.HashMap<String, Object>();
+            entry.put("token", atualizado.getEntryQrToken());
+            entry.put("imageBase64", atualizado.getEntryQrImageBase64());
+            entry.put("status", atualizado.getEntryQrStatus());
+
+            java.util.Map<String, Object> exit = new java.util.HashMap<String, Object>();
+            exit.put("token", atualizado.getExitQrToken());
+            exit.put("imageBase64", atualizado.getExitQrImageBase64());
+            exit.put("status", atualizado.getExitQrStatus());
+
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>();
+            result.put("entry", entry);
+            result.put("exit", exit);
+
+            return ResponseEntity.ok(result);
+        })
+        .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/qrcodes/consume")
+    public ResponseEntity<?> consumeQRCode(@PathVariable Long id, @RequestParam String type) {
+        return pagamentosRepository.findById(id).map(p -> {
+            if ("entry".equalsIgnoreCase(type) && "ativo".equalsIgnoreCase(p.getEntryQrStatus())) {
+                p.setEntryQrStatus("consumido");
+                p.setEntryQrConsumedAt(java.time.LocalDateTime.now());
+                pagamentosRepository.save(p);
+                return ResponseEntity.ok().build();
+            } else if ("exit".equalsIgnoreCase(type) && "ativo".equalsIgnoreCase(p.getExitQrStatus())) {
+                p.setExitQrStatus("consumido");
+                p.setExitQrConsumedAt(java.time.LocalDateTime.now());
+                pagamentosRepository.save(p);
+                return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.status(409).body("QR Code inválido ou já consumido/expirado");
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // Retorna os QRs (entrada/saída) do último pagamento 'pago' do usuário
+    @GetMapping("/ultimo-qrcodes")
+    public ResponseEntity<?> getUltimoQRCodes(@RequestParam("usuarioId") Long usuarioId) {
+        java.util.List<Pagamentos> lista = pagamentosRepository.findByUsuarioId(Math.toIntExact(usuarioId));
+        if (lista == null || lista.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        // pega o último com status 'pago'
+        Pagamentos ultimoPago = lista.stream()
+                .filter(p -> p.getStatus() != null && p.getStatus().equalsIgnoreCase("pago"))
+                .sorted((a, b) -> Long.compare(
+                        a.getId() != null ? a.getId() : -1,
+                        b.getId() != null ? b.getId() : -1
+                ))
+                .reduce((first, second) -> second)
+                .orElse(null);
+
+        if (ultimoPago == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // garante geração caso esteja faltando
+        pagamentoService.ensureEntryQr(ultimoPago);
+        pagamentoService.ensureExitQrIfDue(ultimoPago);
+
+    Pagamentos atualizado = pagamentosRepository.findById(ultimoPago.getId()).orElse(ultimoPago);
+
+    java.util.Map<String, Object> entry = new java.util.HashMap<String, Object>();
+    entry.put("token", atualizado.getEntryQrToken());
+    entry.put("imageBase64", atualizado.getEntryQrImageBase64());
+    entry.put("status", atualizado.getEntryQrStatus());
+
+    java.util.Map<String, Object> exit = new java.util.HashMap<String, Object>();
+    exit.put("token", atualizado.getExitQrToken());
+    exit.put("imageBase64", atualizado.getExitQrImageBase64());
+    exit.put("status", atualizado.getExitQrStatus());
+
+    java.util.Map<String, Object> result = new java.util.HashMap<String, Object>();
+    result.put("paymentId", atualizado.getId());
+    result.put("entry", entry);
+    result.put("exit", exit);
+
+    return ResponseEntity.ok(result);
     }
 }

@@ -62,6 +62,7 @@ import localePt from '@angular/common/locales/pt';
 import { AlertDialogCancelComponent } from './components/alert-dialog-cancel/alert-dialog-cancel.component';
 import { RouteComponent } from './pages/route/route.component';
 import { ReservasEstacionamentoComponent } from './pages/reservas/reservas-estacionamento.component';
+import { QrCodeComponent } from './pages/qr-code/qr-code.component';
 registerLocaleData(localePt);
 
 @NgModule({
@@ -97,6 +98,7 @@ registerLocaleData(localePt);
     AlertDialogCancelComponent,
     RouteComponent,
     ReservasEstacionamentoComponent,
+    QrCodeComponent,
   ],
   imports: [
     MatButtonModule,

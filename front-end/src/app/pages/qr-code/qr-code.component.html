@@ -1,0 +1,37 @@
+<div class="qr-wrapper" *ngIf="!loading && !error; else loadingOrError">
+  <h2>QR Codes da Reserva</h2>
+
+  <div class="actions">
+    <button class="btn" (click)="refresh()" [disabled]="loading">Atualizar</button>
+    <span class="last" *ngIf="lastUpdated">Atualizado: {{ lastUpdated | date:'shortTime' }}</span>
+  </div>
+
+  <div class="qr-section">
+    <h3>Entrada</h3>
+    <div *ngIf="entryImage; else noEntry">
+      <img [src]="entryImage" alt="QR Entrada" />
+      <p class="status">Status: {{ entryStatus || 'indisponível' }}</p>
+    </div>
+    <ng-template #noEntry>
+      <p>QR de entrada ainda não disponível.</p>
+    </ng-template>
+  </div>
+
+  <div class="qr-section">
+    <h3>Saída</h3>
+    <div *ngIf="exitImage; else noExit">
+      <img [src]="exitImage" alt="QR Saída" />
+      <p class="status">Status: {{ exitStatus || 'indisponível' }}</p>
+    </div>
+    <ng-template #noExit>
+      <p>O QR de saída será gerado quando o horário da sua reserva for concluído. Clique em Atualizar para recarregar.</p>
+    </ng-template>
+  </div>
+</div>
+
+<ng-template #loadingOrError>
+  <div class="center">
+    <p *ngIf="loading">Carregando QR Codes...</p>
+    <p *ngIf="error">{{ error }}</p>
+  </div>
+</ng-template>

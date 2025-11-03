@@ -40,6 +40,39 @@ public class Pagamentos {
     private Double longitude;
     private String endereco;
 
+    // QR Codes de entrada/saída
+    @Column(name = "entry_qr_token")
+    private String entryQrToken;
+
+    @Lob
+    @Column(name = "entry_qr_image_base64", columnDefinition = "LONGTEXT")
+    private String entryQrImageBase64;
+
+    @Column(name = "entry_qr_status")
+    private String entryQrStatus; // ativo, consumido, expirado
+
+    @Column(name = "entry_qr_created_at")
+    private java.time.LocalDateTime entryQrCreatedAt;
+
+    @Column(name = "entry_qr_consumed_at")
+    private java.time.LocalDateTime entryQrConsumedAt;
+
+    @Column(name = "exit_qr_token")
+    private String exitQrToken;
+
+    @Lob
+    @Column(name = "exit_qr_image_base64", columnDefinition = "LONGTEXT")
+    private String exitQrImageBase64;
+
+    @Column(name = "exit_qr_status")
+    private String exitQrStatus; // pendente, ativo, consumido, expirado
+
+    @Column(name = "exit_qr_created_at")
+    private java.time.LocalDateTime exitQrCreatedAt;
+
+    @Column(name = "exit_qr_consumed_at")
+    private java.time.LocalDateTime exitQrConsumedAt;
+
     // Novos campos para reserva
     @Column(name = "data_reserva_entrada")
     private LocalDate dataReservaEntrada;
@@ -152,5 +185,35 @@ public class Pagamentos {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public String getEntryQrToken() { return entryQrToken; }
+    public void setEntryQrToken(String entryQrToken) { this.entryQrToken = entryQrToken; }
+
+    public String getEntryQrImageBase64() { return entryQrImageBase64; }
+    public void setEntryQrImageBase64(String entryQrImageBase64) { this.entryQrImageBase64 = entryQrImageBase64; }
+
+    public String getEntryQrStatus() { return entryQrStatus; }
+    public void setEntryQrStatus(String entryQrStatus) { this.entryQrStatus = entryQrStatus; }
+
+    public java.time.LocalDateTime getEntryQrCreatedAt() { return entryQrCreatedAt; }
+    public void setEntryQrCreatedAt(java.time.LocalDateTime entryQrCreatedAt) { this.entryQrCreatedAt = entryQrCreatedAt; }
+
+    public java.time.LocalDateTime getEntryQrConsumedAt() { return entryQrConsumedAt; }
+    public void setEntryQrConsumedAt(java.time.LocalDateTime entryQrConsumedAt) { this.entryQrConsumedAt = entryQrConsumedAt; }
+
+    public String getExitQrToken() { return exitQrToken; }
+    public void setExitQrToken(String exitQrToken) { this.exitQrToken = exitQrToken; }
+
+    public String getExitQrImageBase64() { return exitQrImageBase64; }
+    public void setExitQrImageBase64(String exitQrImageBase64) { this.exitQrImageBase64 = exitQrImageBase64; }
+
+    public String getExitQrStatus() { return exitQrStatus; }
+    public void setExitQrStatus(String exitQrStatus) { this.exitQrStatus = exitQrStatus; }
+
+    public java.time.LocalDateTime getExitQrCreatedAt() { return exitQrCreatedAt; }
+    public void setExitQrCreatedAt(java.time.LocalDateTime exitQrCreatedAt) { this.exitQrCreatedAt = exitQrCreatedAt; }
+
+    public java.time.LocalDateTime getExitQrConsumedAt() { return exitQrConsumedAt; }
+    public void setExitQrConsumedAt(java.time.LocalDateTime exitQrConsumedAt) { this.exitQrConsumedAt = exitQrConsumedAt; }
 }
 
