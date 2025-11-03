@@ -138,6 +138,54 @@ public class PagamentoController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    // Consome QR Code a partir do token escaneado (Base64 URL), usado pela câmera do cliente/portaria
+    @PostMapping("/qrcodes/consume-by-token")
+    public ResponseEntity<?> consumeByToken(@RequestParam("token") String token) {
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.badRequest().body("Token obrigatório");
+        }
+        try {
+            String decoded = new String(java.util.Base64.getUrlDecoder().decode(token), java.nio.charset.StandardCharsets.UTF_8);
+            java.util.Map<String, String> map = parsePayload(decoded);
+            String type = map.get("type");
+            String paymentIdStr = map.get("paymentId");
+            if (type == null || paymentIdStr == null) {
+                return ResponseEntity.badRequest().body("Token inválido");
+            }
+            Long paymentId = Long.parseLong(paymentIdStr);
+
+            return pagamentosRepository.findById(paymentId).map(p -> {
+                if ("entry".equalsIgnoreCase(type) && "ativo".equalsIgnoreCase(p.getEntryQrStatus())) {
+                    p.setEntryQrStatus("consumido");
+                    p.setEntryQrConsumedAt(java.time.LocalDateTime.now());
+                    pagamentosRepository.save(p);
+                    return ResponseEntity.ok(java.util.Collections.singletonMap("status", "ENTRY_CONSUMED"));
+                } else if ("exit".equalsIgnoreCase(type) && "ativo".equalsIgnoreCase(p.getExitQrStatus())) {
+                    p.setExitQrStatus("consumido");
+                    p.setExitQrConsumedAt(java.time.LocalDateTime.now());
+                    pagamentosRepository.save(p);
+                    return ResponseEntity.ok(java.util.Collections.singletonMap("status", "EXIT_CONSUMED"));
+                }
+                return ResponseEntity.status(409).body("QR Code inválido ou já consumido/expirado");
+            }).orElse(ResponseEntity.status(404).body("Pagamento não encontrado"));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body("Token inválido");
+        }
+    }
+
+    private java.util.Map<String, String> parsePayload(String payload) {
+        java.util.Map<String, String> result = new java.util.HashMap<String, String>();
+        if (payload == null) return result;
+        String[] parts = payload.split(";");
+        for (String part : parts) {
+            String[] kv = part.split("=", 2);
+            if (kv.length == 2) {
+                result.put(kv[0], kv[1]);
+            }
+        }
+        return result;
+    }
+
     // Retorna os QRs (entrada/saída) do último pagamento 'pago' do usuário
     @GetMapping("/ultimo-qrcodes")
     public ResponseEntity<?> getUltimoQRCodes(@RequestParam("usuarioId") Long usuarioId) {

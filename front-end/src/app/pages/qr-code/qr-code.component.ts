@@ -18,6 +18,9 @@ export class QrCodeComponent implements OnInit {
   loading = true;
   error?: string;
   lastUpdated?: Date;
+  autoRefresh = false;
+  private autoTimer?: any;
+  readonly refreshIntervalMs = 30000; // 30s
 
   constructor(
     private route: ActivatedRoute,
@@ -72,6 +75,7 @@ export class QrCodeComponent implements OnInit {
         this.exitStatus = exit?.status;
         this.loading = false;
         this.lastUpdated = new Date();
+        this.applyVisibilityRules();
       },
       error: (err) => {
         // Se 404 (pagamento não encontrado), faz fallback para último pagamento do usuário
@@ -127,6 +131,7 @@ export class QrCodeComponent implements OnInit {
           this.exitStatus = exit?.status;
           this.loading = false;
           this.lastUpdated = new Date();
+          this.applyVisibilityRules();
         },
         error: () => {
           this.error = 'Nenhum QR Code disponível para seu usuário.';
@@ -134,5 +139,38 @@ export class QrCodeComponent implements OnInit {
         }
       });
     }
+  }
+
+  toggleAutoRefresh() {
+    this.autoRefresh = !this.autoRefresh;
+    if (this.autoRefresh) {
+      this.startAuto();
+    } else {
+      this.stopAuto();
+    }
+  }
+
+  private startAuto() {
+    this.stopAuto();
+    this.autoTimer = setInterval(() => this.refresh(), this.refreshIntervalMs);
+  }
+
+  private stopAuto() {
+    if (this.autoTimer) {
+      clearInterval(this.autoTimer);
+      this.autoTimer = undefined;
+    }
+  }
+
+  private applyVisibilityRules() {
+    // Se o QR de saída foi consumido, ocultamos ambos os QRs
+    if ((this.exitStatus || '').toLowerCase() === 'consumido') {
+      this.entryImage = undefined;
+      this.exitImage = undefined;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopAuto();
   }
 }

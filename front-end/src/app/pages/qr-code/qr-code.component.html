@@ -4,6 +4,10 @@
   <div class="actions">
     <button class="btn" (click)="refresh()" [disabled]="loading">Atualizar</button>
     <span class="last" *ngIf="lastUpdated">Atualizado: {{ lastUpdated | date:'shortTime' }}</span>
+    <label class="auto">
+      <input type="checkbox" [checked]="autoRefresh" (change)="toggleAutoRefresh()" />
+      Atualizar automaticamente (30s)
+    </label>
   </div>
 
   <div class="qr-section">
@@ -24,7 +28,8 @@
       <p class="status">Status: {{ exitStatus || 'indisponível' }}</p>
     </div>
     <ng-template #noExit>
-      <p>O QR de saída será gerado quando o horário da sua reserva for concluído. Clique em Atualizar para recarregar.</p>
+      <p *ngIf="(exitStatus || '').toLowerCase() !== 'consumido'">O QR de saída será gerado quando o horário da sua reserva for concluído. Clique em Atualizar para recarregar.</p>
+      <p *ngIf="(exitStatus || '').toLowerCase() === 'consumido'">Saída validada. QR Codes indisponíveis.</p>
     </ng-template>
   </div>
 </div>

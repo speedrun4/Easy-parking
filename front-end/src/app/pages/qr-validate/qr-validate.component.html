@@ -1,0 +1,17 @@
+<div class="validate-wrapper">
+  <h2>Validação de QR Code</h2>
+
+  <div class="scanner-box">
+    <div #scanner id="scanner" class="scanner"></div>
+  </div>
+
+  <div class="status">
+    <p *ngIf="loading">Iniciando câmera...</p>
+    <p class="ok" *ngIf="message && !error">{{ message }}</p>
+    <p class="err" *ngIf="error">{{ error }}</p>
+  </div>
+
+  <div class="controls">
+    <button (click)="resume()" [disabled]="loading">Escanear novamente</button>
+  </div>
+</div>

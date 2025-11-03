@@ -1,0 +1,6 @@
+.validate-wrapper { max-width: 520px; margin: 24px auto; text-align: center; }
+.scanner-box { display: flex; justify-content: center; margin: 16px 0; }
+.scanner { width: 320px; height: 320px; border: 2px dashed #0aa; border-radius: 8px; }
+.status .ok { color: #0a7f2e; font-weight: 600; }
+.status .err { color: #b00020; font-weight: 600; }
+.controls button { margin-top: 12px; }

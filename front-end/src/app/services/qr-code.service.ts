@@ -24,4 +24,8 @@ export class QrCodeService {
   getLastByUser(userId: number): Observable<QrCodesResponse & { paymentId: number }> {
     return this.http.get<QrCodesResponse & { paymentId: number }>(`${this.baseUrl}/ultimo-qrcodes?usuarioId=${userId}`);
   }
+
+  consumeByToken(token: string) {
+    return this.http.post(`${this.baseUrl}/qrcodes/consume-by-token?token=${encodeURIComponent(token)}`, {});
+  }
 }
