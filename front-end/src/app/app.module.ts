@@ -49,6 +49,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { SucessoModalComponent } from './components/sucess-modal/sucess-modal.component';
+import { PixProgressModalComponent } from './components/pix-progress-modal/pix-progress-modal.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { CommonModule } from '@angular/common';
@@ -64,6 +65,7 @@ import { RouteComponent } from './pages/route/route.component';
 import { ReservasEstacionamentoComponent } from './pages/reservas/reservas-estacionamento.component';
 import { QrCodeComponent } from './pages/qr-code/qr-code.component';
 import { QrValidateComponent } from './pages/qr-validate/qr-validate.component';
+import { NgxMaskModule } from 'ngx-mask';
 registerLocaleData(localePt);
 
 @NgModule({
@@ -101,6 +103,7 @@ registerLocaleData(localePt);
     ReservasEstacionamentoComponent,
     QrCodeComponent,
     QrValidateComponent,
+    PixProgressModalComponent,
   ],
   imports: [
     MatButtonModule,
@@ -136,6 +139,7 @@ registerLocaleData(localePt);
     MatFormFieldModule,
     MatInputModule,
     HttpClientModule,
+    NgxMaskModule.forRoot(),
     CommonModule
     
   ],

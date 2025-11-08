@@ -27,4 +27,15 @@ export class PaymentHistoryService {
 salvarPagamento(dadosPagamento: any) {
     return this.http.post(this.apiUrl, dadosPagamento);
   }
+
+  iniciarPix(pagamentoId: number) {
+    return this.http.post<{ pagbankChargeId?: string; status?: string; qrBase64?: string; qrPayload?: string }>(
+      `${this.apiUrl}/${pagamentoId}/pagbank/pix`,
+      {}
+    );
+  }
+
+  consultarStatusPix(pagamentoId: number) {
+    return this.http.get<{ status: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/status`);
+  }
 }

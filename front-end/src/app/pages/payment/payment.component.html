@@ -15,13 +15,26 @@
         </mat-radio-button>
       </mat-radio-group>
 
-      <!-- Se o método de pagamento for Pix, exibe QR Code ou código -->
+      <!-- PIX via PagBank -->
       <div *ngIf="selectedPaymentMethod === 'Pix'" class="pix-container">
-        <h4>Pix QR Code:</h4>
-        <img *ngIf="qrCodeImage" [src]="qrCodeImage" alt="QR Code" class="qr-code" />
-        <p *ngIf="!qrCodeImage">Gerando QR Code...</p>
-        <p>Código do Pix: <strong>{{ qrCodeData }}</strong></p>
-        <button mat-raised-button color="primary" (click)="copyToClipboard(qrCodeData)">Copiar Código</button>
+        <h4>PIX (PagBank)</h4>
+        <ng-container *ngIf="pixQrBase64; else aguardandoQr">
+          <img [src]="pixQrBase64" alt="QR PIX" class="qr-code" />
+        </ng-container>
+        <ng-template #aguardandoQr>
+          <p>Aguardando geração do QR...</p>
+        </ng-template>
+        <div *ngIf="pixQrPayload" style="margin-top:10px;">
+          <p>Copia e Cola:</p>
+          <textarea readonly style="width:100%;height:80px;">{{ pixQrPayload }}</textarea>
+          <button mat-stroked-button color="primary" (click)="copyToClipboard(pixQrPayload)">Copiar código</button>
+        </div>
+        <p *ngIf="pixStatus">Status: <strong>{{ pixStatus }}</strong></p>
+        <div *ngIf="errorMsg" style="color:#b91c1c; margin-top:8px;">{{ errorMsg }}</div>
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button mat-stroked-button color="primary" [attr.aria-label]="'Atualizar status PIX'" [disabled]="isProcessingPayment || !currentPaymentId" (click)="manualRefreshStatus(currentPaymentId!)">Atualizar status</button>
+          <button mat-stroked-button color="accent" [attr.aria-label]="'Reiniciar processo PIX'" [disabled]="isProcessingPayment || !currentPaymentId" (click)="reiniciarPix(currentPaymentId!)">Reiniciar PIX</button>
+        </div>
       </div>
 
       <!-- Formulário de Cartão de Crédito -->
@@ -29,23 +42,24 @@
         <h4>Preencha os dados do cartão de crédito:</h4>
         <mat-form-field appearance="fill">
           <mat-label>Número do Cartão</mat-label>
-          <input matInput [(ngModel)]="cardNumber" placeholder="Número do Cartão" maxlength="16">
+          <input matInput [ngModel]="cardNumber" [ngModelOptions]="{standalone:true}" name="ccNumberCredit" (ngModelChange)="onMaskedCardChange($event)" mask="0000 0000 0000 0000 000" placeholder="Número do Cartão" autocomplete="cc-number" inputmode="numeric">
+          <mat-hint align="end" *ngIf="cardBrand">{{ cardBrand }}</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
           <mat-label>Nome no Cartão</mat-label>
-          <input matInput [(ngModel)]="cardName" placeholder="Nome Completo">
+          <input matInput [(ngModel)]="cardName" name="ccNameCredit" placeholder="Nome Completo">
         </mat-form-field>
 
         <div fxLayout="row" fxLayoutGap="10px">
           <mat-form-field appearance="fill" fxFlex="50">
             <mat-label>Validade</mat-label>
-            <input matInput [(ngModel)]="cardExpiry" placeholder="MM/AA">
+            <input matInput [ngModel]="cardExpiry" [ngModelOptions]="{standalone:true}" name="ccExpiryCredit" (ngModelChange)="onExpiryChange($event)" mask="00/00" placeholder="MM/AA" autocomplete="cc-exp" inputmode="numeric">
           </mat-form-field>
 
           <mat-form-field appearance="fill" fxFlex="50">
             <mat-label>CVV</mat-label>
-            <input matInput [(ngModel)]="cardCVV" placeholder="CVV" maxlength="4">
+            <input matInput [ngModel]="cardCVV" [ngModelOptions]="{standalone:true}" name="ccCvvCredit" (ngModelChange)="onCvvChange($event)" [attr.mask]="cardBrand === 'AMEX' ? '0000' : '000'" placeholder="CVV" autocomplete="cc-csc" inputmode="numeric">
           </mat-form-field>
         </div>
       </form>
@@ -55,23 +69,24 @@
         <h4>Preencha os dados do cartão de débito:</h4>
         <mat-form-field appearance="fill">
           <mat-label>Número do Cartão</mat-label>
-          <input matInput [(ngModel)]="cardNumber" placeholder="Número do Cartão" maxlength="16">
+          <input matInput [ngModel]="cardNumber" [ngModelOptions]="{standalone:true}" name="ccNumberDebit" (ngModelChange)="onMaskedCardChange($event)" mask="0000 0000 0000 0000 000" placeholder="Número do Cartão" autocomplete="cc-number" inputmode="numeric">
+          <mat-hint align="end" *ngIf="cardBrand">{{ cardBrand }}</mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
           <mat-label>Nome no Cartão</mat-label>
-          <input matInput [(ngModel)]="cardName" placeholder="Nome Completo">
+          <input matInput [(ngModel)]="cardName" name="ccNameDebit" placeholder="Nome Completo">
         </mat-form-field>
 
         <div fxLayout="row" fxLayoutGap="10px">
           <mat-form-field appearance="fill" fxFlex="50">
             <mat-label>Validade</mat-label>
-            <input matInput [(ngModel)]="cardExpiry" placeholder="MM/AA">
+            <input matInput [ngModel]="cardExpiry" [ngModelOptions]="{standalone:true}" name="ccExpiryDebit" (ngModelChange)="onExpiryChange($event)" mask="00/00" placeholder="MM/AA" autocomplete="cc-exp" inputmode="numeric">
           </mat-form-field>
 
           <mat-form-field appearance="fill" fxFlex="50">
             <mat-label>CVV</mat-label>
-            <input matInput [(ngModel)]="cardCVV" placeholder="CVV" maxlength="4">
+            <input matInput [ngModel]="cardCVV" [ngModelOptions]="{standalone:true}" name="ccCvvDebit" (ngModelChange)="onCvvChange($event)" [attr.mask]="cardBrand === 'AMEX' ? '0000' : '000'" placeholder="CVV" autocomplete="cc-csc" inputmode="numeric">
           </mat-form-field>
         </div>
       </form>

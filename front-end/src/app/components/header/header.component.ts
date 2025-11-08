@@ -60,6 +60,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
         clearInterval(this.intervalId);
       }
     });
+
+    // Interrompe contador quando o pagamento for concluído
+    this.preReservaService.paymentCompleted$.subscribe(() => {
+      this.preReservaTimeLeft = '';
+      this.isPreReservaExpired = false;
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+      }
+    });
   }
 
   startCountdown(expirationTime: number) {

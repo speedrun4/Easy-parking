@@ -49,6 +49,11 @@ public class PagamentoController {
     @Autowired
     private org.example.services.PagamentoService pagamentoService;
 
+    @org.springframework.beans.factory.annotation.Value("${pagbank.sandbox:true}")
+    private boolean pagbankSandbox;
+    @org.springframework.beans.factory.annotation.Value("${pagbank.token}")
+    private String pagbankToken;
+
     @PostMapping
     public ResponseEntity<Pagamentos> criarPagamento(@RequestBody Pagamentos pagamento) {
         // Se não vier do front, define data e horário atuais
@@ -58,7 +63,12 @@ public class PagamentoController {
         if (pagamento.getHorario() == null) {
             pagamento.setHorario(LocalTime.now());
         }
-        pagamento.setStatus("pago");
+        // Se forma de pagamento for PIX via PagBank, inicia como aguardando pagamento
+        if (pagamento.getFormaPagamento() != null && pagamento.getFormaPagamento().equalsIgnoreCase("PIX")) {
+            pagamento.setStatus("aguardando_pagamento");
+        } else {
+            pagamento.setStatus("pago");
+        }
 
         // Vínculo com usuário
        
@@ -73,6 +83,70 @@ public class PagamentoController {
 
         Pagamentos salvo = service.salvarPagamento(pagamento);
         return ResponseEntity.ok(salvo);
+    }
+
+    // Inicia/força criação de cobrança PIX do PagBank para um pagamento existente
+    @PostMapping("/{id}/pagbank/pix")
+    public ResponseEntity<?> criarPixPagBank(@PathVariable Long id) {
+        return pagamentosRepository.findById(id).map(p -> {
+            try {
+                if (p.getFormaPagamento() == null || !p.getFormaPagamento().equalsIgnoreCase("PIX")) {
+                    p.setFormaPagamento("PIX");
+                }
+                p.setStatus("aguardando_pagamento");
+                pagamentosRepository.save(p);
+                service.salvarPagamento(p); // irá acionar criação de cobrança se necessário
+                Pagamentos atualizado = pagamentosRepository.findById(id).orElse(p);
+                java.util.Map<String, Object> result = new java.util.HashMap<>();
+                result.put("pagbankChargeId", atualizado.getPagbankChargeId());
+                result.put("status", atualizado.getPagbankStatus());
+                result.put("qrBase64", atualizado.getPagbankQrBase64());
+                result.put("qrPayload", atualizado.getPagbankQrPayload());
+                return ResponseEntity.ok(result);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(500).body("Falha ao criar cobrança PIX: " + e.getMessage());
+            }
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // Consulta status da cobrança no PagBank e atualiza o pagamento local
+    @GetMapping("/{id}/pagbank/status")
+    public ResponseEntity<?> consultarStatusPagBank(@PathVariable Long id) {
+        return pagamentosRepository.findById(id).map(p -> {
+            if (p.getPagbankChargeId() == null) {
+                return ResponseEntity.badRequest().body("Pagamento sem chargeId do PagBank");
+            }
+            try {
+                String baseUrl = pagbankSandbox ?
+                        "https://sandbox.api.pagseguro.com" : "https://api.pagseguro.com";
+                String url = baseUrl + "/charges/" + p.getPagbankChargeId();
+                org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                headers.setBearerAuth(pagbankToken);
+                org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
+                org.springframework.web.client.RestTemplate rt = new org.springframework.web.client.RestTemplate();
+                org.springframework.http.ResponseEntity<String> resp = rt.exchange(url, org.springframework.http.HttpMethod.GET, entity, String.class);
+                if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    java.util.Map<?,?> map = mapper.readValue(resp.getBody(), java.util.Map.class);
+                    Object st = map.get("status");
+                    if (st != null) {
+                        p.setPagbankStatus(st.toString());
+                        if ("PAID".equalsIgnoreCase(st.toString())) {
+                            p.setStatus("pago");
+                        }
+                        pagamentosRepository.save(p);
+                    }
+                    java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
+                    respBody.put("status", p.getPagbankStatus());
+                    return ResponseEntity.ok(respBody);
+                }
+                return ResponseEntity.status(resp.getStatusCode()).body("Falha ao consultar status");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(500).body("Falha ao consultar status: " + e.getMessage());
+            }
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
@@ -230,4 +304,5 @@ public class PagamentoController {
 
     return ResponseEntity.ok(result);
     }
+
 }

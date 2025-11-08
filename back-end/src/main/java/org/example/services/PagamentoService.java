@@ -4,6 +4,10 @@ import org.example.models.Pagamentos;
 import org.example.repositories.PagamentoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,8 +25,31 @@ public class PagamentoService {
     @Autowired
     private QRCodeService qrCodeService;
 
+    @Value("${pagbank.email}")
+    private String pagbankEmail;
+
+    @Value("${pagbank.token}")
+    private String pagbankToken;
+
+    @Value("${pagbank.sandbox:true}")
+    private boolean pagbankSandbox;
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @Autowired
+    private RestTemplate restTemplate;
+
     public Pagamentos salvarPagamento(Pagamentos pagamento) {
         Pagamentos saved = repository.save(pagamento);
+
+        // Se for forma de pagamento PIX via PagBank e ainda não tiver integração
+        if ("PIX".equalsIgnoreCase(saved.getFormaPagamento()) && saved.getPagbankStatus() == null) {
+            try {
+                criarCobrancaPagBank(saved);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         // Gera QR de entrada se ainda não existir
         if (saved.getEntryQrToken() == null) {
             try {
@@ -109,6 +136,51 @@ public class PagamentoService {
         } catch (Exception e) {
             e.printStackTrace();
             return p;
+        }
+    }
+
+    // Cria cobrança PIX simples via PagBank (usando token de integração)
+    private void criarCobrancaPagBank(Pagamentos p) throws Exception {
+    String baseUrl = pagbankSandbox ? "https://sandbox.api.pagseguro.com" : "https://api.pagseguro.com";
+    String chargesEndpoint = baseUrl + "/charges"; // endpoint simplificado (pode variar conforme API PagBank)
+
+        // Corpo mínimo da requisição (ajuste conforme documentação oficial PagBank)
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("reference_id", "PAY-" + p.getId());
+        java.util.Map<String, Object> amount = new java.util.HashMap<>();
+        amount.put("value", p.getValorPago() != null ? p.getValorPago().multiply(new java.math.BigDecimal(100)).intValue() : 100); // em centavos
+        amount.put("currency", "BRL");
+        body.put("amount", amount);
+        body.put("description", "Easy-Park pagamento " + p.getId());
+        body.put("payment_method", java.util.Collections.singletonMap("type", "PIX"));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(pagbankToken);
+        HttpEntity<java.util.Map<String,Object>> entity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(chargesEndpoint, HttpMethod.POST, entity, String.class);
+        int status = response.getStatusCodeValue();
+        String resp = response.getBody();
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            // Parse resposta para extrair ids e payload PIX
+            java.util.Map<?,?> map = MAPPER.readValue(resp, java.util.Map.class);
+            Object chargeId = map.get("id");
+            p.setPagbankChargeId(chargeId != null ? chargeId.toString() : null);
+            p.setPagbankStatus("WAITING");
+
+            // Alguns retornos trazem um objeto "qr_code" com campos base64 e text
+            Object qr = map.get("qr_code");
+            if (qr instanceof java.util.Map) {
+                Object qrBase64 = ((java.util.Map<?,?>) qr).get("base64");
+                Object qrText = ((java.util.Map<?,?>) qr).get("text");
+                if (qrBase64 != null) p.setPagbankQrBase64(qrBase64.toString());
+                if (qrText != null) p.setPagbankQrPayload(qrText.toString());
+            }
+            repository.save(p);
+        } else {
+            System.err.println("Erro ao criar cobrança PagBank: " + status + " - " + resp);
         }
     }
 }

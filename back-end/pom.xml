@@ -72,10 +72,7 @@
             <version>2.0.2</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
+        <!-- spring-boot-starter-web já adicionado acima com versão -->
 
         <!-- Dependência do ZXing para gerar QR Code -->
         <dependency>

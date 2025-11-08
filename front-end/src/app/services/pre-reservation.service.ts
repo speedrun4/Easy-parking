@@ -15,6 +15,7 @@ export class PreReservationService {
   private paymentConfirmed = false;
 
   preReservaCancelled$ = new Subject<void>();
+  paymentCompleted$ = new Subject<void>();
 
   notifyPreReservaCancelled() {
     this.preReservaCancelled$.next();
@@ -61,6 +62,10 @@ export class PreReservationService {
     if (this.timerSubscription) {
       this.timerSubscription.unsubscribe();
     }
+    // Limpa pré-reserva armazenada e notifica quem dependa do contador
+    try { localStorage.removeItem('preReservaData'); } catch {}
+    this.preReservaChange.next(true);
+    this.paymentCompleted$.next();
   }
 
   // Limpa a pré-reserva após o tempo expirar

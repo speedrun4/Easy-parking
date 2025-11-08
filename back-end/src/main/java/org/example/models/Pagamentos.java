@@ -73,6 +73,24 @@ public class Pagamentos {
     @Column(name = "exit_qr_consumed_at")
     private java.time.LocalDateTime exitQrConsumedAt;
 
+    // --- PagBank integration fields ---
+    @Column(name = "pagbank_order_id")
+    private String pagbankOrderId;
+
+    @Column(name = "pagbank_charge_id")
+    private String pagbankChargeId;
+
+    @Column(name = "pagbank_status")
+    private String pagbankStatus; // WAITING, PAID, etc
+
+    @Lob
+    @Column(name = "pagbank_qr_base64", columnDefinition = "LONGTEXT")
+    private String pagbankQrBase64; // imagem do QR retornada pelo PagBank
+
+    @Lob
+    @Column(name = "pagbank_qr_payload", columnDefinition = "LONGTEXT")
+    private String pagbankQrPayload; // texto copia e cola
+
     // Novos campos para reserva
     @Column(name = "data_reserva_entrada")
     private LocalDate dataReservaEntrada;
@@ -215,5 +233,20 @@ public class Pagamentos {
 
     public java.time.LocalDateTime getExitQrConsumedAt() { return exitQrConsumedAt; }
     public void setExitQrConsumedAt(java.time.LocalDateTime exitQrConsumedAt) { this.exitQrConsumedAt = exitQrConsumedAt; }
+
+    public String getPagbankOrderId() { return pagbankOrderId; }
+    public void setPagbankOrderId(String pagbankOrderId) { this.pagbankOrderId = pagbankOrderId; }
+
+    public String getPagbankChargeId() { return pagbankChargeId; }
+    public void setPagbankChargeId(String pagbankChargeId) { this.pagbankChargeId = pagbankChargeId; }
+
+    public String getPagbankStatus() { return pagbankStatus; }
+    public void setPagbankStatus(String pagbankStatus) { this.pagbankStatus = pagbankStatus; }
+
+    public String getPagbankQrBase64() { return pagbankQrBase64; }
+    public void setPagbankQrBase64(String pagbankQrBase64) { this.pagbankQrBase64 = pagbankQrBase64; }
+
+    public String getPagbankQrPayload() { return pagbankQrPayload; }
+    public void setPagbankQrPayload(String pagbankQrPayload) { this.pagbankQrPayload = pagbankQrPayload; }
 }
 
