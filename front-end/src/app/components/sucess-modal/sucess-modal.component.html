@@ -1,7 +1,18 @@
-<h2 mat-dialog-title>Sucesso</h2>
+<h2 mat-dialog-title>{{ data.title || 'Sucesso' }}</h2>
 <mat-dialog-content>
-  <p>{{ data.message }}</p>
+  <ng-container *ngIf="data.message; else composed">
+    <p [innerHTML]="data.message"></p>
+  </ng-container>
+  <ng-template #composed>
+    <p>
+      {{ data.prefix }}
+      <a *ngIf="data.linkText" [routerLink]="data.linkTo" style="text-decoration: underline; font-weight: 600;">
+        {{ data.linkText }}
+      </a>
+      {{ data.suffix }}
+    </p>
+  </ng-template>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-button mat-dialog-close>Fechar</button>
+  <button mat-raised-button color="primary" (click)="fechar()">Fechar</button>
 </mat-dialog-actions>

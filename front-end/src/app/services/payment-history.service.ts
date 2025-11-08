@@ -38,4 +38,8 @@ salvarPagamento(dadosPagamento: any) {
   consultarStatusPix(pagamentoId: number) {
     return this.http.get<{ status: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/status`);
   }
+
+  simularPagamentoPix(pagamentoId: number) {
+    return this.http.post<{ status: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/simular-pago`, {});
+  }
 }

@@ -7,15 +7,14 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
   styleUrls: ['./sucess-modal.component.scss']
 })
 export class SucessoModalComponent {
-  dialogRef: any;
-  mostrarMensagemSucesso: boolean = false;
+  mostrarMensagemSucesso: boolean = true;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: { message: string }) {}
+  constructor(
+    public dialogRef: MatDialogRef<SucessoModalComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { title?: string; message?: string; prefix?: string; linkText?: string; linkTo?: string | any[]; suffix?: string }
+  ) {}
 
-  ngOnInit(): void {
-    setTimeout(() => {
-      this.mostrarMensagemSucesso = false;
-    }, 3000);
+  fechar() {
+    this.dialogRef.close();
   }
-
 }

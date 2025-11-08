@@ -149,6 +149,23 @@ public class PagamentoController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    // --- SANDBOX: simula confirmação do PIX como PAID (não existe em produção)
+    @PostMapping("/{id}/pagbank/simular-pago")
+    public ResponseEntity<?> simularPixPago(@PathVariable Long id) {
+        return pagamentosRepository.findById(id).map(p -> {
+            if (!pagbankSandbox) {
+                return ResponseEntity.status(403).body("Simulação permitida apenas em sandbox");
+            }
+            // Marca como pago localmente para testes
+            p.setPagbankStatus("PAID");
+            p.setStatus("pago");
+            pagamentosRepository.save(p);
+            java.util.Map<String, Object> resp = new java.util.HashMap<String, Object>();
+            resp.put("status", p.getPagbankStatus());
+            return ResponseEntity.ok(resp);
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping
     public List<Pagamentos> getPagamentos(@RequestParam(required = false) Long usuarioId) {
         if (usuarioId != null) {

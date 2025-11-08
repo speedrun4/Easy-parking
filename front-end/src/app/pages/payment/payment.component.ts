@@ -232,10 +232,16 @@ export class PaymentComponent implements OnInit, OnDestroy {
                     });
                   }
                   const successRef = this.dialog.open(SucessoModalComponent, {
-                    data: { title: 'Pagamento Confirmado', message: 'PIX aprovado!' }
+                    data: {
+                      title: 'Pagamento Confirmado',
+                      prefix: 'Pagamento efetuado com sucesso, você pode ver seu QR na guia ',
+                      linkText: 'Meus QrCodes',
+                      linkTo: ['/qr-code'],
+                      suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
+                    }
                   });
                   successRef.afterClosed().subscribe(() => {
-                    this.router.navigate(['/qr-code'], { state: { paymentId: savedPaymentId } });
+                    this.navigateToRoutePage();
                   });
                   dialogRef.close();
                 } else if (this.pollingCount >= this.maxPollingCount) {
@@ -275,8 +281,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
               console.log('Reserva criada e vinculada ao estacionamento!');
             });
           }
+          // Armazena o id do pagamento para uso posterior (se necessário)
           if (savedPaymentId) {
-            this.router.navigate(['/qr-code'], { state: { paymentId: savedPaymentId } });
+            this.currentPaymentId = savedPaymentId;
           }
         }
       },
@@ -324,19 +331,20 @@ export class PaymentComponent implements OnInit, OnDestroy {
     if (this.selectedPaymentMethod !== 'Pix') {
       setTimeout(() => {
         this.loading = false;
-        const dialogRef = this.dialog.open(SucessoModalComponent, {
-          data: {
-            title: 'Pagamento Confirmado',
-            message: `Pagamento realizado com sucesso via ${this.selectedPaymentMethod}.`
-          }
-        });
+          const dialogRef = this.dialog.open(SucessoModalComponent, {
+            data: {
+              title: 'Pagamento Confirmado',
+              prefix: `Pagamento realizado com sucesso via ${this.selectedPaymentMethod}. Você pode ver seu QR na guia `,
+              linkText: 'Meus QrCodes',
+              linkTo: ['/qr-code'],
+              suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
+            }
+          });
         // marca pagamento concluído para interromper contador de pré-reserva
         this.preReservaService.confirmPayment();
         this.preReservaService.notifyPreReservaCancelled();
         dialogRef.afterClosed().subscribe(() => {
-          if (!(window.history.state && window.history.state.paymentId)) {
-            this.router.navigate(['/qr-code']);
-          }
+          this.navigateToRoutePage();
         });
       }, 2000);
     }
@@ -354,14 +362,19 @@ export class PaymentComponent implements OnInit, OnDestroy {
     if (!this.cardName || this.cardName.trim().length < 3) {
       errors.push('Nome no cartão muito curto.');
     }
-    // Validade MM/AA
-    const expiry = (this.cardExpiry || '').trim();
-    if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-      errors.push('Validade deve estar no formato MM/AA.');
+    // Validade MM/AAAA (normaliza para evitar falsos negativos)
+    const expiryRaw = (this.cardExpiry || '').trim();
+    let expiry = expiryRaw.replace(/[^\d/]/g, '');
+    // Permite "MMAAAA" vindo de algum teclado e normaliza para "MM/AAAA"
+    if (/^\d{6}$/.test(expiry)) {
+      expiry = `${expiry.slice(0, 2)}/${expiry.slice(2)}`;
+    }
+    if (!/^\d{2}\/\d{4}$/.test(expiry)) {
+      errors.push('Validade deve estar no formato MM/AAAA.');
     } else {
       const [mm, yy] = expiry.split('/');
       const month = parseInt(mm, 10);
-      const year = 2000 + parseInt(yy, 10);
+      const year = parseInt(yy, 10);
       if (month < 1 || month > 12) {
         errors.push('Mês de validade inválido.');
       }
@@ -558,6 +571,40 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.isProcessingPayment = false;
         this.loading = false;
         this.errorMsg = 'Falha ao reiniciar PIX. Tente novamente.';
+      }
+    });
+  }
+
+  simularPix() {
+    const id = this.currentPaymentId;
+    if (!id) { return; }
+    this.paymentHistoryService.simularPagamentoPix(id).subscribe({
+      next: (r) => {
+        this.pixStatus = 'PAID';
+        // dispara os mesmos efeitos do sucesso real: parar contador, criar reserva e navegar
+        this.preReservaService.confirmPayment();
+        const selected = this.selectedParkings[0];
+        const currentUser = this.authService.getCurrentUser();
+        const estacionamentoId = selected?.id || selected?.estacionamentoId || selected?.idEstacionamento || selected?.parkingId;
+        if (estacionamentoId && currentUser?.id) {
+          const reserva = { cliente: { id: currentUser.id }, estacionamento: { id: estacionamentoId }, horario: new Date() };
+          this.reservaService.criarReserva(reserva).subscribe(() => {});
+        }
+        const dialogRef = this.dialog.open(SucessoModalComponent, { 
+          data: { 
+            title: 'Pagamento Confirmado',
+            prefix: 'Pagamento efetuado com sucesso (simulado). Você pode ver seu QR na guia ',
+            linkText: 'Meus QrCodes',
+            linkTo: ['/qr-code'],
+            suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
+          } 
+        });
+        dialogRef.afterClosed().subscribe(() => {
+          this.navigateToRoutePage();
+        });
+      },
+      error: () => {
+        this.errorMsg = 'Falha ao simular pagamento. Disponível somente no sandbox.';
       }
     });
   }
