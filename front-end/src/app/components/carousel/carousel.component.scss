@@ -1,15 +1,76 @@
 /* filepath: c:\Users\moura\Easy-parking\front-end\src\app\components\carousel\carousel.component.scss */
 
 .carousel {
-  width: 100%; /* Garante que o carousel ocupe toda a largura disponível */
-  height: 300px; /* Define uma altura fixa para o carousel */
-  overflow: hidden; /* Evita que imagens maiores "escapem" do container */
-  display: flex; /* Garante que os slides sejam alinhados corretamente */
-  align-items: center; /* Centraliza verticalmente os itens */
+  width: 100%;
+  height: 420px; /* altura maior conforme solicitado */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
 }
 
-.carousel img {
-  width: 100%; /* Ajusta a largura para ocupar todo o espaço do container */
-  height: 100%; /* Faz com que a imagem preencha a altura do container */
-  object-fit: cover; /* Garante que a imagem seja cortada proporcionalmente para preencher o espaço */
+.slide-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* imagem ao lado do texto */
+  gap: 8px; /* aproxima texto da imagem */
+  width: 100%;
+  height: 100%;
+}
+
+.slide-image {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.slide-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* padrão para fotos */
+  object-position: center;
+  display: block;
+}
+
+/* Para SVGs promocionais, preencher totalmente o card do slide */
+.slide-image img[src$=".svg"] {
+  object-fit: cover; /* ocupa 100% do card, sem bordas visíveis */
+  background: transparent;
+}
+
+.slide-text {
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 12px;
+  padding: 12px 14px; /* menos padding para parecer mais próximo */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* evita centralização vertical que dá sensação de afastado */
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.slide-text h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.slide-text p {
+  margin: 0;
+  font-size: 14px;
+  color: #334155;
+}
+
+@media (max-width: 900px) {
+  .carousel { height: 360px; }
+  /* empilha, mas com alturas automáticas para não gerar blocos altos com texto centralizado */
+  .slide-content { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+}
+
+@media (max-width: 600px) {
+  .carousel { height: 175px; }
+  .slide-text h3 { font-size: 18px; }
+  .slide-text p { font-size: 13px; }
 }

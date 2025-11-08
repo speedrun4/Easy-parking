@@ -1,16 +1,49 @@
 <div class="carousel">
-  <carousel>
+  <carousel [interval]="5000" [noPause]="false" [showIndicators]="true">
     <slide>
-      <img src="assets/images/promo1.jpeg" alt="Promoção 1" width="100%" height="300">
-      <div class="carousel-caption"></div>
+      <div class="slide-content">
+        <div class="slide-image">
+          <img src="assets/images/promos/promo-plano-mensal.svg" alt="Plano mensal Easy-Park com 20% de desconto" loading="lazy">
+        </div>
+        <div class="slide-text">
+          <h3>Plano Mensal 20% OFF</h3>
+          <p>Use o cupom EASY20 e economize.</p>
+        </div>
+      </div>
     </slide>
     <slide>
-      <img src="assets/images/promo2.jpeg" alt="Promoção 2" width="100%" height="300">
-      <div class="carousel-caption"></div>
+      <div class="slide-content">
+        <div class="slide-image">
+          <img src="assets/images/promos/promo-primeira-hora.svg" alt="Primeira hora grátis em estacionamentos parceiros" loading="lazy">
+        </div>
+        <div class="slide-text">
+          <h3>Primeira Hora Grátis</h3>
+          <p>Válido em parceiros participantes.</p>
+        </div>
+      </div>
     </slide>
     <slide>
-      <img src="assets/images/promo3.jpeg" alt="Promoção 3" width="100%" height="300">
-      <div class="carousel-caption"></div>
+      <div class="slide-content">
+        <div class="slide-image">
+          <img src="assets/images/promos/promo-fim-de-semana.svg" alt="Tarifa única de fim de semana R$ 9,90" loading="lazy">
+        </div>
+        <div class="slide-text">
+          <h3>Fim de Semana</h3>
+          <p>Tarifa única R$ 9,90.</p>
+        </div>
+      </div>
+    </slide>
+    <slide>
+      <div class="slide-content">
+        <div class="slide-image">
+          <img src="assets/images/promos/promo-reserva-antecipada.svg" alt="Economize reservando sua vaga com antecedência" loading="lazy">
+        </div>
+        <div class="slide-text">
+          <h3>Reserva Antecipada</h3>
+          <p>Economize até 15% reservando antes.</p>
+        </div>
+      </div>
     </slide>
   </carousel>
+  
 </div>

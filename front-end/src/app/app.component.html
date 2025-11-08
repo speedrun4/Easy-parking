@@ -1,2 +1,4 @@
 <app-header *ngIf="!isSplashScreenActive"></app-header>
-<router-outlet></router-outlet>
+<div class="app-body" [class.with-splash]="isSplashScreenActive">
+	<router-outlet></router-outlet>
+</div>

@@ -1,0 +1,9 @@
+/* Offset global para o header fixo (70px) */
+.app-body {
+	padding-top: 80px; /* ligeiramente maior para sombras/menus */
+}
+
+/* Quando a splash estiver ativa, o header não aparece; remova o offset */
+.with-splash {
+	padding-top: 0;
+}
