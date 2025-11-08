@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ReservaService {
-  private apiUrl = 'http://localhost:8080/api/reservas';
+  private baseUrl = `${environment.apiBaseUrl}/api`;
+  private apiUrl = `${this.baseUrl}/reservas`;
 
   constructor(private http: HttpClient) {}
 
@@ -13,10 +15,10 @@ export class ReservaService {
   }
 
   getReservasPorEstacionamentoNome(estacionamentoNome: string): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:8080/api/pagamentos/estacionamento/${encodeURIComponent(estacionamentoNome)}`);
+    return this.http.get<any[]>(`${this.baseUrl}/pagamentos/estacionamento/${encodeURIComponent(estacionamentoNome)}`);
   }
 
   getReservasPorCliente(clienteId: number): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:8080/api/pagamentos/cliente/${clienteId}`);
+    return this.http.get<any[]>(`${this.baseUrl}/pagamentos/cliente/${clienteId}`);
   }
 }

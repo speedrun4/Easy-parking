@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -17,8 +18,7 @@ export class EstacionamentoService {
   estacionamentos$ = this.estacionamentosSubject.asObservable();
  private geoapifyApiKey = 'ace82b241e56461bba40b0cfac707318';
 
-
-  private apiUrl = 'http://localhost:8080/api/clientes'; // URL da API
+  private apiUrl = `${environment.apiBaseUrl}/api/clientes`; // URL da API
 
   constructor(private http: HttpClient) { }
 

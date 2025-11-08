@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, Observable, throwError } from "rxjs";
 import { catchError, map } from "rxjs/operators";
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class AuthService {
       catchError(this.handleError)
     );
   }
-  private apiUrl = 'http://localhost:8080/api/usuarios'; // URL da API do backend
+  private apiUrl = `${environment.apiBaseUrl}/api/usuarios`; // URL da API do backend
   private currentUserSubject: BehaviorSubject<any | null>;
   public currentUser: Observable<any | null>;
 

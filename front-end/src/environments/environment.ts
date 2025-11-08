@@ -3,7 +3,10 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  // Backend base URL for development (web). Use http://localhost:8080 when running locally in browser.
+  // For Android emulator use http://10.0.2.2:8080. For a physical device, replace with your PC's LAN IP, e.g., http://192.168.0.10:8080
+  apiBaseUrl: 'http://localhost:8080'
 };
 
 /*
