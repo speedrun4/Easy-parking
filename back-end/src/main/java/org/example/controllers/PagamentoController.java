@@ -246,18 +246,62 @@ public class PagamentoController {
             Long paymentId = Long.parseLong(paymentIdStr);
 
             return pagamentosRepository.findById(paymentId).map(p -> {
-                if ("entry".equalsIgnoreCase(type) && "ativo".equalsIgnoreCase(p.getEntryQrStatus())) {
+                // Regra: deve estar pago
+                if (p.getStatus() == null || !p.getStatus().equalsIgnoreCase("pago")) {
+                    return ResponseEntity.status(409).body("Pagamento não está pago");
+                }
+
+                // Construir janela de reserva caso exista
+                java.time.LocalDate dataEntrada = p.getDataReservaEntrada();
+                java.time.LocalTime horaInicio = p.getHorarioReservaEntrada();
+                java.time.LocalTime horaFim = p.getHorarioReservaSaida();
+                java.time.LocalDateTime agora = java.time.LocalDateTime.now();
+                java.time.LocalDateTime inicioReserva = (dataEntrada != null && horaInicio != null)
+                        ? java.time.LocalDateTime.of(dataEntrada, horaInicio)
+                        : null;
+                java.time.LocalDateTime fimReserva = (dataEntrada != null && horaFim != null)
+                        ? java.time.LocalDateTime.of(dataEntrada, horaFim)
+                        : null;
+
+                if ("entry".equalsIgnoreCase(type)) {
+                    // Legível: já pressuposto pelo decode; Status precisa estar ativo
+                    if (!"ativo".equalsIgnoreCase(p.getEntryQrStatus())) {
+                        return ResponseEntity.status(409).body("QR de entrada inválido ou já consumido/expirado");
+                    }
+                    // Dentro da data e horário agendado
+                    if (inicioReserva == null || fimReserva == null) {
+                        return ResponseEntity.status(409).body("Reserva sem data/horário configurado");
+                    }
+                    // Tolerância: permitir validação até 10 minutos ANTES do horário de início
+                    java.time.LocalDateTime inicioComTolerancia = inicioReserva.minusMinutes(10);
+                    if (agora.isBefore(inicioComTolerancia)) {
+                        return ResponseEntity.status(409).body("A reserva ainda não começou (tolerância 10min)");
+                    }
+                    if (agora.isAfter(fimReserva)) {
+                        return ResponseEntity.status(409).body("A reserva já expirou");
+                    }
+                    // Consumo
                     p.setEntryQrStatus("consumido");
-                    p.setEntryQrConsumedAt(java.time.LocalDateTime.now());
+                    p.setEntryQrConsumedAt(agora);
                     pagamentosRepository.save(p);
                     return ResponseEntity.ok(java.util.Collections.singletonMap("status", "ENTRY_CONSUMED"));
-                } else if ("exit".equalsIgnoreCase(type) && "ativo".equalsIgnoreCase(p.getExitQrStatus())) {
+                } else if ("exit".equalsIgnoreCase(type)) {
+                    if (!"ativo".equalsIgnoreCase(p.getExitQrStatus())) {
+                        return ResponseEntity.status(409).body("QR de saída inválido ou já consumido/expirado");
+                    }
+                    // Tolerância de saída: permitir validação até 10 minutos ANTES do horário de fim
+                    if (fimReserva != null) {
+                        java.time.LocalDateTime fimComTolerancia = fimReserva.minusMinutes(10);
+                        if (agora.isBefore(fimComTolerancia)) {
+                            return ResponseEntity.status(409).body("A saída só é permitida próximo ao fim da reserva (tolerância 10min)");
+                        }
+                    }
                     p.setExitQrStatus("consumido");
-                    p.setExitQrConsumedAt(java.time.LocalDateTime.now());
+                    p.setExitQrConsumedAt(agora);
                     pagamentosRepository.save(p);
                     return ResponseEntity.ok(java.util.Collections.singletonMap("status", "EXIT_CONSUMED"));
                 }
-                return ResponseEntity.status(409).body("QR Code inválido ou já consumido/expirado");
+                return ResponseEntity.status(409).body("Tipo de QR inválido");
             }).orElse(ResponseEntity.status(404).body("Pagamento não encontrado"));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body("Token inválido");

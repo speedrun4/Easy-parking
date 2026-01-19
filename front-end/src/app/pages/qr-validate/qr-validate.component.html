@@ -1,8 +1,20 @@
 <div class="validate-wrapper">
-  <h2>Validação de QR Code</h2>
+  <h2>Validar Entrada</h2>
 
   <div class="scanner-box">
-    <div #scanner id="scanner" class="scanner"></div>
+    <zxing-scanner
+      class="scanner"
+      [autostart]="true"
+      [previewFitMode]="'contain'"
+      [formats]="formats"
+      [device]="selectedDevice"
+      [torch]="torchEnabled"
+      (scanSuccess)="onScanSuccess($event)"
+      (camerasFound)="onCamerasFound($event)"
+      (camerasNotFound)="onCamerasNotFound()"
+      (permissionResponse)="onPermission($event)"
+      (torchCompatible)="onTorchCompatible($event)">
+    </zxing-scanner>
   </div>
 
   <div class="status">
@@ -13,5 +25,22 @@
 
   <div class="controls">
     <button (click)="resume()" [disabled]="loading">Escanear novamente</button>
+    <div class="camera-select" *ngIf="availableDevices.length > 1">
+      <label for="camera">Câmera:</label>
+      <select id="camera" [ngModel]="selectedDevice?.deviceId" (ngModelChange)="onDeviceSelect($event)">
+        <option *ngFor="let dev of availableDevices; let i = index" [value]="dev.deviceId">
+          {{ dev.label || ('Câmera ' + (i+1)) }}
+        </option>
+      </select>
+    </div>
+    <button *ngIf="torchAvailable" (click)="toggleTorch()">{{ torchEnabled ? 'Desligar Flash' : 'Ligar Flash' }}</button>
+  </div>
+
+  <hr style="margin: 20px 0;">
+
+  <div class="manual-validate">
+    <p>Ou valide manualmente o token do QR:</p>
+    <input type="text" [(ngModel)]="tokenInput" placeholder="Cole o token aqui" style="width: 100%; padding: 8px;">
+    <button (click)="validateManual()" [disabled]="!tokenInput">Validar manualmente</button>
   </div>
 </div>

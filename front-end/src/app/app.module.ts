@@ -66,6 +66,7 @@ import { ReservasEstacionamentoComponent } from './pages/reservas/reservas-estac
 import { QrCodeComponent } from './pages/qr-code/qr-code.component';
 import { QrValidateComponent } from './pages/qr-validate/qr-validate.component';
 import { NgxMaskModule } from 'ngx-mask';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
 registerLocaleData(localePt);
 
 @NgModule({
@@ -141,6 +142,7 @@ registerLocaleData(localePt);
     HttpClientModule,
     NgxMaskModule.forRoot(),
     CommonModule
+    ,ZXingScannerModule
     
   ],
   entryComponents: [ErrorDialogComponent],

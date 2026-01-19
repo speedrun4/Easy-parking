@@ -44,6 +44,7 @@ const routes: Routes = [
   { path: 'reservas-estacionamento', component: ReservasEstacionamentoComponent },
   { path: 'qr-code', component: QrCodeComponent },
   { path: 'qr-validate', component: QrValidateComponent },
+  { path: 'validar-entrada', component: QrValidateComponent },
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   { path: '**', redirectTo: '' },
   { path: 'splash', component: SplashComponent }, // rota para página não encontrada

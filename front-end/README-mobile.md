@@ -74,3 +74,18 @@ No Xcode, defina as "Signing & Capabilities" e rode no simulador ou dispositivo.
 - Alterou algo no Angular? Rode `npm run build` e `npx cap sync` novamente.
 - Backend local precisa estar acessível pelo IP configurado em `apiBaseUrl`.
 - Se for publicar, troque `apiBaseUrl` para o domínio HTTPS do backend em produção.
+
+## Validação de Entrada via QR 📷
+
+- A opção de menu "Validar Entrada" abre a câmera e escaneia o QR do cliente.
+- Ao ler o QR, o app chama o endpoint `POST /api/pagamentos/qrcodes/consume-by-token?token=...`.
+- Regras de validação implementadas no backend:
+  - Pagamento deve estar com status `pago`.
+  - A leitura deve ocorrer dentro da janela agendada: entre `dataReservaEntrada + horarioReservaEntrada` e `dataReservaEntrada + horarioReservaSaida`.
+  - O QR deve estar ativo (não consumido/expirado).
+  - Mensagens de erro retornam motivos: "A reserva ainda não começou", "A reserva já expirou", "Pagamento não está pago", etc.
+
+Notas e próximos passos recomendados:
+- Autenticação: proteger o consumo de QR para apenas usuários do estacionamento (cliente/portaria) com login.
+- Vincular QR ao estacionamento correto e rejeitar validação em outro local.
+- Considerar tolerâncias de horário (ex.: 5–10 min de tolerância) e fuso horário do estacionamento.
