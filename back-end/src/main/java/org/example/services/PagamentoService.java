@@ -39,6 +39,9 @@ public class PagamentoService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private PagBankClient pagBankClient;
+
     public Pagamentos salvarPagamento(Pagamentos pagamento) {
         Pagamentos saved = repository.save(pagamento);
 
@@ -141,46 +144,19 @@ public class PagamentoService {
 
     // Cria cobrança PIX simples via PagBank (usando token de integração)
     private void criarCobrancaPagBank(Pagamentos p) throws Exception {
-    String baseUrl = pagbankSandbox ? "https://sandbox.api.pagseguro.com" : "https://api.pagseguro.com";
-    String chargesEndpoint = baseUrl + "/charges"; // endpoint simplificado (pode variar conforme API PagBank)
+        int cents = p.getValorPago() != null ? p.getValorPago().multiply(new java.math.BigDecimal(100)).intValue() : 100;
+        java.util.Map<String, Object> map = pagBankClient.createPixCharge("PAY-" + p.getId(), cents, "Easy-Park pagamento " + p.getId());
+        Object chargeId = map.get("id");
+        p.setPagbankChargeId(chargeId != null ? chargeId.toString() : null);
+        p.setPagbankStatus(String.valueOf(map.getOrDefault("status", "WAITING")));
 
-        // Corpo mínimo da requisição (ajuste conforme documentação oficial PagBank)
-        java.util.Map<String, Object> body = new java.util.HashMap<>();
-        body.put("reference_id", "PAY-" + p.getId());
-        java.util.Map<String, Object> amount = new java.util.HashMap<>();
-        amount.put("value", p.getValorPago() != null ? p.getValorPago().multiply(new java.math.BigDecimal(100)).intValue() : 100); // em centavos
-        amount.put("currency", "BRL");
-        body.put("amount", amount);
-        body.put("description", "Easy-Park pagamento " + p.getId());
-        body.put("payment_method", java.util.Collections.singletonMap("type", "PIX"));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(pagbankToken);
-        HttpEntity<java.util.Map<String,Object>> entity = new HttpEntity<>(body, headers);
-
-        ResponseEntity<String> response = restTemplate.exchange(chargesEndpoint, HttpMethod.POST, entity, String.class);
-        int status = response.getStatusCodeValue();
-        String resp = response.getBody();
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            // Parse resposta para extrair ids e payload PIX
-            java.util.Map<?,?> map = MAPPER.readValue(resp, java.util.Map.class);
-            Object chargeId = map.get("id");
-            p.setPagbankChargeId(chargeId != null ? chargeId.toString() : null);
-            p.setPagbankStatus("WAITING");
-
-            // Alguns retornos trazem um objeto "qr_code" com campos base64 e text
-            Object qr = map.get("qr_code");
-            if (qr instanceof java.util.Map) {
-                Object qrBase64 = ((java.util.Map<?,?>) qr).get("base64");
-                Object qrText = ((java.util.Map<?,?>) qr).get("text");
-                if (qrBase64 != null) p.setPagbankQrBase64(qrBase64.toString());
-                if (qrText != null) p.setPagbankQrPayload(qrText.toString());
-            }
-            repository.save(p);
-        } else {
-            System.err.println("Erro ao criar cobrança PagBank: " + status + " - " + resp);
+        Object qr = map.get("qr_code");
+        if (qr instanceof java.util.Map) {
+            Object qrBase64 = ((java.util.Map<?,?>) qr).get("base64");
+            Object qrText = ((java.util.Map<?,?>) qr).get("text");
+            if (qrBase64 != null) p.setPagbankQrBase64(qrBase64.toString());
+            if (qrText != null) p.setPagbankQrPayload(qrText.toString());
         }
+        repository.save(p);
     }
 }
