@@ -34,5 +34,10 @@ build/
 ### VS Code ###
 .vscode/
 
+### Local database ###
+data/*.mv.db
+data/*.trace.db
+data/*.lock.db
+
 ### Mac OS ###
 .DS_Store

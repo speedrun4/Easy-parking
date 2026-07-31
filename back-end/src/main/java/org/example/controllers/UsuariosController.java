@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 
@@ -29,6 +30,9 @@ public class UsuariosController {
     private UsuariosService usuariosService;
     @Autowired
     private EmailService emailService;
+
+    @Value("${app.mail.enabled:true}")
+    private boolean mailEnabled;
 
     // Mapa estático para armazenar dados temporários de cadastro
     private static final Map<String, Usuarios> cadastroTemp = new HashMap<>();
@@ -67,54 +71,100 @@ public class UsuariosController {
     }
 
     @PostMapping
-    public ResponseEntity<Usuarios> register(@RequestBody Usuarios usuario) {
+    public ResponseEntity<Map<String, Object>> register(@RequestBody Usuarios usuario) {
         // Validação e verificação do perfil
         if (usuario.getPerfil() == null ||
                 (!usuario.getPerfil().equals("usuario") && !usuario.getPerfil().equals("cliente"))) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                Collections.singletonMap("message", "Perfil inválido"));
         }
 
-        // Gerar código de confirmação
-        String codigo = String.valueOf(new Random().nextInt(899999) + 100000); // 6 dígitos
-        usuario.setCodigoConfirmacao(codigo);
+        // Verifica se o e-mail já está cadastrado
+        Optional<Usuarios> usuarioExistente = usuariosService.findByEmail(usuario.getEmail());
+        if (usuarioExistente.isPresent()) {
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("message", "Este e-mail já está cadastrado. Faça login ou utilize outro e-mail.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(resp);
+        }
 
-        // Enviar e-mail com código
-        String subject = "Confirmação de cadastro";
-        String body = "Seu código de confirmação é: " + codigo;
-        emailService.sendEmail(usuario.getEmail(), subject, body);
+        try {
+            // Remover máscara do CPF antes de salvar
+            if (usuario.getCpf() != null) {
+                usuario.setCpf(usuario.getCpf().replaceAll("\\D", ""));
+            }
+            
+            // Criptografar a senha antes de salvar
+            usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+            
+            // Salva o usuário diretamente no banco
+            usuariosService.saveUsuario(usuario);
 
-        // Armazena temporariamente os dados do usuário
-        cadastroTemp.put(usuario.getEmail(), usuario);
+            // Enviar e-mail de confirmação (opcional)
+            if (mailEnabled) {
+                String subject = "Cadastro realizado com sucesso";
+                String body = "Bem-vindo " + usuario.getNomeCompleto() + "! Seu cadastro foi realizado com sucesso.";
+                emailService.sendEmail(usuario.getEmail(), subject, body);
+            }
 
-        // Retorna o usuário (com o código) para o front-end, sem salvar
-        return ResponseEntity.ok(usuario);
+            // Retorna resposta de sucesso
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("message", "Cadastro realizado com sucesso!");
+            resp.put("id", usuario.getId());
+            resp.put("perfil", usuario.getPerfil());
+            return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("message", "Erro ao realizar cadastro: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resp);
+        }
     }
 
     @PostMapping("/confirm-email")
     public ResponseEntity<Map<String, String>> confirmEmail(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String codigo = request.get("codigo");
-        if (email == null || codigo == null) {
+        if (email == null) {
             Map<String, String> resp = new HashMap<>();
-            resp.put("message", "Preencha todos os campos para confirmar o cadastro.");
+            resp.put("message", "Email é obrigatório para confirmar o cadastro.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
+
         Usuarios usuarioTemp = cadastroTemp.get(email);
         if (usuarioTemp == null) {
             Map<String, String> resp = new HashMap<>();
             resp.put("message", "Cadastro não encontrado ou já expirado. Inicie o cadastro novamente.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
+
+        // Se email está desativado (local), confirma automaticamente sem validar código
+        if (!mailEnabled) {
+            return confirmAndSaveUser(usuarioTemp, email);
+        }
+
+        // Se email está ativado, valida o código
+        if (codigo == null) {
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "Preencha todos os campos para confirmar o cadastro.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
+
         if (usuarioTemp.getCodigoConfirmacao() == null) {
             Map<String, String> resp = new HashMap<>();
             resp.put("message", "Código de confirmação não foi gerado. Solicite novo cadastro.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
+
         if (!codigo.equals(usuarioTemp.getCodigoConfirmacao())) {
             Map<String, String> resp = new HashMap<>();
             resp.put("message", "O código informado está incorreto ou expirou. Verifique e tente novamente.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
+
+        return confirmAndSaveUser(usuarioTemp, email);
+    }
+
+    private ResponseEntity<Map<String, String>> confirmAndSaveUser(Usuarios usuarioTemp, String email) {
         // Remover máscara do CPF antes de salvar
         if (usuarioTemp.getCpf() != null) {
             usuarioTemp.setCpf(usuarioTemp.getCpf().replaceAll("\\D", ""));

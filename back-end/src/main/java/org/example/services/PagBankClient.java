@@ -108,6 +108,21 @@ public class PagBankClient {
 	}
 
 	public Map<String, Object> createPixCharge(String referenceId, int amountCents, String description) throws Exception {
+		return createPixCharge(referenceId, amountCents, description, null);
+	}
+
+	public Map<String, Object> createPixCharge(String referenceId, int amountCents, String description, String pixKey) throws Exception {
+		// Validar que está em ambiente LIVE
+		if (sandbox) {
+			throw new IllegalStateException("Cobrança PIX só pode ser criada em ambiente LIVE. Configure pagbank.sandbox=false");
+		}
+
+		// Validar token de acesso
+		String token = getAccessToken();
+		if (token == null || token.isEmpty()) {
+			throw new IllegalStateException("Token de acesso PagBank não está configurado");
+		}
+
 		String url = getBaseUrl() + "/charges";
 		Map<String, Object> body = new HashMap<>();
 		body.put("reference_id", referenceId);
@@ -123,12 +138,12 @@ public class PagBankClient {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
-		headers.setBearerAuth(getAccessToken());
+		headers.setBearerAuth(token);
 		ResponseEntity<String> resp = restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
 		if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
 			return MAPPER.readValue(resp.getBody(), Map.class);
 		}
-		throw new RuntimeException("Falha ao criar cobrança PIX: " + resp.getStatusCode());
+		throw new RuntimeException("Falha ao criar cobrança PIX: " + resp.getStatusCode() + " - " + resp.getBody());
 	}
 
 	public Map<String, Object> createCardCharge(String referenceId, int amountCents, String description,

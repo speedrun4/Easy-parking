@@ -144,6 +144,11 @@ public class PagamentoService {
 
     // Cria cobrança PIX simples via PagBank (usando token de integração)
     private void criarCobrancaPagBank(Pagamentos p) throws Exception {
+        // Validar que está em ambiente LIVE
+        if (pagbankSandbox) {
+            throw new IllegalStateException("Cobrança PIX só pode ser criada em ambiente LIVE. Configure pagbank.sandbox=false");
+        }
+
         int cents = p.getValorPago() != null ? p.getValorPago().multiply(new java.math.BigDecimal(100)).intValue() : 100;
         java.util.Map<String, Object> map = pagBankClient.createPixCharge("PAY-" + p.getId(), cents, "Easy-Park pagamento " + p.getId());
         Object chargeId = map.get("id");
