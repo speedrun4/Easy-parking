@@ -29,14 +29,18 @@ salvarPagamento(dadosPagamento: any) {
   }
 
   iniciarPix(pagamentoId: number, payload: { pixKey?: string } = {}) {
-    return this.http.post<{ pagbankChargeId?: string; status?: string; qrBase64?: string; qrPayload?: string }>(
+    return this.http.post<{ pagbankChargeId?: string; status?: string; qrBase64?: string; qrPayload?: string; pixKey?: string }>(
       `${this.apiUrl}/${pagamentoId}/pagbank/pix`,
       payload
     );
   }
 
   consultarStatusPix(pagamentoId: number) {
-    return this.http.get<{ status: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/status`);
+    return this.http.get<{ status: string; qrBase64?: string; qrPayload?: string; pixKey?: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/status`);
+  }
+
+  simularPixPago(pagamentoId: number) {
+    return this.http.post<{ status: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/simular-pago`, {});
   }
 
 }

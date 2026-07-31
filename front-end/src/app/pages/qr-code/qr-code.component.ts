@@ -15,10 +15,12 @@ export class QrCodeComponent implements OnInit {
   exitImage?: string;
   entryStatus?: string;
   exitStatus?: string;
+  parkingName?: string;
+  parkingAddress?: string;
+  reservationDate?: string;
+  reservationStartTime?: string;
   loading = true;
   error?: string;
-  lastUpdated?: Date;
-  autoRefresh = false;
   private autoTimer?: any;
   readonly refreshIntervalMs = 30000; // 30s
 
@@ -45,15 +47,11 @@ export class QrCodeComponent implements OnInit {
         this.loading = false;
         return;
       }
+      this.startAuto();
       this.qrService.getLastByUser(user.id).subscribe({
         next: (res) => {
           this.paymentId = (res as any)?.paymentId;
-          const entry = (res as any).entry || null;
-          const exit = (res as any).exit || null;
-          this.entryImage = entry?.imageBase64 ? `data:image/png;base64,${entry.imageBase64}` : undefined;
-          this.exitImage = exit?.imageBase64 ? `data:image/png;base64,${exit.imageBase64}` : undefined;
-          this.entryStatus = entry?.status;
-          this.exitStatus = exit?.status;
+          this.applyQrResponse(res);
           this.loading = false;
         },
         error: () => {
@@ -65,17 +63,11 @@ export class QrCodeComponent implements OnInit {
   }
 
   private loadQrsByPayment(id: number) {
+    this.startAuto();
     this.qrService.getByPaymentId(id).subscribe({
-      next: (res: any) => {
-        const entry = res.entry || null;
-        const exit = res.exit || null;
-        this.entryImage = entry?.imageBase64 ? `data:image/png;base64,${entry.imageBase64}` : undefined;
-        this.exitImage = exit?.imageBase64 ? `data:image/png;base64,${exit.imageBase64}` : undefined;
-        this.entryStatus = entry?.status;
-        this.exitStatus = exit?.status;
+      next: (res: QrCodesResponse) => {
+        this.applyQrResponse(res);
         this.loading = false;
-        this.lastUpdated = new Date();
-        this.applyVisibilityRules();
       },
       error: (err) => {
         // Se 404 (pagamento não encontrado), faz fallback para último pagamento do usuário
@@ -123,30 +115,14 @@ export class QrCodeComponent implements OnInit {
       this.qrService.getLastByUser(user.id).subscribe({
         next: (res) => {
           this.paymentId = (res as any)?.paymentId;
-          const entry = (res as any).entry || null;
-          const exit = (res as any).exit || null;
-          this.entryImage = entry?.imageBase64 ? `data:image/png;base64,${entry.imageBase64}` : undefined;
-          this.exitImage = exit?.imageBase64 ? `data:image/png;base64,${exit.imageBase64}` : undefined;
-          this.entryStatus = entry?.status;
-          this.exitStatus = exit?.status;
+          this.applyQrResponse(res);
           this.loading = false;
-          this.lastUpdated = new Date();
-          this.applyVisibilityRules();
         },
         error: () => {
           this.error = 'Nenhum QR Code disponível para seu usuário.';
           this.loading = false;
         }
       });
-    }
-  }
-
-  toggleAutoRefresh() {
-    this.autoRefresh = !this.autoRefresh;
-    if (this.autoRefresh) {
-      this.startAuto();
-    } else {
-      this.stopAuto();
     }
   }
 
@@ -163,11 +139,29 @@ export class QrCodeComponent implements OnInit {
   }
 
   private applyVisibilityRules() {
+    if (["consumido", "expirado"].includes((this.entryStatus || '').toLowerCase())) {
+      this.entryImage = undefined;
+    }
+
     // Se o QR de saída foi consumido, ocultamos ambos os QRs
     if ((this.exitStatus || '').toLowerCase() === 'consumido') {
       this.entryImage = undefined;
       this.exitImage = undefined;
     }
+  }
+
+  private applyQrResponse(res: QrCodesResponse) {
+    const entry = res.entry || null;
+    const exit = res.exit || null;
+    this.entryImage = entry?.imageBase64 ? `data:image/png;base64,${entry.imageBase64}` : undefined;
+    this.exitImage = exit?.imageBase64 ? `data:image/png;base64,${exit.imageBase64}` : undefined;
+    this.entryStatus = entry?.status;
+    this.exitStatus = exit?.status;
+    this.parkingName = res.parkingName || res.parkingAddress || 'Estacionamento reservado';
+    this.parkingAddress = res.parkingAddress;
+    this.reservationDate = res.reservationDate;
+    this.reservationStartTime = res.reservationStartTime;
+    this.applyVisibilityRules();
   }
 
   ngOnDestroy(): void {

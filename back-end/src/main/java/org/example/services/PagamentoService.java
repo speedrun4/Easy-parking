@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +35,9 @@ public class PagamentoService {
     @Value("${pagbank.sandbox:true}")
     private boolean pagbankSandbox;
 
+    @Value("${pix.key:}")
+    private String pixDefaultKey;
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Autowired
@@ -52,6 +56,7 @@ public class PagamentoService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            saved = ensurePixDisplayData(saved, null);
         }
         // Gera QR de entrada se ainda não existir
         if (saved.getEntryQrToken() == null) {
@@ -69,6 +74,117 @@ public class PagamentoService {
             }
         }
         return saved;
+    }
+
+    public Pagamentos ensurePixDisplayData(Pagamentos pagamento, String pixKeyOverride) {
+        if (pagamento == null) {
+            return null;
+        }
+        if (!"PIX".equalsIgnoreCase(pagamento.getFormaPagamento())) {
+            return pagamento;
+        }
+        String existingPayload = pagamento.getPagbankQrPayload();
+        boolean hasValidPayload = existingPayload != null
+                && !existingPayload.isEmpty()
+                && existingPayload.startsWith("000201");
+        if (pagamento.getPagbankQrBase64() != null && !pagamento.getPagbankQrBase64().isEmpty() && hasValidPayload) {
+            return pagamento;
+        }
+
+        String pixKey = (pixKeyOverride != null && !pixKeyOverride.trim().isEmpty())
+                ? pixKeyOverride.trim()
+                : (pixDefaultKey != null ? pixDefaultKey.trim() : "");
+        if (pixKey.isEmpty()) {
+            return pagamento;
+        }
+
+        try {
+            String pixPayload = buildPixPayload(pagamento, pixKey);
+            pagamento.setPagbankQrPayload(pixPayload);
+            pagamento.setPagbankQrBase64(generateQrBase64(pixPayload));
+            if (pagamento.getPagbankStatus() == null || pagamento.getPagbankStatus().isEmpty()) {
+                pagamento.setPagbankStatus("WAITING");
+            }
+            return repository.save(pagamento);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return pagamento;
+        }
+    }
+
+    private String buildPixPayload(Pagamentos pagamento, String pixKey) {
+        String merchantName = normalizePixText("Easy Parking", 25);
+        String merchantCity = normalizePixText("Recife", 15);
+        String txId = normalizeTxId(pagamento != null ? pagamento.getId() : null);
+        String amount = formatPixAmount(pagamento != null ? pagamento.getValorPago() : null);
+
+        String merchantAccountInfo = tlv("00", "BR.GOV.BCB.PIX") + tlv("01", pixKey);
+        String additionalDataField = tlv("05", txId);
+
+        String payloadWithoutCrc = ""
+                + tlv("00", "01")
+                + tlv("01", "12")
+                + tlv("26", merchantAccountInfo)
+                + tlv("52", "0000")
+                + tlv("53", "986")
+                + tlv("54", amount)
+                + tlv("58", "BR")
+                + tlv("59", merchantName)
+                + tlv("60", merchantCity)
+                + tlv("62", additionalDataField)
+                + "6304";
+
+        return payloadWithoutCrc + crc16(payloadWithoutCrc);
+    }
+
+    private String normalizeTxId(Long paymentId) {
+        String base = paymentId != null ? "PAY" + paymentId : UUID.randomUUID().toString().replace("-", "");
+        base = base.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+        if (base.isEmpty()) {
+            base = "EASYPARK";
+        }
+        return base.length() > 25 ? base.substring(0, 25) : base;
+    }
+
+    private String normalizePixText(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String normalized = java.text.Normalizer.normalize(value, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .replaceAll("[^A-Za-z0-9 ]", "")
+                .trim()
+                .toUpperCase();
+        if (normalized.length() > maxLength) {
+            return normalized.substring(0, maxLength);
+        }
+        return normalized;
+    }
+
+    private String formatPixAmount(BigDecimal value) {
+        BigDecimal normalized = value != null ? value : BigDecimal.ONE;
+        return normalized.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString();
+    }
+
+    private String tlv(String id, String value) {
+        String safeValue = value != null ? value : "";
+        return id + String.format("%02d", safeValue.length()) + safeValue;
+    }
+
+    private String crc16(String payload) {
+        int crc = 0xFFFF;
+        for (byte currentByte : payload.getBytes(StandardCharsets.UTF_8)) {
+            crc ^= (currentByte & 0xFF) << 8;
+            for (int bit = 0; bit < 8; bit++) {
+                if ((crc & 0x8000) != 0) {
+                    crc = (crc << 1) ^ 0x1021;
+                } else {
+                    crc <<= 1;
+                }
+                crc &= 0xFFFF;
+            }
+        }
+        return String.format("%04X", crc);
     }
     public List<Pagamentos> listarTodos() {
         return repository.findAll();
@@ -101,9 +217,55 @@ public class PagamentoService {
         return java.util.Base64.getEncoder().encodeToString(bytes);
     }
 
+    public Pagamentos reconcileEntryQrState(Pagamentos p) {
+        if (p == null) return null;
+
+        String status = p.getEntryQrStatus();
+        if (status != null && status.equalsIgnoreCase("consumido")) {
+            return hideEntryQr(p);
+        }
+
+        java.time.LocalDateTime startDateTime = getEntryStartDateTime(p);
+        if (startDateTime != null && java.time.LocalDateTime.now().isAfter(startDateTime.plusMinutes(5))) {
+            p.setEntryQrStatus("expirado");
+            return hideEntryQr(p);
+        }
+
+        return p;
+    }
+
+    private java.time.LocalDateTime getEntryStartDateTime(Pagamentos p) {
+        if (p == null || p.getDataReservaEntrada() == null || p.getHorarioReservaEntrada() == null) {
+            return null;
+        }
+        return java.time.LocalDateTime.of(p.getDataReservaEntrada(), p.getHorarioReservaEntrada());
+    }
+
+    private Pagamentos hideEntryQr(Pagamentos p) {
+        boolean changed = false;
+        if (p.getEntryQrToken() != null) {
+            p.setEntryQrToken(null);
+            changed = true;
+        }
+        if (p.getEntryQrImageBase64() != null) {
+            p.setEntryQrImageBase64(null);
+            changed = true;
+        }
+        return changed ? repository.save(p) : p;
+    }
+
     // Gera o QR de entrada se ainda não existir (uso oportunista no endpoint de consulta)
     public Pagamentos ensureEntryQr(Pagamentos p) {
         if (p == null) return null;
+        p = reconcileEntryQrState(p);
+        if (p.getEntryQrStatus() != null && (p.getEntryQrStatus().equalsIgnoreCase("consumido") || p.getEntryQrStatus().equalsIgnoreCase("expirado"))) {
+            return p;
+        }
+        java.time.LocalDateTime startDateTime = getEntryStartDateTime(p);
+        if (startDateTime != null && java.time.LocalDateTime.now().isAfter(startDateTime.plusMinutes(5))) {
+            p.setEntryQrStatus("expirado");
+            return hideEntryQr(p);
+        }
         if (p.getEntryQrToken() != null) return p;
         try {
             String token = buildToken(p, "entry");

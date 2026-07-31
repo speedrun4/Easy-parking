@@ -29,12 +29,14 @@ export class PaymentComponent implements OnInit, OnDestroy {
   qrCodeImage: string = '';
   pixQrBase64: string = '';
   pixQrPayload: string = '';
+  pixDisplayKey: string = environment.pixKey;
   pixStatus: string = '';
   pixChargeId: string = '';
   isProcessingPayment: boolean = false;
   cardBrand: string = '';
   loading: boolean = false;
   private pollingSub?: Subscription;
+  private pixAutoConfirmTimer?: ReturnType<typeof setTimeout>;
   private pollingCount = 0;
   private maxPollingCount = 100; // ~5 min com intervalo 3s
   private pixCompletionTriggered = false;
@@ -117,17 +119,150 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.showBoletoForm = this.selectedPaymentMethod === 'Boleto';
 
     if (this.selectedPaymentMethod === 'Pix') {
-      // Limpa visuais antigos; será preenchido após criar cobrança no backend
-      this.qrCodeData = '';
-      this.qrCodeImage = '';
-      this.pixQrBase64 = '';
-      this.pixQrPayload = '';
+      // Para PIX, inicia automaticamente o fluxo de cobrança e exibição do QR.
+      this.startPixFlow();
     } else {
+      if (this.pollingSub) {
+        this.pollingSub.unsubscribe();
+      }
+      this.clearPixAutoConfirmTimer();
       this.qrCodeImage = '';
+      this.isProcessingPayment = false;
+      this.loading = false;
     }
   }
 
+  private startPixFlow() {
+    if (this.isProcessingPayment) {
+      return;
+    }
+    if (this.currentPaymentId && (this.pixQrBase64 || this.pixQrPayload)) {
+      return;
+    }
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+    }
+    this.clearPixAutoConfirmTimer();
+
+    this.errorMsg = '';
+    this.loading = true;
+    this.isProcessingPayment = true;
+    this.pixCompletionTriggered = false;
+    this.qrCodeData = '';
+    this.qrCodeImage = '';
+    this.pixQrBase64 = '';
+    this.pixQrPayload = '';
+    this.pixStatus = 'INICIANDO';
+
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser?.id) {
+      this.loading = false;
+      this.isProcessingPayment = false;
+      this.errorMsg = 'Usuário não autenticado. Faça login para realizar o pagamento.';
+      return;
+    }
+
+    this.selectedParkings = (this.selectedParkings || []).map(p => ({
+      ...p,
+      horaSaida: p.horaSaida || p.selectedExitTime || p.selectedHoraSaida || null
+    }));
+    const selected = this.selectedParkings[0];
+    if (!selected) {
+      this.loading = false;
+      this.isProcessingPayment = false;
+      this.errorMsg = 'Nenhum estacionamento selecionado para pagamento.';
+      return;
+    }
+
+    const formatDateISO = (dateStr: string) => {
+      if (!dateStr) return null;
+      if (dateStr.includes('-')) return dateStr;
+      const [dia, mes, ano] = dateStr.split('/');
+      return `${ano}-${mes}-${dia}`;
+    };
+    const padTime = (t: string) => t && t.length === 5 ? t + ':00' : t;
+
+    const parkingName = selected.title || selected.companyName || selected.nome || selected.name || 'Estacionamento reservado';
+    const parkingAddress = selected.address || selected.endereco || selected.street || '';
+
+    const pagamento: any = {
+      nome: this.cardName || this.payerName || 'Usuário Pix',
+      formaPagamento: 'PIX',
+      valorPago: this.totalValue,
+      estacionamento: parkingName,
+      latitude: selected.latitude ?? selected.lat,
+      longitude: selected.longitude ?? selected.lon,
+      endereco: parkingAddress,
+      usuario: { id: currentUser.id },
+      dataReservaEntrada: formatDateISO(selected.selectedDate || selected.data || null),
+      horarioReservaEntrada: selected.selectedTime || selected.horaEntrada || selected.horarioEntrada || null,
+      horarioReservaSaida: padTime(selected.horaSaida || null)
+    };
+
+    this.paymentHistoryService.salvarPagamento(pagamento).subscribe({
+      next: (res) => {
+        const savedPaymentId = (res as any)?.id;
+        this.currentPaymentId = savedPaymentId || null;
+        if (!savedPaymentId) {
+          this.loading = false;
+          this.isProcessingPayment = false;
+          this.errorMsg = 'Falha ao iniciar PIX. Tente novamente.';
+          return;
+        }
+
+        this.paymentHistoryService.iniciarPix(savedPaymentId, { pixKey: this.pixKey }).subscribe({
+          next: r => {
+            this.pixChargeId = r.pagbankChargeId || '';
+            this.pixStatus = r.status || 'WAITING';
+            this.pixDisplayKey = r.pixKey || this.pixKey;
+            if (r.qrBase64) {
+              this.pixQrBase64 = `data:image/png;base64,${r.qrBase64}`;
+            }
+            if (r.qrPayload) {
+              this.pixQrPayload = r.qrPayload;
+            }
+
+            this.loading = false;
+            this.isProcessingPayment = false;
+            this.schedulePixAutoConfirm(savedPaymentId);
+
+            this.pollingCount = 0;
+            this.pollingSub = interval(3000).pipe(
+              switchMap(() => this.paymentHistoryService.consultarStatusPix(savedPaymentId))
+            ).subscribe((statusResp: { status: string }) => {
+              this.pixStatus = statusResp.status;
+              this.pollingCount++;
+              if (statusResp.status && statusResp.status.toUpperCase() === 'PAID') {
+                this.handlePixPaidSuccess();
+              } else if (this.pollingCount >= this.maxPollingCount) {
+                if (this.pollingSub) { this.pollingSub.unsubscribe(); }
+                this.isProcessingPayment = false;
+                this.loading = false;
+                this.errorMsg = 'Tempo esgotado para confirmação do PIX. Você pode tentar novamente.';
+              }
+            });
+          },
+          error: err => {
+            this.loading = false;
+            this.isProcessingPayment = false;
+            this.errorMsg = 'Não foi possível iniciar o PIX. Tente novamente.';
+            console.error('Falha ao iniciar PIX:', err);
+          }
+        });
+      },
+      error: (error) => {
+        this.loading = false;
+        this.isProcessingPayment = false;
+        this.errorMsg = 'Erro ao preparar o pagamento PIX.';
+        console.error('Erro ao salvar pagamento PIX:', error);
+      }
+    });
+  }
+
   confirmPayment() {
+  if (this.selectedPaymentMethod === 'Pix') {
+    return;
+  }
   // Ao clicar em confirmar, parar e ocultar imediatamente o contador do header
   this.preReservaService.notifyPreReservaCancelled();
   console.log('selectedParkings no pagamento:', this.selectedParkings);
@@ -138,6 +273,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }));
   const selected = this.selectedParkings[0];
   console.log('Valor de horário de saída enviado:', selected.horaSaida);
+    const parkingName = selected.title || selected.companyName || selected.nome || selected.name || 'Estacionamento reservado';
+    const parkingAddress = selected.address || selected.endereco || selected.street || '';
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser || !currentUser.id) {
       this.dialog.open(SucessoModalComponent, {
@@ -162,10 +299,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
       nome: this.cardName || this.payerName || 'Usuário Pix',
       formaPagamento: forma,
       valorPago: this.totalValue,
-      estacionamento: selected.title,
+      estacionamento: parkingName,
       latitude: selected.latitude ?? selected.lat,
       longitude: selected.longitude ?? selected.lon,
-      endereco: selected.address,
+      endereco: parkingAddress,
       usuario: { id: currentUser.id },
       // status será definido no backend (para PIX começa como aguardando_pagamento)
   dataReservaEntrada: formatDateISO(selected.selectedDate || selected.data || null),
@@ -389,6 +526,40 @@ export class PaymentComponent implements OnInit, OnDestroy {
     if (this.pollingSub) {
       this.pollingSub.unsubscribe();
     }
+    this.clearPixAutoConfirmTimer();
+  }
+
+  private clearPixAutoConfirmTimer() {
+    if (this.pixAutoConfirmTimer) {
+      clearTimeout(this.pixAutoConfirmTimer);
+      this.pixAutoConfirmTimer = undefined;
+    }
+  }
+
+  private schedulePixAutoConfirm(paymentId: number) {
+    this.clearPixAutoConfirmTimer();
+
+    if (environment.production || !paymentId || !!this.pixChargeId) {
+      return;
+    }
+
+    this.pixAutoConfirmTimer = setTimeout(() => {
+      if (this.pixCompletionTriggered || this.currentPaymentId !== paymentId || !!this.pixChargeId) {
+        return;
+      }
+
+      this.paymentHistoryService.simularPixPago(paymentId).subscribe({
+        next: (r) => {
+          this.pixStatus = r.status;
+          if (r.status && r.status.toUpperCase() === 'PAID') {
+            this.handlePixPaidSuccess();
+          }
+        },
+        error: () => {
+          this.errorMsg = 'Falha ao confirmar automaticamente o pagamento PIX.';
+        }
+      });
+    }, 5000);
   }
 
   navigateToRoutePage() {
@@ -500,9 +671,32 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   manualRefreshStatus(paymentId: number) {
     if (!paymentId) { return; }
+
+    if (!this.pixChargeId) {
+      this.paymentHistoryService.simularPixPago(paymentId).subscribe({
+        next: (r) => {
+          this.pixStatus = r.status;
+          if (r.status && r.status.toUpperCase() === 'PAID') {
+            this.handlePixPaidSuccess();
+          }
+        },
+        error: () => {
+          this.errorMsg = 'Falha ao confirmar o pagamento PIX. Tente novamente.';
+        }
+      });
+      return;
+    }
+
     this.paymentHistoryService.consultarStatusPix(paymentId).subscribe({
       next: (r) => {
         this.pixStatus = r.status;
+        this.pixDisplayKey = r.pixKey || this.pixDisplayKey || this.pixKey;
+        if (r.qrBase64) {
+          this.pixQrBase64 = `data:image/png;base64,${r.qrBase64}`;
+        }
+        if (r.qrPayload) {
+          this.pixQrPayload = r.qrPayload;
+        }
         if (r.status && r.status.toUpperCase() === 'PAID') {
           this.handlePixPaidSuccess();
         }
@@ -515,6 +709,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   reiniciarPix(paymentId: number) {
     if (this.pollingSub) { this.pollingSub.unsubscribe(); }
+    this.clearPixAutoConfirmTimer();
     this.errorMsg = '';
     this.pixQrBase64 = '';
     this.pixQrPayload = '';
@@ -524,8 +719,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
       next: r => {
         this.pixChargeId = r.pagbankChargeId || '';
         this.pixStatus = r.status || 'WAITING';
+        this.pixDisplayKey = r.pixKey || this.pixDisplayKey || this.pixKey;
         if (r.qrBase64) this.pixQrBase64 = `data:image/png;base64,${r.qrBase64}`;
         if (r.qrPayload) this.pixQrPayload = r.qrPayload;
+        this.schedulePixAutoConfirm(paymentId);
         // reinicia polling
         this.pollingCount = 0;
         this.pollingSub = interval(3000).pipe(
@@ -559,6 +756,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.pixStatus = 'PAID';
     this.isProcessingPayment = false;
     this.loading = false;
+    this.clearPixAutoConfirmTimer();
     if (this.pollingSub) {
       this.pollingSub.unsubscribe();
     }

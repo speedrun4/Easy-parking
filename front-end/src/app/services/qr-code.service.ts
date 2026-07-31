@@ -6,6 +6,10 @@ import { environment } from '../../environments/environment';
 export interface QrCodesResponse {
   entry: { token: string; imageBase64: string; status: string } | null;
   exit: { token: string; imageBase64: string; status: string } | null;
+  parkingName?: string;
+  parkingAddress?: string;
+  reservationDate?: string;
+  reservationStartTime?: string;
 }
 
 @Injectable({ providedIn: 'root' })

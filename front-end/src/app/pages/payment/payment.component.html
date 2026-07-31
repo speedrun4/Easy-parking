@@ -25,12 +25,13 @@
       <!-- PIX via PagBank -->
       <div *ngIf="selectedPaymentMethod === 'Pix'" class="pix-container">
         <h4>PIX (PagBank)</h4>
-        <p>Chave PIX de recebimento: <strong>81997078734</strong></p>
+        <p>Chave PIX de recebimento:</p>
+        <code class="pix-key-code">{{ pixDisplayKey || 'Chave PIX indisponível' }}</code>
         <ng-container *ngIf="pixQrBase64; else aguardandoQr">
           <img [src]="pixQrBase64" alt="QR PIX" class="qr-code" />
         </ng-container>
         <ng-template #aguardandoQr>
-          <p>Aguardando geração do QR...</p>
+          <p>{{ loading ? 'Gerando QR Code PIX...' : 'Aguardando geração do QR...' }}</p>
         </ng-template>
         <div *ngIf="pixQrPayload" class="pix-copy-area">
           <p>Copia e cola:</p>
@@ -115,7 +116,7 @@
 
       <div class="confirm-button-container" fxLayout="row" fxLayoutAlign="end center">
         <button mat-stroked-button color="warn" (click)="cancelPayment()">Cancelar</button>
-        <button mat-raised-button color="primary" class="confirm-payment-btn" [disabled]="loading" (click)="confirmPayment()">
+        <button *ngIf="selectedPaymentMethod !== 'Pix'" mat-raised-button color="primary" class="confirm-payment-btn" [disabled]="loading" (click)="confirmPayment()">
           {{ loading ? 'Processando...' : 'Confirmar Pagamento' }}
         </button>
       </div>

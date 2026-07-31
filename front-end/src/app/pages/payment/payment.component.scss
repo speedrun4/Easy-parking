@@ -157,6 +157,19 @@
   margin-top: 12px;
 }
 
+.pix-key-code {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 73, 50, 0.22);
+  background: #f4fbf7;
+  color: #124532;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
 .pix-copy-code {
   width: 100%;
   min-height: 82px;

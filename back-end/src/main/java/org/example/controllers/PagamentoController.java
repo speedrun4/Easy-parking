@@ -53,6 +53,30 @@ public class PagamentoController {
     private boolean pagbankSandbox;
     @org.springframework.beans.factory.annotation.Value("${pagbank.token}")
     private String pagbankToken;
+    @org.springframework.beans.factory.annotation.Value("${pix.key:}")
+    private String pixDefaultKey;
+
+    public static class PixStartRequest {
+        private String pixKey;
+
+        public String getPixKey() {
+            return pixKey;
+        }
+
+        public void setPixKey(String pixKey) {
+            this.pixKey = pixKey;
+        }
+    }
+
+    private String resolvePixKey(String requestedPixKey) {
+        if (requestedPixKey != null && !requestedPixKey.trim().isEmpty()) {
+            return requestedPixKey.trim();
+        }
+        if (pixDefaultKey != null && !pixDefaultKey.trim().isEmpty()) {
+            return pixDefaultKey.trim();
+        }
+        return null;
+    }
 
     @PostMapping
     public ResponseEntity<Pagamentos> criarPagamento(@RequestBody Pagamentos pagamento) {
@@ -87,9 +111,10 @@ public class PagamentoController {
 
     // Inicia/força criação de cobrança PIX do PagBank para um pagamento existente
     @PostMapping("/{id}/pagbank/pix")
-    public ResponseEntity<?> criarPixPagBank(@PathVariable Long id) {
+    public ResponseEntity<?> criarPixPagBank(@PathVariable Long id, @RequestBody(required = false) PixStartRequest request) {
         return pagamentosRepository.findById(id).map(p -> {
             try {
+                String resolvedPixKey = resolvePixKey(request != null ? request.getPixKey() : null);
                 if (p.getFormaPagamento() == null || !p.getFormaPagamento().equalsIgnoreCase("PIX")) {
                     p.setFormaPagamento("PIX");
                 }
@@ -97,11 +122,14 @@ public class PagamentoController {
                 pagamentosRepository.save(p);
                 service.salvarPagamento(p); // irá acionar criação de cobrança se necessário
                 Pagamentos atualizado = pagamentosRepository.findById(id).orElse(p);
+                atualizado = service.ensurePixDisplayData(atualizado, resolvedPixKey);
+                atualizado = pagamentosRepository.findById(id).orElse(atualizado);
                 java.util.Map<String, Object> result = new java.util.HashMap<>();
                 result.put("pagbankChargeId", atualizado.getPagbankChargeId());
                 result.put("status", atualizado.getPagbankStatus());
                 result.put("qrBase64", atualizado.getPagbankQrBase64());
                 result.put("qrPayload", atualizado.getPagbankQrPayload());
+                result.put("pixKey", resolvedPixKey);
                 return ResponseEntity.ok(result);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -115,7 +143,13 @@ public class PagamentoController {
     public ResponseEntity<?> consultarStatusPagBank(@PathVariable Long id) {
         return pagamentosRepository.findById(id).map(p -> {
             if (p.getPagbankChargeId() == null) {
-                return ResponseEntity.badRequest().body("Pagamento sem chargeId do PagBank");
+                p = service.ensurePixDisplayData(p, null);
+                java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
+                respBody.put("status", p.getPagbankStatus() != null ? p.getPagbankStatus() : "WAITING");
+                respBody.put("qrBase64", p.getPagbankQrBase64());
+                respBody.put("qrPayload", p.getPagbankQrPayload());
+                respBody.put("pixKey", resolvePixKey(null));
+                return ResponseEntity.ok(respBody);
             }
             try {
                 String baseUrl = pagbankSandbox ?
@@ -137,8 +171,12 @@ public class PagamentoController {
                         }
                         pagamentosRepository.save(p);
                     }
+                    p = service.ensurePixDisplayData(p, null);
                     java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
                     respBody.put("status", p.getPagbankStatus());
+                    respBody.put("qrBase64", p.getPagbankQrBase64());
+                    respBody.put("qrPayload", p.getPagbankQrPayload());
+                    respBody.put("pixKey", resolvePixKey(null));
                     return ResponseEntity.ok(respBody);
                 }
                 return ResponseEntity.status(resp.getStatusCode()).body("Falha ao consultar status");
@@ -191,6 +229,7 @@ public class PagamentoController {
             pagamentoService.ensureExitQrIfDue(p);
             // Recarrega estado atual
             Pagamentos atualizado = pagamentosRepository.findById(id).orElse(p);
+            atualizado = pagamentoService.reconcileEntryQrState(atualizado);
 
             java.util.Map<String, Object> entry = new java.util.HashMap<String, Object>();
             entry.put("token", atualizado.getEntryQrToken());
@@ -205,6 +244,10 @@ public class PagamentoController {
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>();
             result.put("entry", entry);
             result.put("exit", exit);
+            result.put("parkingName", atualizado.getEstacionamento());
+            result.put("parkingAddress", atualizado.getEndereco());
+            result.put("reservationDate", atualizado.getDataReservaEntrada());
+            result.put("reservationStartTime", atualizado.getHorarioReservaEntrada());
 
             return ResponseEntity.ok(result);
         })
@@ -277,12 +320,19 @@ public class PagamentoController {
                     if (agora.isBefore(inicioComTolerancia)) {
                         return ResponseEntity.status(409).body("A reserva ainda não começou (tolerância 10min)");
                     }
-                    if (agora.isAfter(fimReserva)) {
-                        return ResponseEntity.status(409).body("A reserva já expirou");
+                    java.time.LocalDateTime fimJanelaEntrada = inicioReserva.plusMinutes(5);
+                    if (agora.isAfter(fimJanelaEntrada)) {
+                        p.setEntryQrStatus("expirado");
+                        p.setEntryQrToken(null);
+                        p.setEntryQrImageBase64(null);
+                        pagamentosRepository.save(p);
+                        return ResponseEntity.status(409).body("O prazo para validar o QR de entrada expirou");
                     }
                     // Consumo
                     p.setEntryQrStatus("consumido");
                     p.setEntryQrConsumedAt(agora);
+                    p.setEntryQrToken(null);
+                    p.setEntryQrImageBase64(null);
                     pagamentosRepository.save(p);
                     return ResponseEntity.ok(java.util.Collections.singletonMap("status", "ENTRY_CONSUMED"));
                 } else if ("exit".equalsIgnoreCase(type)) {
@@ -347,6 +397,7 @@ public class PagamentoController {
         pagamentoService.ensureExitQrIfDue(ultimoPago);
 
     Pagamentos atualizado = pagamentosRepository.findById(ultimoPago.getId()).orElse(ultimoPago);
+    atualizado = pagamentoService.reconcileEntryQrState(atualizado);
 
     java.util.Map<String, Object> entry = new java.util.HashMap<String, Object>();
     entry.put("token", atualizado.getEntryQrToken());
@@ -362,6 +413,10 @@ public class PagamentoController {
     result.put("paymentId", atualizado.getId());
     result.put("entry", entry);
     result.put("exit", exit);
+    result.put("parkingName", atualizado.getEstacionamento());
+    result.put("parkingAddress", atualizado.getEndereco());
+    result.put("reservationDate", atualizado.getDataReservaEntrada());
+    result.put("reservationStartTime", atualizado.getHorarioReservaEntrada());
 
     return ResponseEntity.ok(result);
     }

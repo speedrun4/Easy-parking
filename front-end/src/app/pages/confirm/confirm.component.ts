@@ -136,12 +136,19 @@ export class ConfirmComponent implements OnInit {
     console.log('Pré-reserva salva com sucesso:', preReservaData);
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
       width: '350px',
+      disableClose: true,
       data: {
+        title: 'Reserva pré-confirmada',
+        singleAction: true,
+        confirmText: 'OK',
         message: `Reserva pré-confirmada! Favor realizar o pagamento para finalizar sua reserva.
         Caso o pagamento não for confirmado dentro de 10 minutos sua reserva será cancelada! Caso você saia da pagina de pagamento, você pode visualizar a sua pré-reserva na barra de menu -> pré-reserva.`
       }
     });
-    dialogRef.afterClosed().subscribe(() => {
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed !== true) {
+        return;
+      }
       this.router.navigate(['/payment'], {
         state: {
           totalValue: this.totalValue,

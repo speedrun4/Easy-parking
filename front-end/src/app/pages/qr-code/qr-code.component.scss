@@ -1,4 +1,14 @@
 .qr-wrapper { max-width: 480px; margin: 24px auto; text-align: center; }
+.reservation-info {
+	margin: 16px 0 20px;
+	padding: 14px 16px;
+	border: 1px solid #e3ebe6;
+	border-radius: 12px;
+	background: #f8fcf9;
+}
+.parking-name { margin: 0 0 6px; font-size: 18px; font-weight: 700; color: #173d2d; }
+.parking-address { margin: 0; color: #496457; }
+.reservation-time { margin: 8px 0 0; color: #2d5a45; font-size: 14px; }
 .qr-section { margin: 24px 0; }
 .qr-section img { width: 240px; height: 240px; border: 1px solid #eee; padding: 8px; border-radius: 8px; background: #fff; }
 .status { color: #666; font-size: 14px; margin-top: 8px; }

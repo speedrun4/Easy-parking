@@ -1,13 +1,16 @@
 <div class="qr-wrapper" *ngIf="!loading && !error; else loadingOrError">
   <h2>QR Codes da Reserva</h2>
 
+  <div class="reservation-info" *ngIf="parkingName || parkingAddress">
+    <p class="parking-name" *ngIf="parkingName">{{ parkingName }}</p>
+    <p class="parking-address" *ngIf="parkingAddress">{{ parkingAddress }}</p>
+    <p class="reservation-time" *ngIf="reservationDate || reservationStartTime">
+      Início da reserva: {{ reservationDate | date:'dd/MM/yyyy' }} <span *ngIf="reservationStartTime">{{ reservationStartTime }}</span>
+    </p>
+  </div>
+
   <div class="actions">
-    <button class="btn" (click)="refresh()" [disabled]="loading">Atualizar</button>
-    <span class="last" *ngIf="lastUpdated">Atualizado: {{ lastUpdated | date:'shortTime' }}</span>
-    <label class="auto">
-      <input type="checkbox" [checked]="autoRefresh" (change)="toggleAutoRefresh()" />
-      Atualizar automaticamente (30s)
-    </label>
+    <span class="auto-refresh-hint">Atualização automática a cada 30 segundos.</span>
   </div>
 
   <div class="qr-section">
@@ -17,7 +20,9 @@
       <p class="status">Status: {{ entryStatus || 'indisponível' }}</p>
     </div>
     <ng-template #noEntry>
-      <p>QR de entrada ainda não disponível.</p>
+      <p *ngIf="(entryStatus || '').toLowerCase() === 'consumido'">Entrada registrada pelo estabelecimento. QR de entrada indisponível.</p>
+      <p *ngIf="(entryStatus || '').toLowerCase() === 'expirado'">O QR de entrada expirou 5 minutos após o início da reserva.</p>
+      <p *ngIf="!entryStatus || (entryStatus || '').toLowerCase() === 'ativo'">QR de entrada ainda não disponível.</p>
     </ng-template>
   </div>
 
@@ -28,7 +33,7 @@
       <p class="status">Status: {{ exitStatus || 'indisponível' }}</p>
     </div>
     <ng-template #noExit>
-      <p *ngIf="(exitStatus || '').toLowerCase() !== 'consumido'">O QR de saída será gerado quando o horário da sua reserva for concluído. Clique em Atualizar para recarregar.</p>
+      <p *ngIf="(exitStatus || '').toLowerCase() !== 'consumido'">O QR de saída será gerado quando o horário da sua reserva for concluído. Esta tela atualiza automaticamente.</p>
       <p *ngIf="(exitStatus || '').toLowerCase() === 'consumido'">Saída validada. QR Codes indisponíveis.</p>
     </ng-template>
   </div>

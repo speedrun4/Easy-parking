@@ -1,6 +1,14 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
+interface ConfirmationDialogData {
+  message: string;
+  title?: string;
+  singleAction?: boolean;
+  confirmText?: string;
+  cancelText?: string;
+}
+
 @Component({
   selector: 'app-confirmation-dialog',
   template: `
@@ -8,13 +16,13 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
       <div class="dialog-header">
         <mat-icon color="warn" class="alert-icon">warning</mat-icon>
       </div>
-      <h1 mat-dialog-title>Reserva!</h1>
+      <h1 mat-dialog-title>{{ data.title || 'Reserva!' }}</h1>
       <div mat-dialog-content>
         <p>{{ data.message }}</p>
       </div>
       <div mat-dialog-actions>
-        <button mat-raised-button color="primary" (click)="onConfirm()">Sim</button>
-        <button mat-raised-button color="warn" (click)="onCancel()">Não</button>
+        <button mat-raised-button color="primary" (click)="onConfirm()">{{ data.confirmText || 'Sim' }}</button>
+        <button *ngIf="!data.singleAction" mat-raised-button color="warn" (click)="onCancel()">{{ data.cancelText || 'Não' }}</button>
       </div>
     </div>
   `,
@@ -49,7 +57,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 export class ConfirmationDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<ConfirmationDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { message: string }
+    @Inject(MAT_DIALOG_DATA) public data: ConfirmationDialogData
   ) {}
 
   onConfirm(): void {
