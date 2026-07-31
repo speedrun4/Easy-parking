@@ -24,6 +24,10 @@ export class PaymentHistoryService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  getPaidReservations(clienteId: number): Observable<PaymentHistory[]> {
+    return this.http.get<PaymentHistory[]>(`${this.apiUrl}/cliente/${clienteId}`);
+  }
+
 salvarPagamento(dadosPagamento: any) {
     return this.http.post(this.apiUrl, dadosPagamento);
   }

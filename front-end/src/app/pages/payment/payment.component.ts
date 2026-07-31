@@ -447,8 +447,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
             data: {
               title: 'Pagamento Confirmado',
               prefix: `Pagamento realizado com sucesso via ${this.selectedPaymentMethod}. Você pode ver seu QR na guia `,
-              linkText: 'Meus QrCodes',
-              linkTo: ['/qr-code'],
+              linkText: 'Minhas Reservas',
+              linkTo: ['/minhas-reservas'],
               suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
             }
           });
@@ -781,8 +781,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
       data: {
         title: 'Pagamento Confirmado',
         prefix: 'Pagamento efetuado com sucesso, você pode ver seu QR na guia ',
-        linkText: 'Meus QrCodes',
-        linkTo: ['/qr-code'],
+        linkText: 'Minhas Reservas',
+        linkTo: ['/minhas-reservas'],
         suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
       }
     });

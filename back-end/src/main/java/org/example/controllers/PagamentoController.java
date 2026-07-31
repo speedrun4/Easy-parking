@@ -9,7 +9,9 @@ import java.util.List;
 
 import org.example.models.Pagamentos;
 import org.example.services.PagamentoService;
+import org.example.models.Cliente;
 import org.example.models.Usuarios;
+import org.example.repositories.ClienteRepository;
 import org.example.repositories.UsuariosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,13 +39,45 @@ public class PagamentoController {
 
     @GetMapping("/estacionamento/{nomeEstacionamento}")
     public List<Pagamentos> getPagamentosPorEstacionamento(@PathVariable String nomeEstacionamento) {
-        return pagamentosRepository.findByEstacionamento(nomeEstacionamento);
+        if (nomeEstacionamento == null || nomeEstacionamento.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return pagamentosRepository.findByEstacionamentoNormalized(nomeEstacionamento);
+    }
+
+    @GetMapping("/estacionamento/usuario/{usuarioId}")
+    public List<Pagamentos> getPagamentosDosEstacionamentosDoUsuario(@PathVariable Integer usuarioId) {
+        if (usuarioId == null) {
+            return java.util.Collections.emptyList();
+        }
+
+        List<Cliente> clientes = clienteRepository.findByUsuarioId(usuarioId);
+        if (clientes == null || clientes.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        java.util.List<String> nomesNormalizados = clientes.stream()
+                .map(Cliente::getNomeEmpresa)
+                .filter(java.util.Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(String::toLowerCase)
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
+
+        if (nomesNormalizados.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        return pagamentosRepository.findByEstacionamentoNormalizedIn(nomesNormalizados);
     }
     
     @Autowired
     private PagamentoService service;
     @Autowired
     private PagamentoRepository pagamentosRepository;
+    @Autowired
+    private ClienteRepository clienteRepository;
     @Autowired
     private UsuariosRepository usuariosRepository;
     @Autowired
