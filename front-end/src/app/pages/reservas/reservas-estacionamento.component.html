@@ -1,6 +1,15 @@
 <div class="reservas-container">
   <h2 class="titulo-reservas">Reservas em meu estacionamento</h2>
-  <div *ngIf="reservas && reservas.length; else semReservas" class="reservas-table-wrapper">
+
+  <div *ngIf="loading" class="sem-reservas-msg">
+    <span>Carregando reservas...</span>
+  </div>
+
+  <div *ngIf="!loading && errorMessage" class="sem-reservas-msg">
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && reservas && reservas.length; else semReservas" class="reservas-table-wrapper">
     <table>
       <thead>
         <tr>
@@ -27,7 +36,7 @@
     </table>
   </div>
   <ng-template #semReservas>
-    <div class="sem-reservas-msg">
+    <div class="sem-reservas-msg" *ngIf="!loading && !errorMessage">
       <span class="sem-reservas-icone">📅</span>
       <span>Nenhuma reserva encontrada para este estacionamento.</span>
     </div>

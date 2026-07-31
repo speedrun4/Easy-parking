@@ -21,4 +21,8 @@ export class ReservaService {
   getReservasPorCliente(clienteId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/pagamentos/cliente/${clienteId}`);
   }
+
+  getReservasDosMeusEstacionamentos(usuarioId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/pagamentos/estacionamento/usuario/${usuarioId}`);
+  }
 }

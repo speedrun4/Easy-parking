@@ -1,5 +1,6 @@
 export interface PaymentHistory {
   id: number;
+  status?: string;
   nome: string;
   formaPagamento: string;
   valorPago: number;

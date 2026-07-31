@@ -1,0 +1,29 @@
+<div class="reservas-wrapper">
+  <h2>Minhas Reservas</h2>
+
+  <p class="auto-note">Aqui aparecem suas reservas confirmadas após o pagamento.</p>
+
+  <div *ngIf="loading" class="state">Carregando reservas...</div>
+  <div *ngIf="!loading && error" class="state error">{{ error }}</div>
+
+  <div *ngIf="!loading && !error && reservas.length === 0" class="state">
+    Nenhuma reserva confirmada encontrada.
+  </div>
+
+  <div class="reserva-list" *ngIf="!loading && !error && reservas.length > 0">
+    <article class="reserva-card" *ngFor="let reserva of reservas">
+      <button class="reserva-link" (click)="openReservationQr(reserva)">
+        {{ reserva.estacionamento || 'Estacionamento reservado' }}
+      </button>
+      <p class="reserva-address" *ngIf="reserva.endereco">{{ reserva.endereco }}</p>
+      <p class="reserva-time" *ngIf="reserva.dataReservaEntrada || reserva.horarioReservaEntrada || reserva.horarioReservaSaida">
+        {{ reserva.dataReservaEntrada | date:'dd/MM/yyyy' }}
+        <span *ngIf="reserva.horarioReservaEntrada"> - Entrada: {{ reserva.horarioReservaEntrada }}</span>
+        <span *ngIf="reserva.horarioReservaSaida"> | Saída: {{ reserva.horarioReservaSaida }}</span>
+      </p>
+      <p class="reserva-time" *ngIf="!reserva.dataReservaEntrada && !reserva.horarioReservaEntrada && !reserva.horarioReservaSaida">
+        Horário da reserva indisponível.
+      </p>
+    </article>
+  </div>
+</div>

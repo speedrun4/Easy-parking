@@ -21,6 +21,7 @@ import { RouteComponent } from './pages/route/route.component';
 import { ReservasEstacionamentoComponent } from './pages/reservas/reservas-estacionamento.component';
 import { QrCodeComponent } from './pages/qr-code/qr-code.component';
 import { QrValidateComponent } from './pages/qr-validate/qr-validate.component';
+import { MinhasReservasComponent } from './pages/minhas-reservas/minhas-reservas.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
@@ -43,6 +44,7 @@ const routes: Routes = [
   { path: 'route', component: RouteComponent }, // rota para a página de rota
   { path: 'reservas-estacionamento', component: ReservasEstacionamentoComponent },
   { path: 'qr-code', component: QrCodeComponent },
+  { path: 'minhas-reservas', component: MinhasReservasComponent },
   { path: 'qr-validate', component: QrValidateComponent },
   { path: 'validar-entrada', component: QrValidateComponent },
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },

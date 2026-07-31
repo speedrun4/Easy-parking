@@ -1,0 +1,65 @@
+.reservas-wrapper {
+  max-width: 860px;
+  margin: 24px auto;
+  padding: 0 12px 28px;
+}
+
+h2 {
+  margin: 0 0 8px;
+  color: #143f2d;
+}
+
+.auto-note {
+  margin: 0 0 20px;
+  color: #4f685d;
+}
+
+.state {
+  padding: 14px;
+  border-radius: 10px;
+  background: #f6fbf8;
+  color: #355446;
+  text-align: center;
+}
+
+.state.error {
+  background: #fff1f1;
+  color: #a52a2a;
+}
+
+.reserva-list {
+  display: grid;
+  gap: 12px;
+}
+
+.reserva-card {
+  border: 1px solid #dce9e1;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.reserva-link {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: #0f6a4f;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.reserva-link:hover {
+  color: #0a4f3b;
+}
+
+.reserva-address {
+  margin: 8px 0 0;
+  color: #546f63;
+}
+
+.reserva-time {
+  margin: 8px 0 0;
+  color: #264d3d;
+}
