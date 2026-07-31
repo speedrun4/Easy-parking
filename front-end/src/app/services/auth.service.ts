@@ -19,9 +19,45 @@ export class AuthService {
   public currentUser: Observable<any | null>;
 
   constructor(private http: HttpClient) {
-    const storedUser = localStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<any | null>(storedUser ? JSON.parse(storedUser) : null);
+    const storedUser = this.readStoredUser();
+    this.currentUserSubject = new BehaviorSubject<any | null>(storedUser);
     this.currentUser = this.currentUserSubject.asObservable();
+  }
+
+  private readStoredUser(): any | null {
+    const raw = localStorage.getItem('currentUser');
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(raw);
+      return this.normalizeUser(parsed);
+    } catch {
+      localStorage.removeItem('currentUser');
+      return null;
+    }
+  }
+
+  private normalizeUser(user: any): any | null {
+    if (!user) {
+      return null;
+    }
+
+    const normalizedId = user.id ?? user.userId ?? user.usuarioId ?? user.idUsuario;
+    const normalizedPerfil = user.perfil ?? user.role ?? user.tipoPerfil;
+
+    if (!normalizedId || !normalizedPerfil) {
+      return null;
+    }
+
+    return {
+      ...user,
+      id: normalizedId,
+      perfil: normalizedPerfil,
+      isClient: normalizedPerfil === 'cliente',
+      loginAsUser: user.loginAsUser || false,
+    };
   }
 
   // Atualiza a foto do usuário: persiste no backend e reflete no front
@@ -74,10 +110,9 @@ export class AuthService {
 
   // Expor um método público para definir o currentUserSubject
   setCurrentUser(user: any): void {
-    if (user && user.id && user.perfil) {
-      const isClient = user.perfil === 'cliente';
-      const loginAsUser = user.loginAsUser || false; // Login como usuário ou cliente
-      const currentUser = { ...user, isClient, loginAsUser};
+    const currentUser = this.normalizeUser(user);
+
+    if (currentUser) {
       this.currentUserSubject.next(currentUser);
       localStorage.setItem('currentUser', JSON.stringify(currentUser));
     } else {
@@ -143,11 +178,11 @@ requestPasswordReset(email: string): Observable < any > {
 }
 
 autoLogin(): void {
-  const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-  if(storedUser) {
-    const isClient = storedUser.perfil === 'cliente';
-    const loginAsUser = storedUser.loginAsUser || false; // Diferencia o tipo de login
-    this.setCurrentUser({ ...storedUser, isClient, loginAsUser });
+  const storedUser = this.readStoredUser();
+  if (storedUser) {
+    this.setCurrentUser(storedUser);
+  } else {
+    this.currentUserSubject.next(null);
   }
 }
 deleteAccount(userId: number): Observable < any > {

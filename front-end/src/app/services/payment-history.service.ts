@@ -28,10 +28,10 @@ salvarPagamento(dadosPagamento: any) {
     return this.http.post(this.apiUrl, dadosPagamento);
   }
 
-  iniciarPix(pagamentoId: number) {
+  iniciarPix(pagamentoId: number, payload: { pixKey?: string } = {}) {
     return this.http.post<{ pagbankChargeId?: string; status?: string; qrBase64?: string; qrPayload?: string }>(
       `${this.apiUrl}/${pagamentoId}/pagbank/pix`,
-      {}
+      payload
     );
   }
 
@@ -39,7 +39,4 @@ salvarPagamento(dadosPagamento: any) {
     return this.http.get<{ status: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/status`);
   }
 
-  simularPagamentoPix(pagamentoId: number) {
-    return this.http.post<{ status: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/simular-pago`, {});
-  }
 }

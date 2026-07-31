@@ -15,7 +15,6 @@ import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
-import { AgmCoreModule } from '@agm/core';
 import {MatCardModule} from '@angular/material/card';
 import { HttpClientModule } from '@angular/common/http';
 import { ConfirmComponent } from './pages/confirm/confirm.component';
@@ -134,9 +133,6 @@ registerLocaleData(localePt);
     MatTableModule,
     MatSortModule,
     NgxMaterialTimepickerModule,
-    AgmCoreModule.forRoot({
-      apiKey: 'AIzaSyC1JY-mIJMlZinIwKj3jJYoCV9sXrpWmSk'
-    }),
     MatFormFieldModule,
     MatInputModule,
     HttpClientModule,

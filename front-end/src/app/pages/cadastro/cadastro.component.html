@@ -74,20 +74,6 @@
       <div style="margin-top: 16px;"></div>
       <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">Cadastrar</button>
     </form>
-    <!-- Campo para confirmação de e-mail -->
-    <div *ngIf="aguardandoConfirmacao">
-      <mat-form-field appearance="fill">
-        <mat-label>Código de confirmação</mat-label>
-        <input matInput [(ngModel)]="codigoConfirmacao" name="codigoConfirmacao" required>
-      </mat-form-field>
-      <button mat-raised-button color="primary" (click)="validarCodigoConfirmacao()">Confirmar e-mail</button>
-      <mat-error *ngIf="erroConfirmacao">{{ erroConfirmacao }}</mat-error>
-      <div *ngIf="mostrarMensagemSucesso" class="mensagem-sucesso">
-        <mat-card color="primary" style="margin-top:16px; background:#e0ffe0; color:#2e7d32; text-align:center;">
-          Cadastro salvo com sucesso!
-        </mat-card>
-      </div>
-    </div>
   </mat-card>
 
   <!-- Formulário de Cadastro de Clientes -->

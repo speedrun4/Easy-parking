@@ -55,7 +55,7 @@ export class CadastroComponent implements OnInit {
   codigoConfirmacao: string = '';
   erroConfirmacao: string = '';
 
-  showUserForm = true; // Controle de qual formulário mostrar
+  showUserForm = true;
   userForm!: FormGroup;
   parkingForm!: FormGroup;
   estacionamentos: any[] = [];
@@ -109,60 +109,35 @@ export class CadastroComponent implements OnInit {
         senha: this.userForm.get('password')?.value,
         cpf: this.userForm.get('cpf')?.value,
         perfil: perfil,
-        fotoBase64: this.fotoBase64 // Adiciona a foto
+        fotoBase64: this.fotoBase64
       };
 
-      // Chama o serviço para enviar o código de confirmação
-      this.authService.register(usuario).subscribe(
-        (response) => {
-          // Sucesso: exibe campo para confirmação
-          this.aguardandoConfirmacao = true;
+      this.authService.register(usuario).subscribe({
+        next: (response: any) => {
+          const dialogRef = this.dialog.open(SucessoModalComponent, {
+            data: { message: response.message || 'Cadastro realizado com sucesso!' }
+          });
+          dialogRef.afterClosed().subscribe(() => {
+            this.router.navigate(['/home']);
+          });
         },
-        (error) => {
-          // ...existing code...
+        error: (error: any) => {
+          const errorMessage =
+            error?.error?.message ||
+            error?.error ||
+            error?.message ||
+            'Erro ao realizar cadastro. Tente novamente.';
+          this.openErrorDialog(errorMessage);
         }
-      );
+      });
     }
-  }
-
-  // Método para validar o código de confirmação
-  validarCodigoConfirmacao() {
-    if (!this.codigoConfirmacao) {
-      this.erroConfirmacao = 'Digite o código recebido no e-mail.';
-      return;
-    }
-    this.authService.confirmEmail(this.userForm.get('email')?.value, this.codigoConfirmacao).subscribe({
-      next: (response: any) => {
-        // Sucesso: exibe popup e redireciona após OK
-        this.erroConfirmacao = '';
-        this.mostrarMensagemSucesso = false;
-        this.aguardandoConfirmacao = false;
-        const dialogRef = this.dialog.open(SucessoModalComponent, {
-          data: { message: response.message || 'Cadastro realizado com sucesso!' }
-        });
-        dialogRef.afterClosed().subscribe(() => {
-          this.router.navigate(['/home']);
-        });
-      },
-      error: (error: any) => {
-        // Exibe mensagem do back-end se disponível
-        if (error && error.message) {
-          this.erroConfirmacao = error.message;
-        } else if (error && error.error) {
-          this.erroConfirmacao = error.error;
-        } else {
-          this.erroConfirmacao = 'Erro ao confirmar o código.';
-        }
-        this.mostrarMensagemSucesso = false;
-      }
-    });
   }
 
   openErrorDialog(message: string): void {
-      this.dialog.open(ErrorDialogComponent, {
-        data: { message: message }
-      });
-    }
+    this.dialog.open(ErrorDialogComponent, {
+      data: { message: message }
+    });
+  }
   onCpfInput(event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     let value = inputElement.value.replace(/\D/g, '');

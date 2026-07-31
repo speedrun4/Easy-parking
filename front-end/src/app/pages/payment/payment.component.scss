@@ -1,93 +1,236 @@
+:host {
+  --safari-green-deep: #0f4d34;
+  --safari-green: #1f7a58;
+  --safari-leaf: #3da35d;
+  --safari-foam: #ecf8f2;
+  --safari-river: #2d9cdb;
+  --safari-sand: #f6e9cb;
+  --safari-gold: #f3b232;
+  --safari-text: #113225;
+}
+
 .payment-container {
-  padding: 20px;
-  background-color: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
   min-height: 100vh;
+  padding: 34px 16px;
+  background:
+    radial-gradient(circle at 14% 16%, rgba(243, 178, 50, 0.24) 0, rgba(243, 178, 50, 0) 46%),
+    radial-gradient(circle at 88% 10%, rgba(45, 156, 219, 0.19) 0, rgba(45, 156, 219, 0) 38%),
+    linear-gradient(155deg, #0b3b2f 0%, #15553f 42%, #1e6f52 100%);
 }
 
 .payment-card {
   width: 100%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 980px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 255, 252, 0.95));
+  box-shadow: 0 24px 46px rgba(5, 37, 24, 0.34);
+  overflow: hidden;
 }
 
-.total-value {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: #4CAF50;
+.payment-hero {
+  border-radius: 16px;
+  padding: 26px 24px;
+  margin-bottom: 18px;
+  color: #fff;
+  background:
+    linear-gradient(115deg, rgba(9, 73, 50, 0.95), rgba(22, 122, 82, 0.92)),
+    linear-gradient(45deg, rgba(243, 178, 50, 0.25), rgba(45, 156, 219, 0.14));
+}
+
+.hero-kicker {
+  margin: 0 0 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--safari-sand);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.payment-hero h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.hero-subtitle {
+  margin: 10px 0 0;
+  max-width: 680px;
+  color: #def6eb;
+  font-size: 0.97rem;
+}
+
+.payment-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(17, 50, 37, 0.12);
+  background: linear-gradient(90deg, #f0fbf4, #f8f2e6);
+  margin-bottom: 18px;
+}
+
+.summary-label {
+  color: #2b5a46;
+  font-weight: 600;
+}
+
+.summary-value {
+  color: #0f4d34;
+  font-size: clamp(1.45rem, 2.7vw, 1.95rem);
+  font-weight: 800;
+}
+
+.payment-methods h3 {
+  color: var(--safari-text);
+  margin: 0 0 12px;
+}
+
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .payment-option {
+  margin: 0;
   display: block;
-  margin-bottom: 10px;
-  padding: 10px;
-  border: 1px solid transparent;
-  transition: background-color 0.3s ease;
-
-  &.mat-radio-checked {
-    border: 1px solid linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
-    border-radius: 5px;
-    background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
-  }
-
-  &:hover {
-    background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));
-  }
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(13, 77, 52, 0.18);
+  background: #fff;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-/* Formulário de cartão */
-.credit-card-form, .debit-card-form, .boleto-form {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Espaçamento consistente entre os campos */
+.payment-option:hover {
+  transform: translateY(-2px);
+  border-color: rgba(31, 122, 88, 0.5);
+  box-shadow: 0 12px 24px rgba(15, 77, 52, 0.13);
 }
 
-.confirm-button-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between; /* Espaço entre os botões */
-  gap: 10px; /* Espaçamento entre os botões */
+.payment-option.mat-radio-checked {
+  border-color: #1f7a58;
+  background: linear-gradient(130deg, #f1fbf6, #fef4df);
+  box-shadow: 0 8px 20px rgba(16, 79, 54, 0.2);
 }
 
-mat-form-field {
-  width: 100%; /* Garante que o campo ocupe toda a largura disponível */
+.method-title {
+  display: block;
+  color: #0f4d34;
+  font-weight: 700;
+  margin-bottom: 2px;
 }
 
+.method-caption {
+  color: #54796a;
+  font-size: 0.8rem;
+}
+
+.payment-form,
 .pix-container {
-  margin-top: 20px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid rgba(17, 50, 37, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.payment-form h4,
+.pix-container h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #124532;
 }
 
 .qr-code {
-  width: 200px;
-  height: 200px;
-  margin-top: 10px;
+  width: 220px;
+  height: 220px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 6px solid #f2f9f5;
+  box-shadow: 0 10px 24px rgba(13, 72, 48, 0.2);
+}
+
+.pix-copy-area {
+  margin-top: 12px;
+}
+
+.pix-copy-code {
+  width: 100%;
+  min-height: 82px;
+  resize: vertical;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 73, 50, 0.26);
+  background: #fbfffd;
+  padding: 9px;
+}
+
+.pix-error-msg {
+  color: #b91c1c;
+  margin-top: 8px;
+}
+
+.pix-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .confirm-button-container {
-  margin-top: 20px;
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-.payment-button {
-  flex: 1; /* Ambos os botões ocupam o mesmo espaço */
-  height: 48px; /* Altura consistente */
-  text-align: center;
+.confirm-payment-btn {
+  min-width: 210px;
+  background: linear-gradient(135deg, #f3b232 0%, #ea9d18 100%);
+  color: #193126;
+  font-weight: 700;
 }
 
-.payment-button + .payment-button {
-  margin-left: 10px; /* Espaçamento lateral entre os botões */
-}
-
-/* Adiciona margem e padding aos campos de input */
 mat-form-field {
-  margin-top: 10px;
-  padding: 5px 0;
+  width: 100%;
+  margin-top: 6px;
 }
 
-input, textarea {
-  padding: 10px; /* Aumenta a área clicável dos campos de input */
+input,
+textarea {
+  padding: 8px;
 }
 
 .snackbar-cancel {
-  background-color: #d32f2f; /* Vermelho */
-  color: white;
-  font-weight: bold;
+  background-color: #d32f2f;
+  color: #fff;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-container {
+    padding: 22px 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .payment-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .confirm-button-container {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .confirm-payment-btn {
+    min-width: 0;
+  }
 }

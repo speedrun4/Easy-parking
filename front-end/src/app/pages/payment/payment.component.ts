@@ -12,6 +12,7 @@ import { PixProgressModalComponent } from 'src/app/components/pix-progress-modal
 import { PaymentHistoryService } from 'src/app/services/payment-history.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ReservaService } from 'src/app/services/reserva.service';
+import { environment } from 'src/environments/environment';
 
 
 @Component({
@@ -36,6 +37,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
   private pollingSub?: Subscription;
   private pollingCount = 0;
   private maxPollingCount = 100; // ~5 min com intervalo 3s
+  private pixCompletionTriggered = false;
+  private readonly pixKey = environment.pixKey;
   errorMsg: string = '';
   currentPaymentId: number | null = null; // armazena id do pagamento para ações manuais
 
@@ -187,7 +190,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
               qrPayload: null
             }
           });
-          this.paymentHistoryService.iniciarPix(savedPaymentId).subscribe({
+          this.paymentHistoryService.iniciarPix(savedPaymentId, { pixKey: this.pixKey }).subscribe({
             next: r => {
               this.pixChargeId = r.pagbankChargeId || '';
               this.pixStatus = r.status || 'WAITING';
@@ -214,36 +217,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
                   dialogRef.componentInstance.status = this.pixStatus;
                 }
                 if (statusResp.status && statusResp.status.toUpperCase() === 'PAID') {
-                  this.isProcessingPayment = false;
-                  this.loading = false;
-                  if (this.pollingSub) { this.pollingSub.unsubscribe(); }
-                  // cria reserva somente após confirmar pagamento
-                  // interrompe contador pré-reserva
-                  this.preReservaService.confirmPayment();
-                  const estacionamentoId = selected.id || selected.estacionamentoId || selected.idEstacionamento || selected.parkingId;
-                  if (estacionamentoId) {
-                    const reserva = {
-                      cliente: { id: currentUser.id },
-                      estacionamento: { id: estacionamentoId },
-                      horario: new Date()
-                    };
-                    this.reservaService.criarReserva(reserva).subscribe(() => {
-                      console.log('Reserva criada após pagamento PIX!');
-                    });
-                  }
-                  const successRef = this.dialog.open(SucessoModalComponent, {
-                    data: {
-                      title: 'Pagamento Confirmado',
-                      prefix: 'Pagamento efetuado com sucesso, você pode ver seu QR na guia ',
-                      linkText: 'Meus QrCodes',
-                      linkTo: ['/qr-code'],
-                      suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
-                    }
-                  });
-                  successRef.afterClosed().subscribe(() => {
-                    this.navigateToRoutePage();
-                  });
                   dialogRef.close();
+                  this.handlePixPaidSuccess();
                 } else if (this.pollingCount >= this.maxPollingCount) {
                   // timeout
                   if (this.pollingSub) { this.pollingSub.unsubscribe(); }
@@ -528,6 +503,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.paymentHistoryService.consultarStatusPix(paymentId).subscribe({
       next: (r) => {
         this.pixStatus = r.status;
+        if (r.status && r.status.toUpperCase() === 'PAID') {
+          this.handlePixPaidSuccess();
+        }
       },
       error: () => {
         this.errorMsg = 'Falha ao consultar status. Tente novamente.';
@@ -542,7 +520,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.pixQrPayload = '';
     this.pixStatus = '';
     this.isProcessingPayment = true;
-    this.paymentHistoryService.iniciarPix(paymentId).subscribe({
+    this.paymentHistoryService.iniciarPix(paymentId, { pixKey: this.pixKey }).subscribe({
       next: r => {
         this.pixChargeId = r.pagbankChargeId || '';
         this.pixStatus = r.status || 'WAITING';
@@ -556,9 +534,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           this.pixStatus = statusResp.status;
           this.pollingCount++;
           if (statusResp.status && statusResp.status.toUpperCase() === 'PAID') {
-            this.isProcessingPayment = false;
-            this.loading = false;
-            if (this.pollingSub) { this.pollingSub.unsubscribe(); }
+            this.handlePixPaidSuccess();
           } else if (this.pollingCount >= this.maxPollingCount) {
             if (this.pollingSub) { this.pollingSub.unsubscribe(); }
             this.isProcessingPayment = false;
@@ -575,37 +551,46 @@ export class PaymentComponent implements OnInit, OnDestroy {
     });
   }
 
-  simularPix() {
-    const id = this.currentPaymentId;
-    if (!id) { return; }
-    this.paymentHistoryService.simularPagamentoPix(id).subscribe({
-      next: (r) => {
-        this.pixStatus = 'PAID';
-        // dispara os mesmos efeitos do sucesso real: parar contador, criar reserva e navegar
-        this.preReservaService.confirmPayment();
-        const selected = this.selectedParkings[0];
-        const currentUser = this.authService.getCurrentUser();
-        const estacionamentoId = selected?.id || selected?.estacionamentoId || selected?.idEstacionamento || selected?.parkingId;
-        if (estacionamentoId && currentUser?.id) {
-          const reserva = { cliente: { id: currentUser.id }, estacionamento: { id: estacionamentoId }, horario: new Date() };
-          this.reservaService.criarReserva(reserva).subscribe(() => {});
-        }
-        const dialogRef = this.dialog.open(SucessoModalComponent, { 
-          data: { 
-            title: 'Pagamento Confirmado',
-            prefix: 'Pagamento efetuado com sucesso (simulado). Você pode ver seu QR na guia ',
-            linkText: 'Meus QrCodes',
-            linkTo: ['/qr-code'],
-            suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
-          } 
-        });
-        dialogRef.afterClosed().subscribe(() => {
-          this.navigateToRoutePage();
-        });
-      },
-      error: () => {
-        this.errorMsg = 'Falha ao simular pagamento. Disponível somente no sandbox.';
+  private handlePixPaidSuccess() {
+    if (this.pixCompletionTriggered) {
+      return;
+    }
+    this.pixCompletionTriggered = true;
+    this.pixStatus = 'PAID';
+    this.isProcessingPayment = false;
+    this.loading = false;
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+    }
+
+    this.preReservaService.confirmPayment();
+    const selected = this.selectedParkings[0];
+    const currentUser = this.authService.getCurrentUser();
+    const estacionamentoId = selected?.id || selected?.estacionamentoId || selected?.idEstacionamento || selected?.parkingId;
+
+    if (estacionamentoId && currentUser?.id) {
+      const reserva = {
+        cliente: { id: currentUser.id },
+        estacionamento: { id: estacionamentoId },
+        horario: new Date()
+      };
+      this.reservaService.criarReserva(reserva).subscribe(() => {
+        console.log('Reserva criada após pagamento PIX!');
+      });
+    }
+
+    const dialogRef = this.dialog.open(SucessoModalComponent, {
+      data: {
+        title: 'Pagamento Confirmado',
+        prefix: 'Pagamento efetuado com sucesso, você pode ver seu QR na guia ',
+        linkText: 'Meus QrCodes',
+        linkTo: ['/qr-code'],
+        suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
       }
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.navigateToRoutePage();
     });
   }
 
