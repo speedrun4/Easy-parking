@@ -6,6 +6,7 @@ import org.example.repositories.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 @Service
 public class ClienteService {
 
@@ -31,7 +32,15 @@ public class ClienteService {
         return clienteRepository.findById(id).orElse(null);
     }
 
+    public Optional<Cliente> getClienteByIdAndUsuarioId(Long id, Integer usuarioId) {
+        return clienteRepository.findByIdAndUsuarioId(id, usuarioId);
+    }
+
     public void deleteCliente(Long id) {
         clienteRepository.deleteById(id);
+    }
+
+    public void deleteCliente(Cliente cliente) {
+        clienteRepository.delete(cliente);
     }
 }

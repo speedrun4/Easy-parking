@@ -24,7 +24,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let reserva of reservas">
-          <td>{{ reserva.usuario?.nome || reserva.usuario?.email || '-' }}</td>
+          <td>{{ reserva.usuario?.nomeCompleto || reserva.usuario?.nome || '-' }}</td>
           <td>{{ reserva.dataReservaEntrada ? (reserva.dataReservaEntrada | date: 'dd/MM/yyyy') : (reserva.data || '-') }}</td>
           <td>{{ reserva.horarioReservaEntrada || reserva.horario || '-' }}</td>
           <td>{{ reserva.horarioReservaSaida || '-' }}</td>

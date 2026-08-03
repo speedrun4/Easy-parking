@@ -22,11 +22,7 @@ public class ClienteController {
     public ResponseEntity<?> getClientesByUsuarioId(@PathVariable Integer usuarioId) {
         try {
             List<Cliente> clientes = clienteService.getClientesByUsuarioId(usuarioId);
-            if (clientes != null && !clientes.isEmpty()) {
-                return ResponseEntity.ok(clientes);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhum cliente encontrado para o usuarioId: " + usuarioId);
-            }
+            return ResponseEntity.ok(clientes);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao buscar clientes: " + e.getMessage());
@@ -91,6 +87,26 @@ public class ClienteController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao criar o cliente.");
+        }
+    }
+
+    @DeleteMapping("/{clienteId}")
+    public ResponseEntity<?> deleteClienteDoUsuario(
+            @PathVariable Long clienteId,
+            @RequestParam("usuarioId") Integer usuarioId
+    ) {
+        try {
+            return clienteService.getClienteByIdAndUsuarioId(clienteId, usuarioId)
+                    .map(cliente -> {
+                        clienteService.deleteCliente(cliente);
+                        return ResponseEntity.ok().build();
+                    })
+                    .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Estacionamento não encontrado para este usuário."));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao excluir estacionamento.");
         }
     }
     // Additional endpoints as needed

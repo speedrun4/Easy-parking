@@ -1,0 +1,29 @@
+<div class="meus-estacionamentos-container">
+  <h2>Meus Estacionamentos</h2>
+
+  <div *ngIf="loading" class="lista-status">Carregando seus estacionamentos...</div>
+  <div *ngIf="!loading && errorMessage" class="lista-status erro">{{ errorMessage }}</div>
+
+  <div *ngIf="!loading && !errorMessage && meusEstacionamentos.length === 0" class="lista-status">
+    Voce ainda nao cadastrou estacionamento.
+  </div>
+
+  <div class="lista-estacionamentos" *ngIf="!loading && !errorMessage && meusEstacionamentos.length > 0">
+    <article class="item-estacionamento" *ngFor="let estacionamento of meusEstacionamentos">
+      <div class="dados-estacionamento">
+        <h3>{{ estacionamento.nomeEmpresa || 'Sem nome' }}</h3>
+        <p><strong>Endereco:</strong> {{ estacionamento.enderecoCompleto || '-' }}</p>
+        <p><strong>CEP:</strong> {{ estacionamento.cep || '-' }}</p>
+        <p><strong>Valor/hora:</strong> {{ estacionamento.valorPorHora || '-' }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="btn-excluir"
+        [disabled]="excluindoEstacionamentoId === estacionamento.id"
+        (click)="excluirEstacionamento(estacionamento)">
+        {{ excluindoEstacionamentoId === estacionamento.id ? 'Excluindo...' : 'Excluir' }}
+      </button>
+    </article>
+  </div>
+</div>

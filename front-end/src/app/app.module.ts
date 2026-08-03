@@ -67,6 +67,7 @@ import { QrValidateComponent } from './pages/qr-validate/qr-validate.component';
 import { MinhasReservasComponent } from './pages/minhas-reservas/minhas-reservas.component';
 import { EnviarMensagemComponent } from './pages/enviar-mensagem/enviar-mensagem.component';
 import { NotificacoesUsuarioComponent } from './pages/notificacoes-usuario/notificacoes-usuario.component';
+import { MeusEstacionamentosComponent } from './pages/meus-estacionamentos/meus-estacionamentos.component';
 import { NgxMaskModule } from 'ngx-mask';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 registerLocaleData(localePt);
@@ -109,6 +110,7 @@ registerLocaleData(localePt);
     MinhasReservasComponent,
     EnviarMensagemComponent,
     NotificacoesUsuarioComponent,
+    MeusEstacionamentosComponent,
     PixProgressModalComponent,
   ],
   imports: [

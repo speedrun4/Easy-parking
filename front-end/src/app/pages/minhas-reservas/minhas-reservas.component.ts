@@ -13,6 +13,7 @@ export class MinhasReservasComponent implements OnInit {
   reservas: PaymentHistory[] = [];
   loading = true;
   error = '';
+  showInfoPopup = true;
 
   constructor(
     private paymentHistoryService: PaymentHistoryService,
@@ -22,6 +23,10 @@ export class MinhasReservasComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadReservas();
+  }
+
+  closeInfoPopup(): void {
+    this.showInfoPopup = false;
   }
 
   loadReservas(): void {

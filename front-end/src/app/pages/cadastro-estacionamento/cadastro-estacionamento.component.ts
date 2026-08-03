@@ -135,7 +135,8 @@ export class CadastroEstacionamentoComponent implements OnInit {
       next: (response) => {
         console.log('Cadastro realizado com sucesso!', response);
         this.openSuccessModal();
-        this.router.navigate(['/cliente']);  // Redireciona para uma página de sucesso, caso queira
+        this.parkingForm.reset();
+        this.initializeParkingForm();
       },
       error: (err) => {
         alert('Erro ao cadastrar estacionamento!');

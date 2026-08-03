@@ -11,12 +11,20 @@ import { environment } from '../../environments/environment';
 export class EstacionamentoService {
 
   getEstacionamentoPorUsuarioId(usuarioId: number) {
-    return this.http.get<any>(`${this.apiUrl}/usuario/${usuarioId}`);
+    return this.http.get<any[]>(`${this.apiUrl}/usuario/${usuarioId}`);
+  }
+
+  listarMeusEstacionamentos(usuarioId: number) {
+    return this.getEstacionamentoPorUsuarioId(usuarioId);
+  }
+
+  excluirEstacionamento(clienteId: number, usuarioId: number) {
+    return this.http.delete(`${this.apiUrl}/${clienteId}?usuarioId=${usuarioId}`);
   }
 
   private estacionamentosSubject = new BehaviorSubject<any[]>([]);
   estacionamentos$ = this.estacionamentosSubject.asObservable();
- private geoapifyApiKey = 'ace82b241e56461bba40b0cfac707318';
+  private geoapifyApiKey = 'ace82b241e56461bba40b0cfac707318';
 
   private apiUrl = `${environment.apiBaseUrl}/api/clientes`; // URL da API
 

@@ -1,8 +1,20 @@
 <div class="reservas-wrapper">
+  <div class="popup-overlay" *ngIf="showInfoPopup">
+    <div class="popup-card">
+      <h3>Aviso</h3>
+      <p>
+        Ao clicar no estacionamento da reserva, voce sera direcionado para a pagina de QR Code,
+        onde pode fazer a validacao de entrada e saida do estacionamento.
+      </p>
+      <button type="button" (click)="closeInfoPopup()">Entendi</button>
+    </div>
+  </div>
+
   <h2>Minhas Reservas</h2>
 
   <p class="auto-note">Aqui aparecem suas reservas confirmadas após o pagamento.</p>
-
+  <p class="auto-note">Escolha qual estacionamento você deseja visualizar o Qr-code para validar sua entrada.</p>
+  <p class="auto-note">Quando for sair do estacionamento, utilize o QR Code para validar sua saída.</p>
   <div *ngIf="loading" class="state">Carregando reservas...</div>
   <div *ngIf="!loading && error" class="state error">{{ error }}</div>
 

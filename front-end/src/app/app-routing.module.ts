@@ -24,6 +24,7 @@ import { QrValidateComponent } from './pages/qr-validate/qr-validate.component';
 import { MinhasReservasComponent } from './pages/minhas-reservas/minhas-reservas.component';
 import { EnviarMensagemComponent } from './pages/enviar-mensagem/enviar-mensagem.component';
 import { NotificacoesUsuarioComponent } from './pages/notificacoes-usuario/notificacoes-usuario.component';
+import { MeusEstacionamentosComponent } from './pages/meus-estacionamentos/meus-estacionamentos.component';
 
 const routes: Routes = [
   { path: '', component: SplashComponent },
@@ -32,6 +33,7 @@ const routes: Routes = [
   { path: 'financas', component: FinancasComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'cadastro-estacionamento', component: CadastroEstacionamentoComponent },
+  { path: 'meus-estacionamentos', component: MeusEstacionamentosComponent },
   { path: 'login', component: LoginComponent }, // rota para a página de login
   { path: 'cadastro', component: CadastroComponent },
   { path: 'cliente', component: ClienteComponent },

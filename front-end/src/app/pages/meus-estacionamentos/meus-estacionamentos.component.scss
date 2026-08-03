@@ -1,0 +1,73 @@
+.meus-estacionamentos-container {
+  max-width: 900px;
+  margin: 24px auto;
+  padding: 80px 16px 16px;
+}
+
+.meus-estacionamentos-container h2 {
+  margin: 0 0 16px;
+  color: #0f6f50;
+}
+
+.lista-status {
+  background: #f4fbf7;
+  color: #2e5545;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.lista-status.erro {
+  background: #fff0f0;
+  color: #a12d2d;
+}
+
+.lista-estacionamentos {
+  display: grid;
+  gap: 10px;
+}
+
+.item-estacionamento {
+  border: 1px solid #d8e7df;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  background: #ffffff;
+}
+
+.dados-estacionamento h3 {
+  margin: 0 0 8px;
+  color: #0f6f50;
+}
+
+.dados-estacionamento p {
+  margin: 0 0 6px;
+  color: #365b4d;
+}
+
+.btn-excluir {
+  border: 0;
+  border-radius: 8px;
+  background: #ffe7e7;
+  color: #b02d2d;
+  font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.btn-excluir[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .item-estacionamento {
+    flex-direction: column;
+  }
+
+  .btn-excluir {
+    width: 100%;
+  }
+}
