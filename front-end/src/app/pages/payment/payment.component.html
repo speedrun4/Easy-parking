@@ -1,4 +1,11 @@
 <div class="payment-container" fxLayout="column" fxLayoutAlign="start center">
+  <div class="redirect-loading-overlay" *ngIf="isRedirectingToRoute">
+    <div class="redirect-loading-card">
+      <mat-spinner diameter="36"></mat-spinner>
+      <p>Carregando rota para o estacionamento...</p>
+    </div>
+  </div>
+
   <mat-card class="payment-card" fxFlex="100" fxFlex.xs="92" fxFlex.sm="94" fxFlex.md="86">
     <mat-card-content>
       <section class="payment-hero">
@@ -25,8 +32,6 @@
       <!-- PIX via PagBank -->
       <div *ngIf="selectedPaymentMethod === 'Pix'" class="pix-container">
         <h4>PIX (PagBank)</h4>
-        <p>Chave PIX de recebimento:</p>
-        <code class="pix-key-code">{{ pixDisplayKey || 'Chave PIX indisponível' }}</code>
         <ng-container *ngIf="pixQrBase64; else aguardandoQr">
           <img [src]="pixQrBase64" alt="QR PIX" class="qr-code" />
         </ng-container>
@@ -98,20 +103,6 @@
             <input matInput [ngModel]="cardCVV" [ngModelOptions]="{standalone:true}" name="ccCvvDebit" (ngModelChange)="onCvvChange($event)" [attr.mask]="cardBrand === 'AMEX' ? '0000' : '000'" placeholder="CVV" autocomplete="cc-csc" inputmode="numeric">
           </mat-form-field>
         </div>
-      </form>
-
-      <!-- Formulário de Boleto -->
-      <form *ngIf="showBoletoForm" fxLayout="column" fxLayoutGap="10px" class="payment-form">
-        <h4>Preencha os dados para o boleto:</h4>
-        <mat-form-field appearance="fill">
-          <mat-label>Nome do Pagador</mat-label>
-          <input matInput [(ngModel)]="payerName" placeholder="Nome Completo">
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>CPF/CNPJ</mat-label>
-          <input matInput [(ngModel)]="payerDocument" placeholder="CPF ou CNPJ">
-        </mat-form-field>
       </form>
 
       <div class="confirm-button-container" fxLayout="row" fxLayoutAlign="end center">

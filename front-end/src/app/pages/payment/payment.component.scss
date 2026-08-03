@@ -18,6 +18,33 @@
     linear-gradient(155deg, #0b3b2f 0%, #15553f 42%, #1e6f52 100%);
 }
 
+.redirect-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(6, 34, 25, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.redirect-loading-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 18px 34px rgba(5, 37, 24, 0.35);
+}
+
+.redirect-loading-card p {
+  margin: 0;
+  color: #123c2d;
+  font-weight: 600;
+}
+
 .payment-card {
   width: 100%;
   max-width: 980px;

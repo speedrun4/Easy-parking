@@ -24,7 +24,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   totalValue: number = 0;
   selectedPaymentMethod: string = '';
-  paymentMethods = ['Pix', 'Cartão de Crédito', 'Cartão de Débito', 'Boleto'];
+  paymentMethods = ['Pix', 'Cartão de Crédito', 'Cartão de Débito'];
   qrCodeData: string = '';
   qrCodeImage: string = '';
   pixQrBase64: string = '';
@@ -35,6 +35,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   isProcessingPayment: boolean = false;
   cardBrand: string = '';
   loading: boolean = false;
+  isRedirectingToRoute: boolean = false;
   private pollingSub?: Subscription;
   private pixAutoConfirmTimer?: ReturnType<typeof setTimeout>;
   private pollingCount = 0;
@@ -54,7 +55,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   showCreditCardForm: boolean = false;
   showDebitCardForm: boolean = false;
-  showBoletoForm: boolean = false;
   selectedParkings: any[] = [];
   selectedDate: Date | null = null;
   selectedTime: string | null = null;
@@ -109,14 +109,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   isPaymentMethodValid() {
     return this.selectedPaymentMethod === 'Cartão de Crédito' ||
-      this.selectedPaymentMethod === 'Cartão de Débito' ||
-      this.selectedPaymentMethod === 'Boleto';
+      this.selectedPaymentMethod === 'Cartão de Débito';
   }
 
   onPaymentMethodChange() {
     this.showCreditCardForm = this.selectedPaymentMethod === 'Cartão de Crédito';
     this.showDebitCardForm = this.selectedPaymentMethod === 'Cartão de Débito';
-    this.showBoletoForm = this.selectedPaymentMethod === 'Boleto';
 
     if (this.selectedPaymentMethod === 'Pix') {
       // Para PIX, inicia automaticamente o fluxo de cobrança e exibição do QR.
@@ -426,18 +424,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (this.selectedPaymentMethod === 'Boleto') {
-      if (!this.payerName || !this.payerDocument) {
-        this.dialog.open(SucessoModalComponent, {
-          data: {
-            title: 'Atenção',
-            message: 'Por favor, preencha o nome e CPF/CNPJ para gerar o boleto.'
-          }
-        });
-        return;
-      }
-    }
-
     this.loading = true;
 
     if (this.selectedPaymentMethod !== 'Pix') {
@@ -563,7 +549,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   navigateToRoutePage() {
+    this.isRedirectingToRoute = true;
+
     if (!navigator.geolocation) {
+      this.isRedirectingToRoute = false;
       alert('Geolocalização não suportada pelo navegador.');
       return;
     }
@@ -595,9 +584,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
             origin: userLocation,
             destination: parkingLocation
           }
+        }).catch(() => {
+          this.isRedirectingToRoute = false;
         });
       },
       (error) => {
+        this.isRedirectingToRoute = false;
         console.error('Erro ao obter localização:', error);
         alert('Não foi possível obter sua localização atual.');
       }
