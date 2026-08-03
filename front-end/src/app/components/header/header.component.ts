@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { PreReservationService } from 'src/app/services/pre-reservation.service';
+import { MensagemService, MensagemUsuario } from 'src/app/services/mensagem.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-header',
@@ -17,17 +19,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isClient = false;   // Verifica se o usuário é um cliente
   userName: string = ''; // Nome do usuário logado
   loginAsUser: boolean = false;
+  notificationsOpen = false;
+  unreadNotifications: MensagemUsuario[] = [];
   preReservaTimeLeft: string = '';
   isPreReservaExpired: boolean = false;
   userPhotoUrl: string | null = null;
   private authSubscription: Subscription = new Subscription(); // Subscription para escutar as mudanças
   private intervalId: any;
+  private messagePollingId: any;
+  private notifiedMessageIds: Set<number> = new Set<number>();
 
   constructor(
     private router: Router,
     private authService: AuthService,
     private preReservaService: PreReservationService,
-    private elementRef: ElementRef // Injetando ElementRef para detectar cliques fora
+    private elementRef: ElementRef, // Injetando ElementRef para detectar cliques fora
+    private mensagemService: MensagemService,
+    private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -40,12 +48,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.loginAsUser = user.loginAsUser;
   this.userPhotoUrl = user.fotoDataUrl || (user.fotoBase64 ? 'data:image/png;base64,' + user.fotoBase64 : null);
         this.checkPreReservaTime();
+        this.startMessagePolling();
       } else {
         this.userName = '';
         this.isClient = false;
         this.userPhotoUrl = null;
         this.preReservaTimeLeft = '';
+        this.notificationsOpen = false;
+        this.unreadNotifications = [];
+        this.notifiedMessageIds.clear();
         if (this.intervalId) clearInterval(this.intervalId);
+        this.stopMessagePolling();
       }
     });
 
@@ -132,10 +145,30 @@ export class HeaderComponent implements OnInit, OnDestroy {
   closeMenu() {
     this.menuOpen = false;
     this.avatarMenuOpen = false; // Opcional: Fecha também o menu do avatar
+    this.notificationsOpen = false;
   }
 
   toggleAvatarMenu() {
+    this.notificationsOpen = false;
     this.avatarMenuOpen = !this.avatarMenuOpen;
+  }
+
+  toggleNotifications(event: MouseEvent) {
+    event.stopPropagation();
+    this.avatarMenuOpen = false;
+    this.notificationsOpen = !this.notificationsOpen;
+  }
+
+  openNotification(mensagem: MensagemUsuario) {
+    this.notificationsOpen = false;
+    this.router.navigate(['/notificacoes-usuario'], {
+      state: { messageId: mensagem.id }
+    });
+  }
+
+  goToNotificationsPage() {
+    this.notificationsOpen = false;
+    this.router.navigate(['/notificacoes-usuario']);
   }
 
   goToLogin() {
@@ -154,6 +187,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.isClient = false;
     this.userName = '';
     this.avatarMenuOpen = false;
+    this.notificationsOpen = false;
+    this.unreadNotifications = [];
+    this.notifiedMessageIds.clear();
     this.preReservaTimeLeft = ''; // Limpa o contador visual
     this.isPreReservaExpired = false;
     if (this.intervalId) {
@@ -180,6 +216,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const clickedInside = this.elementRef.nativeElement.contains(event.target);
     if (!clickedInside) {
       this.closeMenu(); // Fecha o menu se o clique foi fora dele
+      this.notificationsOpen = false;
     }
   }
 
@@ -188,6 +225,47 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (this.intervalId) {
       clearInterval(this.intervalId); // Limpa o intervalo ao destruir o componente
     }
+    this.stopMessagePolling();
+  }
+
+  private startMessagePolling() {
+    this.stopMessagePolling();
+    this.checkUnreadMessages();
+    this.messagePollingId = setInterval(() => this.checkUnreadMessages(), 10000);
+  }
+
+  private stopMessagePolling() {
+    if (this.messagePollingId) {
+      clearInterval(this.messagePollingId);
+      this.messagePollingId = undefined;
+    }
+  }
+
+  private checkUnreadMessages() {
+    const user = this.authService.getCurrentUser();
+    if (!user?.id) {
+      return;
+    }
+
+    this.mensagemService.listarMensagensDestinatario(user.id, true).subscribe({
+      next: (mensagens) => {
+        this.unreadNotifications = mensagens || [];
+
+        this.unreadNotifications.forEach((mensagem) => {
+          if (this.notifiedMessageIds.has(mensagem.id)) {
+            return;
+          }
+          this.notifiedMessageIds.add(mensagem.id);
+          const remetenteNome = mensagem.remetente?.nomeCompleto || mensagem.remetente?.email || 'Mensagem';
+          this.snackBar.open(`Nova mensagem de ${remetenteNome}`, 'Ver', { duration: 5000 })
+            .onAction()
+            .subscribe(() => this.openNotification(mensagem));
+        });
+      },
+      error: () => {
+        // Evita ruído visual em falhas pontuais de rede.
+      }
+    });
   }
 
   closeModal() {

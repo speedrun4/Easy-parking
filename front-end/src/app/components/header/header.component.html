@@ -10,14 +10,33 @@
     <span>{{ preReservaTimeLeft }}</span>
   </div>
 
-  <!-- Avatar com Dropdown -->
-  <div class="login-avatar" (click)="toggleAvatarMenu()">
-    <img *ngIf="userPhotoUrl; else defaultAvatar" [src]="userPhotoUrl" alt="Avatar">
-    <ng-template #defaultAvatar>
-      <img src="assets/images/avatar.png" alt="Avatar">
-    </ng-template>
-    <!-- Nome do usuário -->
-    <div *ngIf="isLoggedIn" class="user-name">{{ userName }}</div>
+  <div class="header-actions">
+    <div class="notifications" *ngIf="isLoggedIn && (loginAsUser || !isClient)">
+      <button class="bell-btn" (click)="toggleNotifications($event)" aria-label="Notificações">
+        <mat-icon>notifications</mat-icon>
+        <span class="badge" *ngIf="unreadNotifications.length > 0">{{ unreadNotifications.length }}</span>
+      </button>
+
+      <div class="notifications-dropdown" *ngIf="notificationsOpen">
+        <div class="notifications-header">Notificações</div>
+        <button class="notification-item" *ngFor="let mensagem of unreadNotifications | slice:0:5" (click)="openNotification(mensagem)">
+          <strong>{{ mensagem.remetente?.nomeCompleto || mensagem.remetente?.email || 'Mensagem' }}</strong>
+          <p>{{ mensagem.conteudo | slice:0:65 }}<span *ngIf="(mensagem.conteudo || '').length > 65">...</span></p>
+        </button>
+        <div class="notification-empty" *ngIf="unreadNotifications.length === 0">Sem novas notificações.</div>
+        <button class="see-all" (click)="goToNotificationsPage()">Ver todas</button>
+      </div>
+    </div>
+
+    <!-- Avatar com Dropdown -->
+    <div class="login-avatar" (click)="toggleAvatarMenu()">
+      <img *ngIf="userPhotoUrl; else defaultAvatar" [src]="userPhotoUrl" alt="Avatar">
+      <ng-template #defaultAvatar>
+        <img src="assets/images/avatar.png" alt="Avatar">
+      </ng-template>
+      <!-- Nome do usuário -->
+      <div *ngIf="isLoggedIn" class="user-name">{{ userName }}</div>
+    </div>
   </div>
 
   <!-- Dropdown Menu do Avatar -->
@@ -48,6 +67,7 @@
       <li><a (click)="closeMenu()" [routerLink]="['/welcome']">Estacionamentos</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/pre-reserva']">Pré-reservas</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/minhas-reservas']">Minhas reservas</a></li>
+      <li><a (click)="closeMenu()" [routerLink]="['/enviar-mensagem']">Enviar Mensagem</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/history']">Histórico</a></li>
       <li><a (click)="closeMenu()" [routerLink]="['/user-profile']">Meus Dados</a></li>
     </ul>

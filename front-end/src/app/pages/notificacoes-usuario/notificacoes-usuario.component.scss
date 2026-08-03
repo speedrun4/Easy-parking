@@ -1,0 +1,103 @@
+.notificacoes-wrapper {
+  max-width: 860px;
+  margin: 24px auto;
+  padding: 16px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  color: #124f39;
+}
+
+.state {
+  background: #f3fbf7;
+  border-radius: 10px;
+  padding: 12px;
+  color: #335547;
+}
+
+.state.error {
+  background: #fff0f0;
+  color: #9f2e2e;
+}
+
+.notificacao-list {
+  display: grid;
+  gap: 10px;
+}
+
+.notificacao-card {
+  border: 1px solid #d9e7df;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.notificacao-card.nao-lida {
+  border-left: 4px solid #0f8a63;
+  background: #f7fffb;
+}
+
+.notificacao-card.highlight {
+  box-shadow: 0 0 0 2px rgba(15, 138, 99, 0.2);
+}
+
+.notificacao-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.notificacao-card header span {
+  color: #4e6a5d;
+  font-size: 12px;
+}
+
+.notificacao-card p {
+  margin: 8px 0 6px;
+  color: #2d4339;
+}
+
+.notificacao-card small {
+  color: #0f8a63;
+  font-weight: 700;
+}
+
+.actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actions button {
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reply-btn {
+  background: #0f8a63;
+  color: #ffffff;
+}
+
+.delete-btn {
+  background: #ffecec;
+  color: #b02d2d;
+}
+
+.actions button[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

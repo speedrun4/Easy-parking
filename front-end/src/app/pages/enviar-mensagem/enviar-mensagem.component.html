@@ -1,0 +1,30 @@
+<div class="mensagem-wrapper">
+  <h2>Enviar mensagem para usuário</h2>
+
+  <div *ngIf="loading" class="state">Carregando usuários...</div>
+  <div *ngIf="!loading && error" class="state error">{{ error }}</div>
+
+  <form *ngIf="!loading && !error" class="mensagem-form" (ngSubmit)="enviar()">
+    <label for="destinatario">Usuário</label>
+    <select *ngIf="!destinatarioFixado" id="destinatario" [(ngModel)]="destinatarioId" name="destinatarioId" required>
+      <option *ngFor="let u of usuariosDestino" [ngValue]="u.id">
+        {{ u.nome }} <span *ngIf="u.email">({{ u.email }})</span>
+      </option>
+    </select>
+    <div *ngIf="destinatarioFixado && usuariosDestino.length > 0" class="destinatario-fixado">
+      <strong>{{ usuariosDestino[0].nome }}</strong>
+      <span *ngIf="usuariosDestino[0].email">{{ usuariosDestino[0].email }}</span>
+    </div>
+
+    <label for="conteudo">Mensagem</label>
+    <textarea id="conteudo" [(ngModel)]="conteudo" name="conteudo" rows="5" placeholder="Digite sua mensagem" required></textarea>
+
+    <button type="submit" [disabled]="sending">{{ sending ? 'Enviando...' : 'Enviar' }}</button>
+
+    <p class="status" *ngIf="status">{{ status }}</p>
+  </form>
+
+  <div *ngIf="!loading && !error && usuariosDestino.length === 0" class="state">
+    Nenhum usuário com reserva encontrado para enviar mensagem.
+  </div>
+</div>

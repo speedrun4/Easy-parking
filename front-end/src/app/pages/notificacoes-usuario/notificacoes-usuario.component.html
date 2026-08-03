@@ -1,0 +1,44 @@
+<div class="notificacoes-wrapper">
+  <h2>Notificações</h2>
+
+  <div *ngIf="loading" class="state">Carregando notificações...</div>
+  <div *ngIf="!loading && error" class="state error">{{ error }}</div>
+
+  <div *ngIf="!loading && !error && mensagens.length === 0" class="state">
+    Nenhuma notificação recebida.
+  </div>
+
+  <div class="notificacao-list" *ngIf="!loading && !error && mensagens.length > 0">
+    <article
+      class="notificacao-card"
+      *ngFor="let mensagem of mensagens"
+      [class.nao-lida]="!mensagem.lida"
+      [class.highlight]="highlightedMessageId === mensagem.id"
+      (click)="marcarComoLida(mensagem)">
+      <header>
+        <strong>{{ mensagem.remetente?.nomeCompleto || mensagem.remetente?.email || 'Mensagem recebida' }}</strong>
+        <span>{{ mensagem.criadaEm | date:'dd/MM/yyyy HH:mm' }}</span>
+      </header>
+      <p>{{ mensagem.conteudo }}</p>
+      <div class="actions-row">
+        <small *ngIf="!mensagem.lida">Nova</small>
+        <div class="actions">
+          <button
+            type="button"
+            class="reply-btn"
+            *ngIf="podeResponder(mensagem)"
+            (click)="responderMensagem(mensagem, $event)">
+            Responder
+          </button>
+          <button
+            type="button"
+            class="delete-btn"
+            [disabled]="deletingIds.has(mensagem.id)"
+            (click)="excluirMensagem(mensagem, $event)">
+            {{ deletingIds.has(mensagem.id) ? 'Excluindo...' : 'Excluir' }}
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
