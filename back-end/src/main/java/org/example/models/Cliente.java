@@ -26,6 +26,9 @@ public class Cliente {
     @Column(name = "valor_por_hora", nullable = false)
     private BigDecimal valorPorHora;
 
+    @Column(name = "valor_diaria_12h")
+    private BigDecimal valorDiaria12h;
+
     @Column(name = "endereco_completo", length = 255)
     private String enderecoCompleto;
 
@@ -89,6 +92,14 @@ public class Cliente {
 
     public void setValorPorHora(BigDecimal valorPorHora) {
         this.valorPorHora = valorPorHora;
+    }
+
+    public BigDecimal getValorDiaria12h() {
+        return valorDiaria12h;
+    }
+
+    public void setValorDiaria12h(BigDecimal valorDiaria12h) {
+        this.valorDiaria12h = valorDiaria12h;
     }
 
     public String getEnderecoCompleto() {

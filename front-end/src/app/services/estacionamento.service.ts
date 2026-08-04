@@ -42,6 +42,7 @@ export class EstacionamentoService {
               longitude: coords.longitude,
               companyName: cliente.nomeEmpresa,
               hourlyRate: cliente.valorPorHora,
+              dailyRate12h: cliente.valorDiaria12h,
               address: cliente.enderecoCompleto,
               horarioAbertura: cliente.horarioAbertura,
               horarioFechamento: cliente.horarioFechamento

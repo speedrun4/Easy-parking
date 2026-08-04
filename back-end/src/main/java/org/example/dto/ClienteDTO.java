@@ -39,6 +39,9 @@ public class ClienteDTO {
     @NotNull(message = "Valor por hora é obrigatório")
     private BigDecimal valorPorHora;
 
+    @NotNull(message = "Valor da diária (12h) é obrigatório")
+    private BigDecimal valorDiaria12h;
+
     // Getters e Setters
     public String getNomeEmpresa() {
         return nomeEmpresa;
@@ -94,6 +97,14 @@ public class ClienteDTO {
 
     public void setValorPorHora(BigDecimal valorPorHora) {
         this.valorPorHora = valorPorHora;
+    }
+
+    public BigDecimal getValorDiaria12h() {
+        return valorDiaria12h;
+    }
+
+    public void setValorDiaria12h(BigDecimal valorDiaria12h) {
+        this.valorDiaria12h = valorDiaria12h;
     }
 
     public Long getUsuarioId() {

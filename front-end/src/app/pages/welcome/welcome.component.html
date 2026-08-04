@@ -51,14 +51,32 @@
       </mat-select>
     </mat-form-field>
 
+      <mat-form-field appearance="outline" class="time">
+        <mat-label>Tipo de Cobranca</mat-label>
+        <mat-select [value]="marker.useDaily12h ? 'daily' : 'hourly'" (selectionChange)="updatePricingMode(marker, $event.value === 'daily')">
+          <mat-option value="hourly">Por hora ({{ marker.label }})</mat-option>
+          <mat-option value="daily" [disabled]="!canUseDaily12h(marker)">
+            Diaria 12h ({{ marker.dailyRate12h ? ('R$ ' + marker.dailyRate12h) : 'indisponivel' }})
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <p *ngIf="marker.selectedTime && marker.dailyRate12h && !canUseDaily12h(marker)" style="color: #d32f2f; margin: 0 0 8px;">
+        A diaria 12h nao pode ser selecionada porque ultrapassa o horario de fechamento.
+      </p>
+
     <!-- Campo para selecionar a hora de saída -->
-    <mat-form-field appearance="outline" class="time">
+      <mat-form-field appearance="outline" class="time" *ngIf="!marker.useDaily12h">
       <mat-label>Hora de Saída</mat-label>
       <mat-select [(value)]="marker.selectedExitTime" (selectionChange)="updateSelectedParkingExitTime(marker, $event)">
         <mat-option value="">Selecione</mat-option>
         <mat-option *ngFor="let time of getExitTimeOptions(marker)" [value]="time">{{ time }}</mat-option>
       </mat-select>
     </mat-form-field>
+
+      <p *ngIf="marker.useDaily12h && marker.selectedExitTime">
+        <strong>Saida automatica (12h):</strong> {{ marker.selectedExitTime }}
+      </p>
 
     <p>
       <strong>Valor Total:</strong>

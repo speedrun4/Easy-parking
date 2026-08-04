@@ -62,6 +62,8 @@ export class WelcomeComponent implements OnInit {
       this.filteredMarkers = data.map(est => ({
         title: est.companyName,
         label: `R$${est.hourlyRate}/h`,
+        hourlyRate: est.hourlyRate,
+        dailyRate12h: est.dailyRate12h,
         address: est.address,
         latitude: est.latitude,
         longitude: est.longitude,
@@ -109,6 +111,7 @@ export class WelcomeComponent implements OnInit {
     if (!exists) {
       this.selectedParkings.push({
         ...selected,
+        useDaily12h: false,
         selectedDate: '',
         selectedTime: '',
         selectedExitTime: '',
@@ -227,9 +230,9 @@ export class WelcomeComponent implements OnInit {
 
   areDatesAndTimesSelected(): boolean {
     return this.selectedParkings.every(parking =>
-       parking.selectedDate &&
-       parking.selectedTime &&
-       parking.selectedExitTime
+      parking.selectedDate &&
+      parking.selectedTime &&
+      (parking.useDaily12h || parking.selectedExitTime)
       );
   }
 
@@ -252,6 +255,8 @@ export class WelcomeComponent implements OnInit {
           latitude: estacionamento.latitude,
           longitude: estacionamento.longitude,
           label: `R$ ${estacionamento.hourlyRate}/h`,
+          hourlyRate: estacionamento.hourlyRate,
+          dailyRate12h: estacionamento.dailyRate12h,
           title: estacionamento.companyName,
           address: estacionamento.address,
           // iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
@@ -297,6 +302,8 @@ export class WelcomeComponent implements OnInit {
         latitude: estacionamento.latitude,
         longitude: estacionamento.longitude,
         label: `R$ ${estacionamento.hourlyRate}/h`,
+        hourlyRate: estacionamento.hourlyRate,
+        dailyRate12h: estacionamento.dailyRate12h,
         title: estacionamento.companyName,
         address: estacionamento.address,
         iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
@@ -342,6 +349,7 @@ export class WelcomeComponent implements OnInit {
     if (index === -1) {
       this.selectedParkings.push({
         ...marker,
+        useDaily12h: false,
         selectedDate: '',
         selectedTime: '',
         selectedExitTime: '',
@@ -360,7 +368,14 @@ export class WelcomeComponent implements OnInit {
     );
     if (parking) {
       parking.selectedTime = time;
-      parking.selectedExitTime = ''; // Limpa saída ao mudar entrada
+      if (parking.useDaily12h && !this.canUseDaily12h(parking)) {
+        parking.useDaily12h = false;
+      }
+      if (parking.useDaily12h) {
+        parking.selectedExitTime = this.calculateExitTime12h(time);
+      } else {
+        parking.selectedExitTime = ''; // Limpa saída ao mudar entrada
+      }
     }
   }
 
@@ -374,6 +389,64 @@ export class WelcomeComponent implements OnInit {
     if (parking) {
       parking.selectedExitTime = time;
     }
+  }
+
+  updatePricingMode(marker: any, useDaily12h: boolean) {
+    const parking = this.selectedParkings.find(
+      (selectedMarker) =>
+        selectedMarker.latitude === marker.latitude &&
+        selectedMarker.longitude === marker.longitude
+    );
+    if (!parking) {
+      return;
+    }
+
+    if (useDaily12h && !this.canUseDaily12h(parking)) {
+      parking.useDaily12h = false;
+      parking.selectedExitTime = '';
+      return;
+    }
+
+    parking.useDaily12h = useDaily12h;
+    if (useDaily12h && parking.selectedTime) {
+      parking.selectedExitTime = this.calculateExitTime12h(parking.selectedTime);
+    }
+  }
+
+  canUseDaily12h(marker: any): boolean {
+    if (!marker?.dailyRate12h || !marker?.selectedTime) {
+      return false;
+    }
+
+    const entryMinutes = this.timeToMinutes(marker.selectedTime);
+    const closeMinutes = this.timeToMinutes(marker.horarioFechamento || '23:55');
+    if (entryMinutes === null || closeMinutes === null) {
+      return false;
+    }
+
+    const exitMinutes = entryMinutes + (12 * 60);
+    return exitMinutes <= closeMinutes;
+  }
+
+  private timeToMinutes(time: string): number | null {
+    if (!time || !time.includes(':')) {
+      return null;
+    }
+    const [hour, minute] = time.split(':').map(Number);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) {
+      return null;
+    }
+    return hour * 60 + minute;
+  }
+
+  private calculateExitTime12h(entryTime: string): string {
+    if (!entryTime) return '';
+    const [hour, minute] = entryTime.split(':').map(Number);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return '';
+    const totalMinutes = ((hour * 60 + minute + 12 * 60) % (24 * 60));
+    const h = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+    const m = (totalMinutes % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
   }
 
   deleteParking(markerToDelete: any) {
@@ -418,7 +491,14 @@ formatDate(date: Date): string {
 }
 
   calculateTotal(marker: any): number {
-  if (!marker.selectedTime || !marker.selectedExitTime) return 0;
+  if (!marker.selectedTime) return 0;
+
+  if (marker.useDaily12h) {
+    const dailyRate = Number(marker.dailyRate12h || 0);
+    return Math.ceil(dailyRate * 100) / 100;
+  }
+
+  if (!marker.selectedExitTime) return 0;
 
   const [startHour, startMinute] = marker.selectedTime.split(':').map(Number);
   const [endHour, endMinute] = marker.selectedExitTime.split(':').map(Number);
@@ -438,7 +518,7 @@ formatDate(date: Date): string {
 
   const diffHours = diffMs / (1000 * 60 * 60);
 
-  const hourlyRate = Number(marker.label.replace(/[^\d.-]/g, '')); // Extrai o número do label "R$10/h"
+  const hourlyRate = Number(marker.hourlyRate || marker.label.replace(/[^\d.-]/g, ''));
 
   const total = diffHours * hourlyRate;
   return Math.ceil(total * 100) / 100; // Arredonda para 2 casas decimais
@@ -459,6 +539,9 @@ formatDate(date: Date): string {
             selectedDate: parking.selectedDate,
             selectedTime: parking.selectedTime,
             selectedExitTime: parking.selectedExitTime,
+            useDaily12h: !!parking.useDaily12h,
+            dailyRate12h: parking.dailyRate12h || 0,
+            hourlyRate: parking.hourlyRate || 0,
             total: this.calculateTotal(parking),
           })),
           clienteName: clienteName,

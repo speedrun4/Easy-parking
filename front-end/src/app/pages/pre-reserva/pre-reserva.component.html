@@ -9,8 +9,13 @@
     <p>Endereço: {{ parking.address }}</p>
     <p>Data: {{ parking.selectedDate }}</p>
     <p>Hora de Entrada: {{ parking.selectedTime }}</p>
-  <label for="saida-{{i}}">Hora de Saída:</label>
-  <input id="saida-{{i}}" type="time" [(ngModel)]="parking.selectedHoraSaida" name="saida-{{i}}" style="margin-bottom: 10px;" required>
+    <div *ngIf="!parking.useDaily12h; else diaria12hSaida">
+      <label for="saida-{{i}}">Hora de Saída:</label>
+      <input id="saida-{{i}}" type="time" [(ngModel)]="parking.selectedHoraSaida" name="saida-{{i}}" style="margin-bottom: 10px;" required>
+    </div>
+    <ng-template #diaria12hSaida>
+      <p><strong>Saida automatica (12h):</strong> {{ parking.selectedExitTime || parking.selectedHoraSaida }}</p>
+    </ng-template>
   </div>
 
   <h3>Tempo restante para pagamento: {{ countdown }}</h3>

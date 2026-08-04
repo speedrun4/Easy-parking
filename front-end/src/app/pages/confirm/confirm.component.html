@@ -12,6 +12,8 @@
       <div *ngFor="let parking of selectedParkings">
         <p><strong>Nome:</strong> {{ parking.title }}</p>
         <p><strong>Valor por Hora:</strong> {{ parking.label }}</p>
+        <p><strong>Diaria 12h:</strong> {{ parking.dailyRate12h ? ('R$ ' + parking.dailyRate12h) : 'Nao informada' }}</p>
+        <p><strong>Tipo:</strong> {{ parking.useDaily12h ? 'Diaria 12h' : 'Por hora' }}</p>
         <p><strong>Endereço:</strong> {{ parking.address }}</p>
         <p><strong>Data:</strong> {{ parking.selectedDate }}</p>
         <p><strong>Hora de Entrada:</strong> {{ parking.selectedTime }}</p>

@@ -30,6 +30,14 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Valor da Diária (12h)</mat-label>
+  <input matInput id="dailyRate12h" formControlName="dailyRate12h" (input)="onDailyRateInput($event)">
+        <mat-error *ngIf="parkingForm.get('dailyRate12h')?.invalid && parkingForm.get('dailyRate12h')?.touched">
+          Valor da diária (12h) é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
         <mat-label>Endereço Completo</mat-label>
         <input matInput id="address" formControlName="address">
         <mat-error *ngIf="parkingForm.get('address')?.invalid && parkingForm.get('address')?.touched">

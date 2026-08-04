@@ -81,7 +81,14 @@ export class ConfirmComponent implements OnInit {
   }
 
   calculateParkingTotal(parking: any): number {
-    if (!parking.selectedTime || !parking.selectedExitTime) return 0;
+    if (!parking.selectedTime) return 0;
+
+    if (parking.useDaily12h) {
+      const dailyRate = Number(parking.dailyRate12h || 0);
+      return Math.ceil(dailyRate * 100) / 100;
+    }
+
+    if (!parking.selectedExitTime) return 0;
 
     const [startHour, startMinute] = parking.selectedTime.split(':').map(Number);
     const [endHour, endMinute] = parking.selectedExitTime.split(':').map(Number);
@@ -101,7 +108,7 @@ export class ConfirmComponent implements OnInit {
 
     const diffHours = diffMs / (1000 * 60 * 60);
 
-    const hourlyRate = Number(parking.label.replace(/[^\d.-]/g, '')) || 0;
+    const hourlyRate = Number(parking.hourlyRate || parking.label.replace(/[^\d.-]/g, '')) || 0;
 
     const total = diffHours * hourlyRate;
     return Math.ceil(total * 100) / 100;
@@ -117,6 +124,9 @@ export class ConfirmComponent implements OnInit {
       selectedParkings: this.selectedParkings.map((parking) => ({
         title: parking.title,
         label: parking.label,
+        hourlyRate: parking.hourlyRate,
+        dailyRate12h: parking.dailyRate12h,
+        useDaily12h: !!parking.useDaily12h,
         address: parking.address,
         latitude: parking.latitude,        // <-- Adicione isto
         longitude: parking.longitude,      // <-- Adicione isto

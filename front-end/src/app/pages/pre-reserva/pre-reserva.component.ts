@@ -94,7 +94,12 @@ export class PreReservaComponent implements OnInit {
   proceedToPayment() {
     if (this.preReservaData && this.preReservaData.selectedParkings.length > 0) {
       // Validação: todos os estacionamentos precisam ter horário de saída preenchido
-      const algumSemSaida = this.preReservaData.selectedParkings.some((p: any) => !p.selectedHoraSaida);
+      const algumSemSaida = this.preReservaData.selectedParkings.some((p: any) => {
+        if (p.useDaily12h) {
+          return !(p.selectedExitTime || p.selectedHoraSaida);
+        }
+        return !(p.selectedHoraSaida || p.selectedExitTime);
+      });
       if (algumSemSaida) {
         this.showSaidaError = true;
         setTimeout(() => this.showSaidaError = false, 3000);
@@ -110,7 +115,7 @@ export class PreReservaComponent implements OnInit {
   ...p,
   data: p.selectedDate || this.preReservaData.selectedDate || null,
   horaEntrada: p.selectedTime || this.preReservaData.selectedTime || null,
-  horaSaida: p.selectedExitTime || p.selectedHoraSaida || null // cobre ambos os casos
+      horaSaida: p.selectedHoraSaida || p.selectedExitTime || null // cobre ambos os casos
       }));
 
       const paymentData = {

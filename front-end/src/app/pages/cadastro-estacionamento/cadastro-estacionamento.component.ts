@@ -76,6 +76,7 @@ export class CadastroEstacionamentoComponent implements OnInit {
       companyName: ['', Validators.required],
       cnpj: ['', Validators.required],
       hourlyRate: ['', Validators.required],
+      dailyRate12h: ['', Validators.required],
       address: ['', Validators.required],
       cep: ['', Validators.required],
       branchCeps: [''],
@@ -94,6 +95,7 @@ export class CadastroEstacionamentoComponent implements OnInit {
       companyName: ['', Validators.required],
       cnpj: ['', [Validators.required, cnpjValidator]],  // Validação de CNPJ com dígitos verificadores
       hourlyRate: ['', Validators.required],
+      dailyRate12h: ['', Validators.required],
       address: ['', Validators.required],
       cep: ['', [Validators.required, cepValidator]],
       branchCeps: ['', Validators.required],
@@ -121,6 +123,7 @@ export class CadastroEstacionamentoComponent implements OnInit {
       nomeEmpresa: this.parkingForm.get('companyName')?.value,
       cnpj: this.parkingForm.get('cnpj')?.value.replace(/\D/g, ''),
       valorPorHora: this.parkingForm.get('hourlyRate')?.value.replace(/[^\d,]/g, '').replace(',', '.'),
+      valorDiaria12h: this.parkingForm.get('dailyRate12h')?.value.replace(/[^\d,]/g, '').replace(',', '.'),
       enderecoCompleto: this.parkingForm.get('address')?.value,
       cep: this.parkingForm.get('cep')?.value.replace(/\D/g, ''),
       cepFiliais: this.parkingForm.get('branchCeps')?.value,
@@ -252,16 +255,24 @@ export class CadastroEstacionamentoComponent implements OnInit {
   }
 
   onHourlyRateInput(event: Event): void {
+    this.onCurrencyInput(event, 'hourlyRate');
+  }
+
+  onDailyRateInput(event: Event): void {
+    this.onCurrencyInput(event, 'dailyRate12h');
+  }
+
+  private onCurrencyInput(event: Event, controlName: string): void {
     const inputElement = event.target as HTMLInputElement;
     let value = inputElement.value.replace(/\D/g, '');
     if (value.length === 0) {
       inputElement.value = '';
-      this.parkingForm.get('hourlyRate')?.setValue('');
+      this.parkingForm.get(controlName)?.setValue('');
       return;
     }
     value = (parseInt(value, 10) / 100).toFixed(2);
     const formatted = value.replace('.', ',');
     inputElement.value = 'R$ ' + formatted;
-    this.parkingForm.get('hourlyRate')?.setValue(formatted);
+    this.parkingForm.get(controlName)?.setValue(formatted);
   }
 }
