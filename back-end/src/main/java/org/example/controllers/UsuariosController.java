@@ -24,7 +24,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "http://localhost:4200") // Permitir requisições do Angular no localhost
 public class UsuariosController {
     @Autowired
     private UsuariosService usuariosService;

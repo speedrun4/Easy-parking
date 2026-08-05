@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.util.List;
 
 @RequestMapping("/clientes")
-@CrossOrigin(origins = "http://localhost:4200") // Permitir requisições do Angular no localhost
 @SpringBootApplication
 @EnableScheduling
 @RestController

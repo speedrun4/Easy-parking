@@ -39,6 +39,9 @@ out/
 # Frontend build output
 front-end/dist/
 front-end/node_modules/
+front-end/.jdk/
+front-end/.android-sdk/
+front-end/android/local.properties
 
 # Backend build output
 back-end/target/

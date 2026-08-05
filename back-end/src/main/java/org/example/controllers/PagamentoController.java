@@ -24,7 +24,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/pagamentos")
-@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*", allowCredentials = "true")
 public class PagamentoController {
 
     // Endpoint para buscar reservas do cliente (pagamentos com status 'pago')

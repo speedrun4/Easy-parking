@@ -2,11 +2,11 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.easyparking.app',
-  appName: 'Easy Parking',
+  appName: 'Easy Parking Brasil',
   webDir: 'dist/easy-parking',
   bundledWebRuntime: false,
   server: {
-    cleartext: true
+    cleartext: false
   }
 };
 

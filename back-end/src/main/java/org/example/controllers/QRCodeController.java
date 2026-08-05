@@ -22,7 +22,6 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/pix")
-@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*", allowCredentials = "true")
 public class QRCodeController {
 
     @Autowired
