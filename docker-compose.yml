@@ -42,8 +42,8 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       PAGBANK_EMAIL: ${PAGBANK_EMAIL}
       PAGBANK_TOKEN: ${PAGBANK_TOKEN}
-      PAGBANK_NOTIFICATION_URL: ${PAGBANK_NOTIFICATION_URL:-https://api.easy-parking.com/api/pagbank/notifications}
-      CORS_ORIGINS: ${CORS_ORIGINS:-https://easy-parking.com,https://www.easy-parking.com,https://api.easy-parking.com}
+      PAGBANK_NOTIFICATION_URL: ${PAGBANK_NOTIFICATION_URL:-https://easyparkingbr.duckdns.org/api/pagbank/notifications}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://easy-parking.com,https://www.easy-parking.com,https://easyparkingbr.duckdns.org,http://localhost,capacitor://localhost,ionic://localhost}
       PIX_KEY: ${PIX_KEY}
     ports:
       - "8080:8080"

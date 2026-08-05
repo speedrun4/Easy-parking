@@ -33,6 +33,17 @@ $env:Path = "$($env:JAVA_HOME)\\bin;$env:Path"
 
 Write-Host "[1/6] NPM Install..." -ForegroundColor Yellow
 Set-Location $FRONTEND_DIR
+
+$ENV_PROD_FILE = Join-Path $FRONTEND_DIR "src/environments/environment.prod.ts"
+if (Test-Path $ENV_PROD_FILE) {
+    $envProdContent = Get-Content $ENV_PROD_FILE -Raw
+    if ($envProdContent -match "api\.easy-parking\.com") {
+        Write-Host "ERRO: URL de producao ainda esta como placeholder (api.easy-parking.com)." -ForegroundColor Red
+        Write-Host "Atualize front-end/src/environments/environment.prod.ts antes de gerar o APK." -ForegroundColor Yellow
+        exit 1
+    }
+}
+
 if (-Not (Test-Path "node_modules")) {
     npm install --legacy-peer-deps
 }
