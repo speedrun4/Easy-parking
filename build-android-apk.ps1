@@ -121,12 +121,15 @@ Write-Host "[6/6] Copiar APK assinado..." -ForegroundColor Yellow
 
 $APK_SIGNED = "app/build/outputs/apk/release/app-release.apk"
 $APK_OUTPUT = "app/release/app-release.apk"
+$STAMP = Get-Date -Format "yyyyMMdd-HHmmss"
+$APK_OUTPUT_VERSIONED = "app/release/app-release-$STAMP.apk"
 
 if (-Not (Test-Path "app/release")) {
     New-Item -ItemType Directory -Path "app/release" | Out-Null
 }
 
 Copy-Item $APK_SIGNED $APK_OUTPUT -Force
+Copy-Item $APK_SIGNED $APK_OUTPUT_VERSIONED -Force
 
 if ((Test-Path $APK_OUTPUT)) {
     Write-Host "OK" -ForegroundColor Green
@@ -137,6 +140,7 @@ if ((Test-Path $APK_OUTPUT)) {
     Write-Host ""
     $SIZE = [math]::Round((Get-Item $APK_OUTPUT).Length / 1MB, 2)
     Write-Host "APK: $APK_OUTPUT" -ForegroundColor Cyan
+    Write-Host "APK (versionado): $APK_OUTPUT_VERSIONED" -ForegroundColor Cyan
     Write-Host "Tamanho: $SIZE MB" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Proximos passos:" -ForegroundColor Yellow

@@ -6,10 +6,10 @@ services:
     image: mysql:8.0
     container_name: easy-parking-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: easyparking
-      MYSQL_USER: parking
-      MYSQL_PASSWORD: parking123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${MYSQL_DB:-easyparking}
+      MYSQL_USER: ${MYSQL_USER:-parking}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-parking123}
     ports:
       - "3306:3306"
     volumes:
@@ -31,19 +31,21 @@ services:
     container_name: easy-parking-app
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      MYSQL_IP: mysql
-      MYSQL_PORT: 3306
-      MYSQL_USER: parking
-      MYSQL_PASSWORD: parking123
-      MYSQL_DB: easyparking
-      MAIL_HOST: smtp.gmail.com
-      MAIL_PORT: 587
+      MYSQL_IP: ${MYSQL_IP:-mysql}
+      MYSQL_PORT: ${MYSQL_PORT:-3306}
+      MYSQL_USER: ${MYSQL_USER:-parking}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-parking123}
+      MYSQL_DB: ${MYSQL_DB:-easyparking}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       PAGBANK_EMAIL: ${PAGBANK_EMAIL}
       PAGBANK_TOKEN: ${PAGBANK_TOKEN}
-      PAGBANK_NOTIFICATION_URL: ${PAGBANK_NOTIFICATION_URL:-https://easyparkingbr.duckdns.org/api/pagbank/notifications}
-      CORS_ORIGINS: ${CORS_ORIGINS:-https://easy-parking.com,https://www.easy-parking.com,https://easyparkingbr.duckdns.org,http://localhost,capacitor://localhost,ionic://localhost}
+      PAGBANK_CLIENT_ID: ${PAGBANK_CLIENT_ID}
+      PAGBANK_CLIENT_SECRET: ${PAGBANK_CLIENT_SECRET}
+      PAGBANK_NOTIFICATION_URL: ${PAGBANK_NOTIFICATION_URL:-http://localhost:8080/api/pagbank/notifications}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://localhost,capacitor://localhost,ionic://localhost}
       PIX_KEY: ${PIX_KEY}
     ports:
       - "8080:8080"
