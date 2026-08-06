@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# Script de Deploy Automático para Google Cloud
+# Script de Deploy cloud-only para Google Cloud
 # Uso: ./deploy.sh [version]
 
 set -e
@@ -11,7 +10,7 @@ SERVICE_NAME="easy-parking"
 VERSION=${1:-"latest"}
 
 echo "=========================================="
-echo "Easy Parking - Deploy Script"
+echo "Easy Parking - Deploy Cloud Only"
 echo "=========================================="
 echo "Projeto: $PROJECT_ID"
 echo "Região: $REGION"
@@ -22,13 +21,12 @@ echo ""
 echo "[1/5] Configurando Google Cloud..."
 gcloud config set project $PROJECT_ID
 
-# 2. Build local
-echo "[2/5] Build da imagem Docker..."
-docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:$VERSION .
+# 2. Build remoto com Cloud Build (nao precisa Docker local)
+echo "[2/5] Build remoto da imagem com Cloud Build..."
+gcloud builds submit --tag gcr.io/$PROJECT_ID/$SERVICE_NAME:$VERSION .
 
-# 3. Push para Container Registry
-echo "[3/5] Enviando imagem para Container Registry..."
-docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:$VERSION
+# 3. Cloud Build ja faz push automaticamente
+echo "[3/5] Push concluido pelo Cloud Build."
 
 # 4. Deploy no Cloud Run
 echo "[4/5] Fazendo deploy no Cloud Run..."

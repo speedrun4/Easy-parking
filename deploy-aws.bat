@@ -50,8 +50,8 @@ call docker run -d ^
   -p 8080:8080 ^
   --name easy-parking ^
   -e SPRING_PROFILES_ACTIVE=prod ^
-    -e CORS_ORIGINS="https://easy-parking.com,https://www.easy-parking.com,https://api.easy-parking.com" ^
-    -e PAGBANK_NOTIFICATION_URL="https://api.easy-parking.com/api/pagbank/notifications" ^
+    -e CORS_ORIGINS="https://easy-parking.com,https://www.easy-parking.com,https://easyparkingbr.duckdns.org,http://localhost,capacitor://localhost,ionic://localhost" ^
+    -e PAGBANK_NOTIFICATION_URL="https://easyparkingbr.duckdns.org/api/pagbank/notifications" ^
   easy-parking:latest
 
 if errorlevel 1 (

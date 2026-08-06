@@ -1,0 +1,2 @@
+-- Init script placeholder for MySQL container startup.
+-- Add optional seed data or schema statements here if needed.

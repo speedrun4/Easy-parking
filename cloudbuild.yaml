@@ -11,27 +11,39 @@ steps:
       - '.'
     waitFor: ['-']
 
-  # Etapa 2: Push para Container Registry
+  # Etapa 2: Push das imagens
   - name: 'gcr.io/cloud-builders/docker'
-    id: 'push-image'
+    id: 'push-image-sha'
     args:
       - 'push'
       - 'gcr.io/$PROJECT_ID/easy-parking:$SHORT_SHA'
     waitFor: ['build-image']
 
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image-latest'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/easy-parking:latest'
+    waitFor: ['build-image']
+
   # Etapa 3: Deploy no Cloud Run
-  - name: 'gcr.io/cloud-builders/gke-deploy'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'deploy-cloud-run'
     args:
+      - 'gcloud'
       - 'run'
-      - '--filename=deployment/'
+      - 'deploy'
+      - 'easy-parking'
       - '--image=gcr.io/$PROJECT_ID/easy-parking:$SHORT_SHA'
-      - '--location=us-central1'
-      - '--namespace=default'
-    waitFor: ['push-image']
-    env:
-      - 'CLOUDSDK_COMPUTE_REGION=us-central1'
-      - 'CLOUDSDK_CONTAINER_CLUSTER=easy-parking-cluster'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--timeout=3600'
+      - '--max-instances=10'
+      - '--set-env-vars=SPRING_PROFILES_ACTIVE=prod'
+    waitFor: ['push-image-sha', 'push-image-latest']
 
 # Configurações da build
 options:

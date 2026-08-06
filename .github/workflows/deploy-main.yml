@@ -1,0 +1,38 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy application files to Oracle VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ORACLE_VM_HOST }}
+          username: ${{ secrets.ORACLE_VM_USER }}
+          key: ${{ secrets.ORACLE_VM_SSH_KEY }}
+          source: "."
+          target: "~/Easy-parking"
+          strip_components: 0
+          overwrite: true
+
+      - name: Run deploy on Oracle VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.ORACLE_VM_HOST }}
+          username: ${{ secrets.ORACLE_VM_USER }}
+          key: ${{ secrets.ORACLE_VM_SSH_KEY }}
+          script_stop: true
+          script: |
+            export APP_DIR='$HOME/Easy-parking'
+            chmod +x "$HOME/Easy-parking/scripts/deploy-oracle-vm.sh"
+            "$HOME/Easy-parking/scripts/deploy-oracle-vm.sh"
