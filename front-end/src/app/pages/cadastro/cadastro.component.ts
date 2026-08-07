@@ -5,6 +5,8 @@ import { GeocodingService } from '../../services/geocoding.service';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
+import { HttpErrorResponse } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 import { ConfirmationDialogComponent } from 'src/app/components/confirmation-dialog/confirmation-dialog.component';
 import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
 import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
@@ -15,6 +17,8 @@ import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dial
   styleUrls: ['./cadastro.component.scss']
 })
 export class CadastroComponent implements OnInit {
+  readonly apiBaseUrl = environment.apiBaseUrl;
+
   // Validador customizado para telefone
   phoneValidator(control: AbstractControl) {
     const value = control.value ? control.value.replace(/\D/g, '') : '';
@@ -122,15 +126,24 @@ export class CadastroComponent implements OnInit {
           });
         },
         error: (error: any) => {
-          const errorMessage =
-            error?.error?.message ||
-            error?.error ||
-            error?.message ||
-            'Erro ao realizar cadastro. Tente novamente.';
-          this.openErrorDialog(errorMessage);
+          this.openErrorDialog(this.buildRegistrationErrorMessage(error));
         }
       });
     }
+  }
+
+  private buildRegistrationErrorMessage(error: any): string {
+    const baseMessage =
+      error?.error?.message ||
+      error?.error ||
+      error?.message ||
+      'Erro ao realizar cadastro. Tente novamente.';
+
+    const httpError = error as HttpErrorResponse;
+    const statusPart = typeof httpError?.status === 'number' ? `status=${httpError.status}` : 'status=desconhecido';
+    const detailPart = httpError?.message ? `detalhe=${httpError.message}` : 'detalhe=sem detalhe';
+
+    return `${baseMessage}\n\nAPI atual: ${this.apiBaseUrl}\n${statusPart}; ${detailPart}`;
   }
 
   openErrorDialog(message: string): void {

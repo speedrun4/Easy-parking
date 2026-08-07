@@ -16,6 +16,7 @@
   <!-- Formulário de Cadastro de Usuário -->
   <mat-card *ngIf="showUserForm" class="form-container">
     <h2>Cadastro de Usuário</h2>
+    <p class="api-debug">API atual: {{ apiBaseUrl }}</p>
     <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('usuario')" *ngIf="!aguardandoConfirmacao">
       <mat-form-field appearance="fill" class="wide-field">
         <mat-label>Nome Completo</mat-label>
@@ -79,6 +80,7 @@
   <!-- Formulário de Cadastro de Clientes -->
   <mat-card *ngIf="!showUserForm" class="form-container">
     <h2>Cadastro de Clientes</h2>
+    <p class="api-debug">API atual: {{ apiBaseUrl }}</p>
     <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('cliente')">
       <mat-form-field appearance="fill">
         <mat-label>Nome Completo do Cliente</mat-label>

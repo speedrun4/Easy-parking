@@ -10,6 +10,25 @@ $ANDROID_DIR = Join-Path $FRONTEND_DIR "android"
 $LOCAL_JDK = Join-Path $FRONTEND_DIR ".jdk/jdk-17"
 $LOCAL_SDK = Join-Path $FRONTEND_DIR ".android-sdk"
 
+function Get-MainBundleFromIndex {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$IndexPath
+    )
+
+    if (-Not (Test-Path $IndexPath)) {
+        throw "Index nao encontrado: $IndexPath"
+    }
+
+    $content = Get-Content $IndexPath -Raw
+    $match = [regex]::Match($content, 'main\.[^"'']+\.js')
+    if (-Not $match.Success) {
+        throw "Nao foi possivel identificar o bundle main.js em: $IndexPath"
+    }
+
+    return $match.Value
+}
+
 # Verificar estrutura minima do projeto
 if (-Not (Test-Path (Join-Path $FRONTEND_DIR "package.json"))) {
     Write-Host "ERRO: Estrutura invalida. Nao encontrei front-end/package.json" -ForegroundColor Red
@@ -60,7 +79,12 @@ Write-Host "OK" -ForegroundColor Green
 Write-Host ""
 
 Write-Host "[3/6] Capacitor Sync..." -ForegroundColor Yellow
-npx cap sync android --quiet 2>$null
+npx cap sync android
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERRO no Capacitor Sync" -ForegroundColor Red
+    exit 1
+}
 
 if (-Not (Test-Path $ANDROID_DIR)) {
     Write-Host "Plataforma Android ausente. Recriando com Capacitor..." -ForegroundColor Cyan
@@ -70,6 +94,25 @@ if (-Not (Test-Path $ANDROID_DIR)) {
         exit 1
     }
 }
+
+try {
+    $distIndex = Join-Path $FRONTEND_DIR "dist/easy-parking/index.html"
+    $androidIndex = Join-Path $ANDROID_DIR "app/src/main/assets/public/index.html"
+
+    $distMainBundle = Get-MainBundleFromIndex -IndexPath $distIndex
+    $androidMainBundle = Get-MainBundleFromIndex -IndexPath $androidIndex
+
+    if ($distMainBundle -ne $androidMainBundle) {
+        Write-Host "ERRO: Sync incompleto. Android está com '$androidMainBundle', mas dist está com '$distMainBundle'." -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "Bundle sincronizado: $androidMainBundle" -ForegroundColor DarkGray
+} catch {
+    Write-Host "ERRO ao validar sincronizacao dos assets: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "OK" -ForegroundColor Green
 Write-Host ""
 
