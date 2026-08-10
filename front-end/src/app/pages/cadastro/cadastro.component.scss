@@ -3,14 +3,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  margin-top: -84px
+  padding: 8px 20px 20px;
+  margin-top: 0;
 }
 
 .promo-banner {
   width: 100%;
   max-width: 600px;
-  margin: 94px 0 16px;
+  margin: 8px 0 16px;
   border: 1px solid #9ae6b4;
   background: #f0fff4;
   color: #276749;
@@ -27,7 +27,7 @@
   display: flex;
   justify-content: space-around;
   margin-bottom: 20px;
-  margin-top: 81px;
+  margin-top: 8px;
 }
 
 .toggle-buttons {
@@ -110,7 +110,7 @@
   background: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128)); /* Cor para estado de hover */
 }
 .button-icon {
-  margin-top: 82px;
+  margin-top: 0;
 }
 
 .mensagem-sucesso {
