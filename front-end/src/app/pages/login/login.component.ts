@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
@@ -11,10 +11,16 @@ import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dial
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
+  private readonly firstReservationPromoCode = 'first-reservation-10';
   loginForm: FormGroup;
   errorMessage: string = '';
   showErrorModal: boolean = false;
   hidePassword: boolean = true;
+  private returnUrl: string = '/welcome';
+  private pendingPromoCode: string = '';
+  hideClientLoginOption: boolean = false;
+  promoBannerMessage: string = '';
+  registrationQueryParams: { [key: string]: string } | null = null;
 
   // Variável para controlar a exibição dos formulários
   showUserForm: boolean = true;
@@ -22,6 +28,7 @@ export class LoginComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private authService: AuthService,
     public dialog: MatDialog
   ) {
@@ -53,7 +60,7 @@ export class LoginComponent implements OnInit {
               localStorage.setItem('currentUser', JSON.stringify(updatedResponse));
               this.authService.setCurrentUser(updatedResponse);
               localStorage.setItem('token', token);
-              this.router.navigate(['/welcome']);
+              this.redirectAfterLogin('/welcome');
             } else {
               this.openErrorDialog('Perfil não autorizado para login de usuário.');
             }
@@ -64,7 +71,7 @@ export class LoginComponent implements OnInit {
               localStorage.setItem('currentUser', JSON.stringify(updatedResponse));
               this.authService.setCurrentUser(updatedResponse);
               localStorage.setItem('token', token);
-              this.router.navigate(['/cliente']);
+              this.redirectAfterLogin('/cliente');
             } else {
               this.openErrorDialog('Apenas clientes podem acessar esta seção.');
             }
@@ -104,5 +111,61 @@ export class LoginComponent implements OnInit {
     // Adicione a lógica de login com Facebook aqui
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.returnUrl = this.sanitizeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
+    this.pendingPromoCode = this.route.snapshot.queryParamMap.get('promo') || '';
+    this.hideClientLoginOption = this.isUserPromoCode(this.pendingPromoCode);
+    this.promoBannerMessage = this.getPromoBannerMessage(this.pendingPromoCode);
+    this.registrationQueryParams = this.pendingPromoCode
+      ? { promo: this.pendingPromoCode, returnUrl: this.returnUrl, loginType: 'user' }
+      : null;
+    const loginType = (this.route.snapshot.queryParamMap.get('loginType') || '').toLowerCase();
+    this.showUserForm = this.hideClientLoginOption ? true : loginType !== 'client';
+  }
+
+  private isUserPromoCode(promoCode: string): boolean {
+    return this.isAdvancePromoCode(promoCode) || this.isFirstReservationPromoCode(promoCode);
+  }
+
+  private isAdvancePromoCode(promoCode: string): boolean {
+    return promoCode === 'advance-24h-5' || promoCode === 'advance-24h-15' || promoCode === 'advance-24h-20';
+  }
+
+  private isFirstReservationPromoCode(promoCode: string): boolean {
+    return promoCode === this.firstReservationPromoCode;
+  }
+
+  private getPromoBannerMessage(promoCode: string): string {
+    if (this.isFirstReservationPromoCode(promoCode)) {
+      return 'Promocao ativa: 10% OFF na primeira reserva, sujeito a validacao no pagamento para novos usuarios.';
+    }
+
+    if (this.isAdvancePromoCode(promoCode)) {
+      return 'Promocao ativa: 5% OFF para reservas com no minimo 24h de antecedencia.';
+    }
+
+    return '';
+  }
+
+  private sanitizeReturnUrl(url: string | null): string {
+    if (!url || !url.startsWith('/')) {
+      return '/welcome';
+    }
+    return url;
+  }
+
+  private redirectAfterLogin(defaultRoute: string): void {
+    const targetRoute = this.pendingPromoCode ? this.returnUrl : defaultRoute;
+
+    if (this.pendingPromoCode) {
+      this.router.navigate([targetRoute], {
+        queryParams: {
+          promo: this.pendingPromoCode
+        }
+      });
+      return;
+    }
+
+    this.router.navigate([targetRoute]);
+  }
 }

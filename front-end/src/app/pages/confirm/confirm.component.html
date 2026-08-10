@@ -18,11 +18,25 @@
         <p><strong>Data:</strong> {{ parking.selectedDate }}</p>
         <p><strong>Hora de Entrada:</strong> {{ parking.selectedTime }}</p>
         <p><strong>Hora de Saída:</strong> {{ parking.selectedExitTime }}</p>
-        <p><strong>Valor Total:</strong>
+        <p><strong>Valor antes do desconto:</strong>
+          {{ getParkingBaseTotal(parking) | currency:'BRL':'symbol':'1.2-2':'pt' }}
+        </p>
+        <p><strong>Desconto:</strong>
+          - {{ getAdvanceBookingDiscount(parking) | currency:'BRL':'symbol':'1.2-2':'pt' }}
+        </p>
+        <p><strong>Valor com desconto:</strong>
           {{ calculateParkingTotal(parking) | currency:'BRL':'symbol':'1.2-2':'pt' }}
+        </p>
+        <p *ngIf="isAdvanceBookingEligible(parking)" style="color: #1e7a34; margin-top: -4px;">
+          Promocao aplicada: 5% OFF por reserva com 24h de antecedencia
+          (economia de {{ getAdvanceBookingDiscount(parking) | currency:'BRL':'symbol':'1.2-2':'pt' }}).
         </p>
         <hr />
       </div>
+
+      <p *ngIf="firstReservationPromoMessage" [style.color]="isValidatingFirstReservationPromo ? '#92400e' : '#1e7a34'">
+        {{ firstReservationPromoMessage }}
+      </p>
 
       <h3>Informações do Usuário</h3>
       <p><strong>Nome do Usuário:</strong> {{ userName }}</p>

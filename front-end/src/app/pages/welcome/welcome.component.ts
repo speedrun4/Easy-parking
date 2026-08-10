@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { EstacionamentoService } from '../../services/estacionamento.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 
 @Component({
@@ -12,6 +12,9 @@ import * as L from 'leaflet';
   styleUrls: ['./welcome.component.scss'],
 })
 export class WelcomeComponent implements OnInit {
+  private readonly advanceBookingHours = 24;
+  private readonly advanceBookingDiscountRate = 0.05;
+  private readonly firstReservationPromoCode = 'first-reservation-10';
   searchForm: FormGroup;
   latitude = -23.55052;
   longitude = -46.633308;
@@ -20,6 +23,8 @@ export class WelcomeComponent implements OnInit {
   filteredMarkers: any[] = [];
   selectedParkings: any[] = [];
   paymentConfirmed: boolean = false;
+  promotionBannerMessage: string = '';
+  currentPromotionCode: string = '';
   selectedTime: string | undefined;
 
   timeOptions: string[] = [];
@@ -36,7 +41,8 @@ export class WelcomeComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private estacionamentoService: EstacionamentoService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as { paymentConfirmed: boolean };
@@ -56,6 +62,8 @@ export class WelcomeComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.applyPromotionFromRoute();
+
     this.estacionamentoService.carregarEstacionamentos();
 
     this.estacionamentoService.estacionamentos$.subscribe((data) => {
@@ -90,6 +98,45 @@ export class WelcomeComponent implements OnInit {
       startWith(''),
       map(value => this._filterEstacionamentos(value || ''))
     );
+  }
+
+  private applyPromotionFromRoute(): void {
+    const promoCode = this.route.snapshot.queryParamMap.get('promo');
+    if (!this.isKnownPromoCode(promoCode)) {
+      this.currentPromotionCode = '';
+      this.promotionBannerMessage = '';
+      return;
+    }
+
+    this.currentPromotionCode = promoCode || '';
+    this.promotionBannerMessage = this.getPromotionBannerMessage(this.currentPromotionCode);
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { promo: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  private isKnownPromoCode(promoCode: string | null): boolean {
+    return this.isAdvancePromoCode(promoCode) || this.isFirstReservationPromoCode(promoCode);
+  }
+
+  private isAdvancePromoCode(promoCode: string | null): boolean {
+    return promoCode === 'advance-24h-5' || promoCode === 'advance-24h-15' || promoCode === 'advance-24h-20';
+  }
+
+  private isFirstReservationPromoCode(promoCode: string | null): boolean {
+    return promoCode === this.firstReservationPromoCode;
+  }
+
+  private getPromotionBannerMessage(promoCode: string): string {
+    if (this.isFirstReservationPromoCode(promoCode)) {
+      return 'Promocao ativa: 10% OFF na primeira reserva, validado no pagamento para novos usuarios.';
+    }
+
+    return 'Promocao ativa: 5% OFF em reservas com no minimo 24h de antecedencia.';
   }
 
   private _filterEstacionamentos(value: any): any[] {
@@ -490,8 +537,38 @@ formatDate(date: Date): string {
   return `${day}/${month}/${year}`;
 }
 
+  isAdvanceBookingEligible(marker: any): boolean {
+    const reservationDateTime = this.getReservationDateTime(marker?.selectedDate, marker?.selectedTime);
+    if (!reservationDateTime) {
+      return false;
+    }
+
+    const now = new Date();
+    const diffHours = (reservationDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return diffHours >= this.advanceBookingHours;
+  }
+
+  getAdvanceBookingDiscount(marker: any): number {
+    const baseTotal = this.calculateBaseTotal(marker);
+    if (!baseTotal || !this.isAdvanceBookingEligible(marker)) {
+      return 0;
+    }
+    return Math.round(baseTotal * this.advanceBookingDiscountRate * 100) / 100;
+  }
+
   calculateTotal(marker: any): number {
-  if (!marker.selectedTime) return 0;
+  const baseTotal = this.calculateBaseTotal(marker);
+  if (!baseTotal) {
+    return 0;
+  }
+
+  const discount = this.getAdvanceBookingDiscount(marker);
+  const totalWithDiscount = baseTotal - discount;
+  return Math.round(totalWithDiscount * 100) / 100;
+}
+
+  private calculateBaseTotal(marker: any): number {
+  if (!marker?.selectedTime) return 0;
 
   if (marker.useDaily12h) {
     const dailyRate = Number(marker.dailyRate12h || 0);
@@ -524,6 +601,42 @@ formatDate(date: Date): string {
   return Math.ceil(total * 100) / 100; // Arredonda para 2 casas decimais
 }
 
+  private getReservationDateTime(dateValue: string | Date, timeValue: string): Date | null {
+    if (!dateValue || !timeValue || !timeValue.includes(':')) {
+      return null;
+    }
+
+    const [hour, minute] = timeValue.split(':').map(Number);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) {
+      return null;
+    }
+
+    const reservationDate = dateValue instanceof Date ? new Date(dateValue) : this.parseDateString(dateValue);
+    if (!reservationDate) {
+      return null;
+    }
+
+    reservationDate.setHours(hour, minute, 0, 0);
+    return reservationDate;
+  }
+
+  private parseDateString(value: string): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    if (value.includes('/')) {
+      const [day, month, year] = value.split('/').map(Number);
+      if ([day, month, year].some(Number.isNaN)) {
+        return null;
+      }
+      return new Date(year, month - 1, day);
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
   confirmSelection() {
     if (this.selectedParkings.length > 0) {
       const clienteName = 'João Silva';
@@ -545,6 +658,7 @@ formatDate(date: Date): string {
             total: this.calculateTotal(parking),
           })),
           clienteName: clienteName,
+          activePromoCode: this.currentPromotionCode || null,
         },
       });
 

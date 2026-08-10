@@ -2,9 +2,11 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { EstacionamentoService } from '../../services/estacionamento.service';
 import { GeocodingService } from '../../services/geocoding.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
+import { HttpErrorResponse } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 import { ConfirmationDialogComponent } from 'src/app/components/confirmation-dialog/confirmation-dialog.component';
 import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
 import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
@@ -15,6 +17,9 @@ import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dial
   styleUrls: ['./cadastro.component.scss']
 })
 export class CadastroComponent implements OnInit {
+  readonly apiBaseUrl = environment.apiBaseUrl;
+  private readonly firstReservationPromoCode = 'first-reservation-10';
+
   // Validador customizado para telefone
   phoneValidator(control: AbstractControl) {
     const value = control.value ? control.value.replace(/\D/g, '') : '';
@@ -56,6 +61,9 @@ export class CadastroComponent implements OnInit {
   erroConfirmacao: string = '';
 
   showUserForm = true;
+  hideClientRegistrationOption = false;
+  activePromoCode: string | null = null;
+  promoBannerMessage: string = '';
   userForm!: FormGroup;
   parkingForm!: FormGroup;
   estacionamentos: any[] = [];
@@ -71,10 +79,17 @@ export class CadastroComponent implements OnInit {
   constructor(private fb: FormBuilder,
     private authService: AuthService,
     private geocodingService: GeocodingService,
-    private router: Router, 
+    private router: Router,
+    private route: ActivatedRoute,
     public dialog: MatDialog) { }
 
   ngOnInit(): void {
+    this.activePromoCode = this.route.snapshot.queryParamMap.get('promo');
+    this.hideClientRegistrationOption = this.activePromoCode === this.firstReservationPromoCode;
+    this.showUserForm = this.hideClientRegistrationOption ? true : this.showUserForm;
+    this.promoBannerMessage = this.hideClientRegistrationOption
+      ? 'Promocao ativa: 10% OFF na primeira reserva. Cadastre-se como usuario para liberar a oferta no pagamento.'
+      : '';
     this.initializeUserForm();
   }
 
@@ -118,19 +133,31 @@ export class CadastroComponent implements OnInit {
             data: { message: response.message || 'Cadastro realizado com sucesso!' }
           });
           dialogRef.afterClosed().subscribe(() => {
-            this.router.navigate(['/home']);
+            const queryParams = this.activePromoCode === this.firstReservationPromoCode
+              ? { promo: this.activePromoCode, returnUrl: '/welcome', loginType: 'user' }
+              : undefined;
+            this.router.navigate(['/login'], queryParams ? { queryParams } : undefined);
           });
         },
         error: (error: any) => {
-          const errorMessage =
-            error?.error?.message ||
-            error?.error ||
-            error?.message ||
-            'Erro ao realizar cadastro. Tente novamente.';
-          this.openErrorDialog(errorMessage);
+          this.openErrorDialog(this.buildRegistrationErrorMessage(error));
         }
       });
     }
+  }
+
+  private buildRegistrationErrorMessage(error: any): string {
+    const baseMessage =
+      error?.error?.message ||
+      error?.error ||
+      error?.message ||
+      'Erro ao realizar cadastro. Tente novamente.';
+
+    const httpError = error as HttpErrorResponse;
+    const statusPart = typeof httpError?.status === 'number' ? `status=${httpError.status}` : 'status=desconhecido';
+    const detailPart = httpError?.message ? `detalhe=${httpError.message}` : 'detalhe=sem detalhe';
+
+    return `${baseMessage}\n\nAPI atual: ${this.apiBaseUrl}\n${statusPart}; ${detailPart}`;
   }
 
   openErrorDialog(message: string): void {
@@ -185,7 +212,8 @@ export class CadastroComponent implements OnInit {
     this.parkingForm.get('cnpj')?.setValue(cnpj.replace(/\D/g, ''));
   }
   goToLogin() {
-    this.router.navigate(['/home']);
+    const queryParams = this.activePromoCode ? { promo: this.activePromoCode, returnUrl: '/welcome', loginType: 'user' } : undefined;
+    this.router.navigate(['/login'], queryParams ? { queryParams } : undefined);
   }
 
   onFileSelected(event: any): void {

@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -25,6 +27,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuariosController {
+    private static final Logger logger = LoggerFactory.getLogger(UsuariosController.class);
+
     @Autowired
     private UsuariosService usuariosService;
     @Autowired
@@ -71,6 +75,8 @@ public class UsuariosController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> register(@RequestBody Usuarios usuario) {
+        logger.info("Tentativa de cadastro recebida para email={} perfil={}", usuario.getEmail(), usuario.getPerfil());
+
         // Validação e verificação do perfil
         if (usuario.getPerfil() == null ||
                 (!usuario.getPerfil().equals("usuario") && !usuario.getPerfil().equals("cliente"))) {
@@ -97,12 +103,17 @@ public class UsuariosController {
             
             // Salva o usuário diretamente no banco
             usuariosService.saveUsuario(usuario);
+            logger.info("Cadastro salvo com sucesso para email={} id={}", usuario.getEmail(), usuario.getId());
 
-            // Enviar e-mail de confirmação (opcional)
+            // Email nao deve derrubar o cadastro em ambientes com SMTP instavel.
             if (mailEnabled) {
-                String subject = "Cadastro realizado com sucesso";
-                String body = "Bem-vindo " + usuario.getNomeCompleto() + "! Seu cadastro foi realizado com sucesso.";
-                emailService.sendEmail(usuario.getEmail(), subject, body);
+                try {
+                    String subject = "Cadastro realizado com sucesso";
+                    String body = "Bem-vindo " + usuario.getNomeCompleto() + "! Seu cadastro foi realizado com sucesso.";
+                    emailService.sendEmail(usuario.getEmail(), subject, body);
+                } catch (Exception emailException) {
+                    logger.warn("Cadastro concluido, mas o envio de email falhou para {}: {}", usuario.getEmail(), emailException.getMessage());
+                }
             }
 
             // Retorna resposta de sucesso

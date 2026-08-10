@@ -21,8 +21,14 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./payment.component.scss']
 })
 export class PaymentComponent implements OnInit, OnDestroy {
+  private readonly firstReservationPromoCode = 'first-reservation-10';
+  private readonly firstReservationDiscountRate = 0.10;
 
   totalValue: number = 0;
+  originalTotalValue: number = 0;
+  discountTotalValue: number = 0;
+  promoValidationMessage: string = '';
+  isValidatingPromotion: boolean = false;
   selectedPaymentMethod: string = '';
   paymentMethods = ['Pix', 'Cartão de Crédito', 'Cartão de Débito'];
   qrCodeData: string = '';
@@ -59,6 +65,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
   selectedDate: Date | null = null;
   selectedTime: string | null = null;
   paymentData: any = null;
+  activePromoCode: string | null = null;
+  private baseOriginalTotalValue: number = 0;
+  private baseDiscountTotalValue: number = 0;
 
   constructor(
     private router: Router,
@@ -74,6 +83,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       selectedDate: Date | null;
       selectedTime: string | null;
       selectedParkings: any[];
+      activePromoCode?: string | null;
     };
 
     if (state) {
@@ -81,6 +91,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
       this.selectedDate = state.selectedDate;
       this.selectedTime = state.selectedTime;
       this.selectedParkings = state.selectedParkings || [];
+      this.activePromoCode = state.activePromoCode || null;
+      this.updatePaymentTotals();
     }
   }
 
@@ -92,10 +104,16 @@ export class PaymentComponent implements OnInit, OnDestroy {
         if (Array.isArray(this.paymentData?.selectedParkings) && this.paymentData.selectedParkings.length > 0) {
           this.selectedParkings = this.selectedParkings.length > 0 ? this.selectedParkings : this.paymentData.selectedParkings;
         }
+        if (!this.activePromoCode && this.paymentData.activePromoCode) {
+          this.activePromoCode = this.paymentData.activePromoCode;
+        }
         if (this.paymentData.totalValue) {
-          this.totalValue = this.paymentData.totalValue;
+          this.totalValue = Number(this.paymentData.totalValue);
         }
       }
+
+      this.updatePaymentTotals();
+      this.evaluateFirstReservationPromotion();
 
       if (!this.selectedParkings || this.selectedParkings.length === 0) {
         console.warn('Nenhum estacionamento selecionado encontrado.');
@@ -105,6 +123,84 @@ export class PaymentComponent implements OnInit, OnDestroy {
       console.error('Erro ao carregar os dados de pagamento:', error);
       this.router.navigate(['/']);
     }
+  }
+
+  private updatePaymentTotals(): void {
+    const hasBaseTotals = (this.selectedParkings || []).some((p: any) => p?.baseTotal !== undefined);
+
+    if (hasBaseTotals) {
+      this.baseOriginalTotalValue = this.roundToCents(
+        this.selectedParkings.reduce((acc: number, p: any) => acc + Number(p?.baseTotal || 0), 0)
+      );
+      this.baseDiscountTotalValue = this.roundToCents(
+        this.selectedParkings.reduce((acc: number, p: any) => acc + Number(p?.discountAmount || 0), 0)
+      );
+      this.applyPaymentTotals(0);
+      return;
+    }
+
+    const totals = (this.selectedParkings || []).map((p: any) => Number(p?.total || 0)).filter((v: number) => v > 0);
+    if (totals.length > 0) {
+      this.totalValue = this.roundToCents(totals.reduce((acc: number, v: number) => acc + v, 0));
+    }
+
+    this.baseOriginalTotalValue = this.totalValue;
+    this.baseDiscountTotalValue = 0;
+    this.applyPaymentTotals(0);
+  }
+
+  private applyPaymentTotals(extraDiscount: number): void {
+    const normalizedExtraDiscount = this.roundToCents(extraDiscount);
+    this.originalTotalValue = this.baseOriginalTotalValue;
+    this.discountTotalValue = this.roundToCents(this.baseDiscountTotalValue + normalizedExtraDiscount);
+    const subtotalAfterBaseDiscounts = this.roundToCents(this.baseOriginalTotalValue - this.baseDiscountTotalValue);
+    this.totalValue = this.roundToCents(subtotalAfterBaseDiscounts - normalizedExtraDiscount);
+  }
+
+  private evaluateFirstReservationPromotion(): void {
+    this.promoValidationMessage = '';
+
+    if (this.activePromoCode !== this.firstReservationPromoCode) {
+      this.applyPaymentTotals(0);
+      return;
+    }
+
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser?.id) {
+      this.promoValidationMessage = 'Faça login para validar a promocao da primeira reserva.';
+      this.applyPaymentTotals(0);
+      return;
+    }
+
+    this.isValidatingPromotion = true;
+    this.promoValidationMessage = 'Validando promocao de primeira reserva...';
+
+    this.paymentHistoryService.getPaidReservations(currentUser.id).subscribe({
+      next: (reservas) => {
+        const subtotalAfterBaseDiscounts = this.roundToCents(this.baseOriginalTotalValue - this.baseDiscountTotalValue);
+        const isNewUser = !Array.isArray(reservas) || reservas.length === 0;
+
+        if (isNewUser && subtotalAfterBaseDiscounts > 0) {
+          const firstReservationDiscount = this.roundToCents(subtotalAfterBaseDiscounts * this.firstReservationDiscountRate);
+          this.applyPaymentTotals(firstReservationDiscount);
+          this.promoValidationMessage = 'Promocao aplicada: 10% OFF na sua primeira reserva.';
+        } else {
+          this.applyPaymentTotals(0);
+          this.promoValidationMessage = 'Promocao nao aplicada: valida somente para usuarios sem reservas pagas anteriores.';
+        }
+
+        this.isValidatingPromotion = false;
+      },
+      error: () => {
+        this.applyPaymentTotals(0);
+        this.promoValidationMessage = 'Nao foi possivel validar a promocao da primeira reserva.';
+        this.isValidatingPromotion = false;
+      }
+    });
+  }
+
+  private roundToCents(value: number): number {
+    return Math.round((Number(value) || 0) * 100) / 100;
   }
 
   isPaymentMethodValid() {
