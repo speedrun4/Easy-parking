@@ -5,6 +5,23 @@
   background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  .promo-banner {
+    margin-top: 72px;
+    margin-bottom: 12px;
+    border: 1px solid #9ae6b4;
+    background: #f0fff4;
+    color: #276749;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .promo-banner p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
   
   .login-title {
     margin-top: 81px;

@@ -4,6 +4,10 @@
     <mat-icon>arrow_back</mat-icon>
   </button>
 
+  <div *ngIf="promoBannerMessage" class="promo-banner">
+    <p>{{ promoBannerMessage }}</p>
+  </div>
+
   <h2 class="login-title">Login</h2>
 
   <!-- Botões para alternar entre o login de Usuário e Cliente -->
@@ -11,7 +15,7 @@
     <button mat-button (click)="showUserForm = true" [class.active]="showUserForm">
       Login de Usuário
     </button>
-    <button mat-button (click)="showUserForm = false" [class.active]="!showUserForm">
+    <button *ngIf="!hideClientLoginOption" mat-button (click)="showUserForm = false" [class.active]="!showUserForm">
       Login de Cliente
     </button>
   </div>
@@ -49,7 +53,7 @@
   </form>
 
   <!-- Formulário de Login de Cliente -->
-  <form *ngIf="!showUserForm" [formGroup]="loginForm" (ngSubmit)="onSubmit('client')">
+  <form *ngIf="!showUserForm && !hideClientLoginOption" [formGroup]="loginForm" (ngSubmit)="onSubmit('client')">
     <mat-form-field appearance="fill" class="form-group">
       <mat-label>Email Cliente</mat-label>
       <input matInput type="email" formControlName="email" placeholder="Digite o email do cliente" />

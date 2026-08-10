@@ -34,13 +34,20 @@
       </div>
     </slide>
     <slide>
-      <div class="slide-content">
+      <div
+        class="slide-content promo-clickable"
+        role="button"
+        tabindex="0"
+        aria-label="Abrir promoção de reserva antecipada"
+        (click)="goToAdvancePromoLogin()"
+        (keydown.enter)="goToAdvancePromoLogin()"
+        (keydown.space)="goToAdvancePromoLogin()">
         <div class="slide-image">
           <img src="assets/images/promos/promo-reserva-antecipada.svg" alt="Economize reservando sua vaga com antecedência" loading="lazy">
         </div>
         <div class="slide-text">
-          <h3>Reserva Antecipada</h3>
-          <p>Economize até 15% reservando antes.</p>
+          <h3>Reserva Antecipada 5% OFF</h3>
+          <p>Desconto válido para reservas feitas com 24h de antecedência.</p>
         </div>
       </div>
     </slide>

@@ -14,6 +14,8 @@ import { PreReservationService } from 'src/app/services/pre-reservation.service'
   styleUrls: ['./confirm.component.scss']
 })
 export class ConfirmComponent implements OnInit {
+  private readonly advanceBookingHours = 24;
+  private readonly advanceBookingDiscountRate = 0.05;
 
   selectedParkings: any[] = [];  // Lista de estacionamentos selecionados
   clienteName: string = '';  // Nome do cliente
@@ -80,8 +82,42 @@ export class ConfirmComponent implements OnInit {
     }, 0);
   }
 
+  getParkingBaseTotal(parking: any): number {
+    return this.calculateBaseParkingTotal(parking);
+  }
+
+  isAdvanceBookingEligible(parking: any): boolean {
+    const reservationDateTime = this.getReservationDateTime(parking?.selectedDate, parking?.selectedTime);
+    if (!reservationDateTime) {
+      return false;
+    }
+
+    const now = new Date();
+    const diffHours = (reservationDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return diffHours >= this.advanceBookingHours;
+  }
+
+  getAdvanceBookingDiscount(parking: any): number {
+    const baseTotal = this.getParkingBaseTotal(parking);
+    if (!baseTotal || !this.isAdvanceBookingEligible(parking)) {
+      return 0;
+    }
+    return Math.round(baseTotal * this.advanceBookingDiscountRate * 100) / 100;
+  }
+
   calculateParkingTotal(parking: any): number {
-    if (!parking.selectedTime) return 0;
+    const baseTotal = this.getParkingBaseTotal(parking);
+    if (!baseTotal) {
+      return 0;
+    }
+
+    const discount = this.getAdvanceBookingDiscount(parking);
+    const totalWithDiscount = baseTotal - discount;
+    return Math.round(totalWithDiscount * 100) / 100;
+  }
+
+  private calculateBaseParkingTotal(parking: any): number {
+    if (!parking?.selectedTime) return 0;
 
     if (parking.useDaily12h) {
       const dailyRate = Number(parking.dailyRate12h || 0);
@@ -114,6 +150,42 @@ export class ConfirmComponent implements OnInit {
     return Math.ceil(total * 100) / 100;
   }
 
+  private getReservationDateTime(dateValue: string | Date, timeValue: string): Date | null {
+    if (!dateValue || !timeValue || !timeValue.includes(':')) {
+      return null;
+    }
+
+    const [hour, minute] = timeValue.split(':').map(Number);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) {
+      return null;
+    }
+
+    const reservationDate = dateValue instanceof Date ? new Date(dateValue) : this.parseDateString(dateValue);
+    if (!reservationDate) {
+      return null;
+    }
+
+    reservationDate.setHours(hour, minute, 0, 0);
+    return reservationDate;
+  }
+
+  private parseDateString(value: string): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    if (value.includes('/')) {
+      const [day, month, year] = value.split('/').map(Number);
+      if ([day, month, year].some(Number.isNaN)) {
+        return null;
+      }
+      return new Date(year, month - 1, day);
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
   onDateChange(event: any) {
     this.selectedDate = event.value; // Aqui você captura o valor da data
   }
@@ -121,20 +193,27 @@ export class ConfirmComponent implements OnInit {
   confirmReservation() {
     // Preparando os dados da pré-reserva
     const preReservaData = {
-      selectedParkings: this.selectedParkings.map((parking) => ({
-        title: parking.title,
-        label: parking.label,
-        hourlyRate: parking.hourlyRate,
-        dailyRate12h: parking.dailyRate12h,
-        useDaily12h: !!parking.useDaily12h,
-        address: parking.address,
-        latitude: parking.latitude,        // <-- Adicione isto
-        longitude: parking.longitude,      // <-- Adicione isto
-        selectedDate: parking.selectedDate,
-        selectedTime: parking.selectedTime,
-        selectedExitTime: parking.selectedExitTime,
-        total: this.calculateParkingTotal(parking)
-      })),
+      selectedParkings: this.selectedParkings.map((parking) => {
+        const baseTotal = this.getParkingBaseTotal(parking);
+        const discountAmount = this.getAdvanceBookingDiscount(parking);
+
+        return {
+          title: parking.title,
+          label: parking.label,
+          hourlyRate: parking.hourlyRate,
+          dailyRate12h: parking.dailyRate12h,
+          useDaily12h: !!parking.useDaily12h,
+          address: parking.address,
+          latitude: parking.latitude,
+          longitude: parking.longitude,
+          selectedDate: parking.selectedDate,
+          selectedTime: parking.selectedTime,
+          selectedExitTime: parking.selectedExitTime,
+          baseTotal,
+          discountAmount,
+          total: Math.round((baseTotal - discountAmount) * 100) / 100
+        };
+      }),
       timestamp: new Date().getTime(),
     };
 

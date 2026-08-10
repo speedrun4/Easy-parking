@@ -23,6 +23,8 @@ import { environment } from 'src/environments/environment';
 export class PaymentComponent implements OnInit, OnDestroy {
 
   totalValue: number = 0;
+  originalTotalValue: number = 0;
+  discountTotalValue: number = 0;
   selectedPaymentMethod: string = '';
   paymentMethods = ['Pix', 'Cartão de Crédito', 'Cartão de Débito'];
   qrCodeData: string = '';
@@ -81,6 +83,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       this.selectedDate = state.selectedDate;
       this.selectedTime = state.selectedTime;
       this.selectedParkings = state.selectedParkings || [];
+      this.updatePaymentTotals();
     }
   }
 
@@ -93,9 +96,11 @@ export class PaymentComponent implements OnInit, OnDestroy {
           this.selectedParkings = this.selectedParkings.length > 0 ? this.selectedParkings : this.paymentData.selectedParkings;
         }
         if (this.paymentData.totalValue) {
-          this.totalValue = this.paymentData.totalValue;
+          this.totalValue = Number(this.paymentData.totalValue);
         }
       }
+
+      this.updatePaymentTotals();
 
       if (!this.selectedParkings || this.selectedParkings.length === 0) {
         console.warn('Nenhum estacionamento selecionado encontrado.');
@@ -105,6 +110,33 @@ export class PaymentComponent implements OnInit, OnDestroy {
       console.error('Erro ao carregar os dados de pagamento:', error);
       this.router.navigate(['/']);
     }
+  }
+
+  private updatePaymentTotals(): void {
+    const hasBaseTotals = (this.selectedParkings || []).some((p: any) => p?.baseTotal !== undefined);
+
+    if (hasBaseTotals) {
+      this.originalTotalValue = this.roundToCents(
+        this.selectedParkings.reduce((acc: number, p: any) => acc + Number(p?.baseTotal || 0), 0)
+      );
+      this.discountTotalValue = this.roundToCents(
+        this.selectedParkings.reduce((acc: number, p: any) => acc + Number(p?.discountAmount || 0), 0)
+      );
+      this.totalValue = this.roundToCents(this.originalTotalValue - this.discountTotalValue);
+      return;
+    }
+
+    const totals = (this.selectedParkings || []).map((p: any) => Number(p?.total || 0)).filter((v: number) => v > 0);
+    if (totals.length > 0) {
+      this.totalValue = this.roundToCents(totals.reduce((acc: number, v: number) => acc + v, 0));
+    }
+
+    this.originalTotalValue = this.totalValue;
+    this.discountTotalValue = 0;
+  }
+
+  private roundToCents(value: number): number {
+    return Math.round((Number(value) || 0) * 100) / 100;
   }
 
   isPaymentMethodValid() {
