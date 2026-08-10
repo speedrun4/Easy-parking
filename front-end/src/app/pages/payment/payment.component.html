@@ -16,6 +16,9 @@
 
       <section class="payment-summary">
         <div class="summary-label">Valor total</div>
+        <div *ngIf="promoValidationMessage" class="summary-promo-message" [style.color]="isValidatingPromotion ? '#92400e' : '#1e7a34'">
+          {{ promoValidationMessage }}
+        </div>
         <div *ngIf="discountTotalValue > 0" class="summary-original" style="text-decoration: line-through; color: #64748b;">
           R$ {{ originalTotalValue.toFixed(2) }}
         </div>

@@ -87,7 +87,7 @@
   <!-- Links para recuperação de senha e cadastro -->
   <div class="login-options">
     <a mat-button routerLink="/esqueci-senha" class="forgot-password">Esqueci minha senha</a>
-    <a mat-button routerLink="/cadastro" class="register">Cadastrar-se</a>
+    <a mat-button routerLink="/cadastro" [queryParams]="registrationQueryParams" class="register">Cadastrar-se</a>
   </div>
 
   <!-- Botões de login social -->

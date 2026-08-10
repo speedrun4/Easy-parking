@@ -14,6 +14,7 @@ import * as L from 'leaflet';
 export class WelcomeComponent implements OnInit {
   private readonly advanceBookingHours = 24;
   private readonly advanceBookingDiscountRate = 0.05;
+  private readonly firstReservationPromoCode = 'first-reservation-10';
   searchForm: FormGroup;
   latitude = -23.55052;
   longitude = -46.633308;
@@ -23,6 +24,7 @@ export class WelcomeComponent implements OnInit {
   selectedParkings: any[] = [];
   paymentConfirmed: boolean = false;
   promotionBannerMessage: string = '';
+  currentPromotionCode: string = '';
   selectedTime: string | undefined;
 
   timeOptions: string[] = [];
@@ -100,13 +102,14 @@ export class WelcomeComponent implements OnInit {
 
   private applyPromotionFromRoute(): void {
     const promoCode = this.route.snapshot.queryParamMap.get('promo');
-    if (!this.isAdvancePromoCode(promoCode)) {
+    if (!this.isKnownPromoCode(promoCode)) {
+      this.currentPromotionCode = '';
       this.promotionBannerMessage = '';
       return;
     }
 
-    this.promotionBannerMessage =
-      'Promocao ativa: 5% OFF em reservas com no minimo 24h de antecedencia.';
+    this.currentPromotionCode = promoCode || '';
+    this.promotionBannerMessage = this.getPromotionBannerMessage(this.currentPromotionCode);
 
     this.router.navigate([], {
       relativeTo: this.route,
@@ -116,8 +119,24 @@ export class WelcomeComponent implements OnInit {
     });
   }
 
+  private isKnownPromoCode(promoCode: string | null): boolean {
+    return this.isAdvancePromoCode(promoCode) || this.isFirstReservationPromoCode(promoCode);
+  }
+
   private isAdvancePromoCode(promoCode: string | null): boolean {
     return promoCode === 'advance-24h-5' || promoCode === 'advance-24h-15' || promoCode === 'advance-24h-20';
+  }
+
+  private isFirstReservationPromoCode(promoCode: string | null): boolean {
+    return promoCode === this.firstReservationPromoCode;
+  }
+
+  private getPromotionBannerMessage(promoCode: string): string {
+    if (this.isFirstReservationPromoCode(promoCode)) {
+      return 'Promocao ativa: 10% OFF na primeira reserva, validado no pagamento para novos usuarios.';
+    }
+
+    return 'Promocao ativa: 5% OFF em reservas com no minimo 24h de antecedencia.';
   }
 
   private _filterEstacionamentos(value: any): any[] {
@@ -639,6 +658,7 @@ formatDate(date: Date): string {
             total: this.calculateTotal(parking),
           })),
           clienteName: clienteName,
+          activePromoCode: this.currentPromotionCode || null,
         },
       });
 

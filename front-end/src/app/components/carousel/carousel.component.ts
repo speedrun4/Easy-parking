@@ -7,6 +7,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./carousel.component.scss']
 })
 export class CarouselComponent implements OnInit {
+  private readonly advancePromoCode = 'advance-24h-5';
+  private readonly firstReservationPromoCode = 'first-reservation-10';
 
   constructor(private router: Router) { }
 
@@ -17,7 +19,16 @@ export class CarouselComponent implements OnInit {
     this.router.navigate(['/login'], {
       queryParams: {
         returnUrl: '/welcome',
-        promo: 'advance-24h-5',
+        promo: this.advancePromoCode,
+        loginType: 'user'
+      }
+    });
+  }
+
+  goToFirstReservationPromoLogin(): void {
+    this.router.navigate(['/cadastro'], {
+      queryParams: {
+        promo: this.firstReservationPromoCode,
         loginType: 'user'
       }
     });

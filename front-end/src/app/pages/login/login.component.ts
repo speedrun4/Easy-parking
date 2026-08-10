@@ -11,6 +11,7 @@ import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dial
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
+  private readonly firstReservationPromoCode = 'first-reservation-10';
   loginForm: FormGroup;
   errorMessage: string = '';
   showErrorModal: boolean = false;
@@ -19,6 +20,7 @@ export class LoginComponent implements OnInit {
   private pendingPromoCode: string = '';
   hideClientLoginOption: boolean = false;
   promoBannerMessage: string = '';
+  registrationQueryParams: { [key: string]: string } | null = null;
 
   // Variável para controlar a exibição dos formulários
   showUserForm: boolean = true;
@@ -112,16 +114,37 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.returnUrl = this.sanitizeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
     this.pendingPromoCode = this.route.snapshot.queryParamMap.get('promo') || '';
-    this.hideClientLoginOption = this.isAdvancePromoCode(this.pendingPromoCode);
-    this.promoBannerMessage = this.hideClientLoginOption
-      ? 'Promocao ativa: 5% OFF para reservas com no minimo 24h de antecedencia.'
-      : '';
+    this.hideClientLoginOption = this.isUserPromoCode(this.pendingPromoCode);
+    this.promoBannerMessage = this.getPromoBannerMessage(this.pendingPromoCode);
+    this.registrationQueryParams = this.pendingPromoCode
+      ? { promo: this.pendingPromoCode, returnUrl: this.returnUrl, loginType: 'user' }
+      : null;
     const loginType = (this.route.snapshot.queryParamMap.get('loginType') || '').toLowerCase();
     this.showUserForm = this.hideClientLoginOption ? true : loginType !== 'client';
   }
 
+  private isUserPromoCode(promoCode: string): boolean {
+    return this.isAdvancePromoCode(promoCode) || this.isFirstReservationPromoCode(promoCode);
+  }
+
   private isAdvancePromoCode(promoCode: string): boolean {
     return promoCode === 'advance-24h-5' || promoCode === 'advance-24h-15' || promoCode === 'advance-24h-20';
+  }
+
+  private isFirstReservationPromoCode(promoCode: string): boolean {
+    return promoCode === this.firstReservationPromoCode;
+  }
+
+  private getPromoBannerMessage(promoCode: string): string {
+    if (this.isFirstReservationPromoCode(promoCode)) {
+      return 'Promocao ativa: 10% OFF na primeira reserva, sujeito a validacao no pagamento para novos usuarios.';
+    }
+
+    if (this.isAdvancePromoCode(promoCode)) {
+      return 'Promocao ativa: 5% OFF para reservas com no minimo 24h de antecedencia.';
+    }
+
+    return '';
   }
 
   private sanitizeReturnUrl(url: string | null): string {

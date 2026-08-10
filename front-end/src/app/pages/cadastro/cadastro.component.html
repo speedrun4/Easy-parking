@@ -4,11 +4,15 @@
 </button>
 
 <div class="cadastro-container">
+  <div *ngIf="promoBannerMessage" class="promo-banner">
+    <p>{{ promoBannerMessage }}</p>
+  </div>
+
   <div class="toggle-buttons">
     <button mat-raised-button (click)="showUserForm = true" [color]="showUserForm ? 'primary' : ''">
       Cadastro de Usuário
     </button>
-    <button mat-raised-button (click)="showUserForm = false" [color]="!showUserForm ? 'primary' : ''">
+    <button *ngIf="!hideClientRegistrationOption" mat-raised-button (click)="showUserForm = false" [color]="!showUserForm ? 'primary' : ''">
       Cadastro de Clientes
     </button>
   </div>
@@ -78,7 +82,7 @@
   </mat-card>
 
   <!-- Formulário de Cadastro de Clientes -->
-  <mat-card *ngIf="!showUserForm" class="form-container">
+  <mat-card *ngIf="!showUserForm && !hideClientRegistrationOption" class="form-container">
     <h2>Cadastro de Clientes</h2>
     <p class="api-debug">API atual: {{ apiBaseUrl }}</p>
     <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('cliente')">

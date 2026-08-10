@@ -121,6 +121,7 @@ export class PreReservaComponent implements OnInit {
       const paymentData = {
         selectedParkings,
         clienteName: this.preReservaData.clienteName,
+        activePromoCode: this.preReservaData.activePromoCode || null,
         timestamp: new Date().getTime(),
         totalValue
       };

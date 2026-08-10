@@ -7,6 +7,7 @@ import { Location } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from 'src/app/components/confirmation-dialog/confirmation-dialog.component';
 import { PreReservationService } from 'src/app/services/pre-reservation.service';
+import { PaymentHistoryService } from 'src/app/services/payment-history.service';
 
 @Component({
   selector: 'app-confirm',
@@ -16,6 +17,7 @@ import { PreReservationService } from 'src/app/services/pre-reservation.service'
 export class ConfirmComponent implements OnInit {
   private readonly advanceBookingHours = 24;
   private readonly advanceBookingDiscountRate = 0.05;
+  private readonly firstReservationPromoCode = 'first-reservation-10';
 
   selectedParkings: any[] = [];  // Lista de estacionamentos selecionados
   clienteName: string = '';  // Nome do cliente
@@ -30,14 +32,18 @@ export class ConfirmComponent implements OnInit {
   isClient = false;
   loginAsUser: boolean = false;
   confirmationMessage: string = '';
+  activePromoCode: string | null = null;
+  firstReservationPromoMessage: string = '';
+  isValidatingFirstReservationPromo: boolean = false;
   private authSubscription: Subscription = new Subscription();
 
-  constructor(private router: Router, private authService: AuthService, private location: Location, private dialog: MatDialog, private preReservaService: PreReservationService) {
+  constructor(private router: Router, private authService: AuthService, private location: Location, private dialog: MatDialog, private preReservaService: PreReservationService, private paymentHistoryService: PaymentHistoryService) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
       selectedParkings: any[];
       clienteName: string;
       reservaTime: string;
+      activePromoCode?: string | null;
     };
 
     if (state) {
@@ -47,6 +53,7 @@ export class ConfirmComponent implements OnInit {
         selectedTime: parking.selectedTime || null,
       }));
       this.clienteName = state.clienteName;
+      this.activePromoCode = state.activePromoCode || null;
       this.calculateTotalValue();
     }
     this.minDate = new Date();
@@ -60,12 +67,47 @@ export class ConfirmComponent implements OnInit {
         this.userName = user.nomeCompleto?.split(' ').slice(0, 2).join(' ') || '';
         this.isClient = user.isClient; // Perfil cliente
         this.loginAsUser = user.loginAsUser; // Tipo de login realizado
+        this.evaluateFirstReservationPromotion(user.id);
       } else {
         this.userName = '';
         this.isClient = false;
+        this.firstReservationPromoMessage = this.activePromoCode === this.firstReservationPromoCode
+          ? 'Faça login para validar a promoção da primeira reserva.'
+          : '';
       }
     });
     this.generateAvailableTimes();
+  }
+
+  private evaluateFirstReservationPromotion(userId: number | undefined): void {
+    if (this.activePromoCode !== this.firstReservationPromoCode) {
+      this.firstReservationPromoMessage = '';
+      this.isValidatingFirstReservationPromo = false;
+      return;
+    }
+
+    if (!userId) {
+      this.firstReservationPromoMessage = 'Faça login para validar a promoção da primeira reserva.';
+      this.isValidatingFirstReservationPromo = false;
+      return;
+    }
+
+    this.isValidatingFirstReservationPromo = true;
+    this.firstReservationPromoMessage = 'Validando promoção de primeira reserva...';
+
+    this.paymentHistoryService.getPaidReservations(userId).subscribe({
+      next: (reservas) => {
+        const isNewUser = !Array.isArray(reservas) || reservas.length === 0;
+        this.firstReservationPromoMessage = isNewUser
+          ? 'Promoção elegível: 10% OFF na sua primeira reserva.'
+          : 'Promoção não elegível: válida apenas para usuários sem reservas pagas anteriores.';
+        this.isValidatingFirstReservationPromo = false;
+      },
+      error: () => {
+        this.firstReservationPromoMessage = 'Não foi possível validar a promoção da primeira reserva agora.';
+        this.isValidatingFirstReservationPromo = false;
+      }
+    });
   }
   cancelReservation() {
     this.location.back();
@@ -214,6 +256,7 @@ export class ConfirmComponent implements OnInit {
           total: Math.round((baseTotal - discountAmount) * 100) / 100
         };
       }),
+      activePromoCode: this.activePromoCode,
       timestamp: new Date().getTime(),
     };
 
@@ -243,7 +286,8 @@ export class ConfirmComponent implements OnInit {
           totalValue: this.totalValue,
           selectedDate: this.selectedDate || null,
           selectedTime: this.selectedTime || null,
-          selectedParkings: preReservaData.selectedParkings
+          selectedParkings: preReservaData.selectedParkings,
+          activePromoCode: this.activePromoCode,
         }
       });
     });

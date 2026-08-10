@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { EstacionamentoService } from '../../services/estacionamento.service';
 import { GeocodingService } from '../../services/geocoding.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -18,6 +18,7 @@ import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dial
 })
 export class CadastroComponent implements OnInit {
   readonly apiBaseUrl = environment.apiBaseUrl;
+  private readonly firstReservationPromoCode = 'first-reservation-10';
 
   // Validador customizado para telefone
   phoneValidator(control: AbstractControl) {
@@ -60,6 +61,9 @@ export class CadastroComponent implements OnInit {
   erroConfirmacao: string = '';
 
   showUserForm = true;
+  hideClientRegistrationOption = false;
+  activePromoCode: string | null = null;
+  promoBannerMessage: string = '';
   userForm!: FormGroup;
   parkingForm!: FormGroup;
   estacionamentos: any[] = [];
@@ -75,10 +79,17 @@ export class CadastroComponent implements OnInit {
   constructor(private fb: FormBuilder,
     private authService: AuthService,
     private geocodingService: GeocodingService,
-    private router: Router, 
+    private router: Router,
+    private route: ActivatedRoute,
     public dialog: MatDialog) { }
 
   ngOnInit(): void {
+    this.activePromoCode = this.route.snapshot.queryParamMap.get('promo');
+    this.hideClientRegistrationOption = this.activePromoCode === this.firstReservationPromoCode;
+    this.showUserForm = this.hideClientRegistrationOption ? true : this.showUserForm;
+    this.promoBannerMessage = this.hideClientRegistrationOption
+      ? 'Promocao ativa: 10% OFF na primeira reserva. Cadastre-se como usuario para liberar a oferta no pagamento.'
+      : '';
     this.initializeUserForm();
   }
 
@@ -122,7 +133,10 @@ export class CadastroComponent implements OnInit {
             data: { message: response.message || 'Cadastro realizado com sucesso!' }
           });
           dialogRef.afterClosed().subscribe(() => {
-            this.router.navigate(['/home']);
+            const queryParams = this.activePromoCode === this.firstReservationPromoCode
+              ? { promo: this.activePromoCode, returnUrl: '/welcome', loginType: 'user' }
+              : undefined;
+            this.router.navigate(['/login'], queryParams ? { queryParams } : undefined);
           });
         },
         error: (error: any) => {
@@ -198,7 +212,8 @@ export class CadastroComponent implements OnInit {
     this.parkingForm.get('cnpj')?.setValue(cnpj.replace(/\D/g, ''));
   }
   goToLogin() {
-    this.router.navigate(['/home']);
+    const queryParams = this.activePromoCode ? { promo: this.activePromoCode, returnUrl: '/welcome', loginType: 'user' } : undefined;
+    this.router.navigate(['/login'], queryParams ? { queryParams } : undefined);
   }
 
   onFileSelected(event: any): void {

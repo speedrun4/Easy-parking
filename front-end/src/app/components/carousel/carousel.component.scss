@@ -10,7 +10,7 @@
 
 .slide-content {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* imagem ao lado do texto */
+  grid-template-columns: minmax(0, 2.6fr) minmax(220px, 0.8fr); /* dá mais destaque visual para a imagem */
   gap: 8px; /* aproxima texto da imagem */
   width: 100%;
   height: 100%;
