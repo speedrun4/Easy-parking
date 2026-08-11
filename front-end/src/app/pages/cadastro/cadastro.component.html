@@ -68,12 +68,26 @@
       <!-- NÃO coloque input type="file" dentro de mat-form-field -->
       <div class="foto-upload">
         <label for="foto">Foto:</label>
-        <input #fotoInput id="foto" type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)">
+        <input #fileInput id="arquivoFoto" type="file" accept="image/*" (change)="onFileSelected($event)" style="display:none">
       </div>
-      <button mat-raised-button type="button" (click)="openCamera()">Tirar Foto</button>
+
+      <div class="foto-actions">
+        <button mat-raised-button type="button" (click)="openDeviceCamera()">Tirar Foto</button>
+        <button mat-stroked-button type="button" (click)="openFilePicker()">Escolher Arquivo</button>
+      </div>
+
+      <p class="camera-error" *ngIf="cameraUnavailableMessage">{{ cameraUnavailableMessage }}</p>
+
+      <div class="camera-panel" [class.camera-panel-open]="cameraPreviewOpen">
+        <video #videoElement width="280" height="210" autoplay playsinline></video>
+        <div class="camera-panel-actions">
+          <button mat-raised-button color="primary" type="button" (click)="capturePhotoFromPreview()">Capturar Foto</button>
+          <button mat-stroked-button color="warn" type="button" (click)="closeCameraPreview()">Cancelar</button>
+        </div>
+      </div>
+
       <img *ngIf="previewUrl" [src]="previewUrl" alt="Prévia da Foto" width="120" style="margin-top:10px;">
-      <video #videoElement width="120" height="90" autoplay style="display:none"></video>
-      <canvas #canvasElement width="120" height="90" style="display:none"></canvas>
+      <canvas #canvasElement width="280" height="210" style="display:none"></canvas>
 
       <div style="margin-top: 16px;"></div>
       <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">Cadastrar</button>

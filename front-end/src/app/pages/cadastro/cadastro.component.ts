@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { EstacionamentoService } from '../../services/estacionamento.service';
 import { GeocodingService } from '../../services/geocoding.service';
@@ -16,9 +16,10 @@ import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dial
   templateUrl: './cadastro.component.html',
   styleUrls: ['./cadastro.component.scss']
 })
-export class CadastroComponent implements OnInit {
+export class CadastroComponent implements OnInit, OnDestroy {
   readonly apiBaseUrl = environment.apiBaseUrl;
   private readonly firstReservationPromoCode = 'first-reservation-10';
+  private activeCameraStream: MediaStream | null = null;
 
   // Validador customizado para telefone
   phoneValidator(control: AbstractControl) {
@@ -72,9 +73,12 @@ export class CadastroComponent implements OnInit {
   mostrarMensagemSucesso: boolean = false;
   fotoBase64: string | null = null;
   previewUrl: string | null = null;
+  cameraPreviewOpen = false;
+  cameraUnavailableMessage = '';
 
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   constructor(private fb: FormBuilder,
     private authService: AuthService,
@@ -91,6 +95,10 @@ export class CadastroComponent implements OnInit {
       ? 'Promocao ativa: 10% OFF na primeira reserva. Cadastre-se como usuario para liberar a oferta no pagamento.'
       : '';
     this.initializeUserForm();
+  }
+
+  ngOnDestroy(): void {
+    this.stopCameraStream();
   }
 
   // Inicializa o formulário de usuário com validações
@@ -129,6 +137,12 @@ export class CadastroComponent implements OnInit {
 
       this.authService.register(usuario).subscribe({
         next: (response: any) => {
+          // Só persiste a foto no front após confirmar o cadastro.
+          if (this.previewUrl) {
+            localStorage.setItem('guestAvatarDataUrl', this.previewUrl);
+            window.dispatchEvent(new CustomEvent('guest-avatar-updated', { detail: this.previewUrl }));
+          }
+
           const dialogRef = this.dialog.open(SucessoModalComponent, {
             data: { message: response.message || 'Cadastro realizado com sucesso!' }
           });
@@ -221,28 +235,75 @@ export class CadastroComponent implements OnInit {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.fotoBase64 = e.target.result.split(',')[1]; // Remove o prefixo data:image/...
-        this.previewUrl = e.target.result;
+        const dataUrl = e.target.result as string;
+        this.fotoBase64 = dataUrl.split(',')[1]; // Remove o prefixo data:image/...
+        this.previewUrl = dataUrl;
       };
       reader.readAsDataURL(file);
     }
   }
 
-  openCamera(): void {
+  openDeviceCamera(): void {
+    this.cameraUnavailableMessage = '';
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      this.cameraUnavailableMessage = 'A câmera não está disponível neste dispositivo ou navegador.';
+      return;
+    }
+
+    this.cameraPreviewOpen = true;
+    const video = this.videoElement.nativeElement;
+    video.setAttribute('playsinline', 'true');
+    video.muted = true;
+    this.stopCameraStream();
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } }).then(stream => {
+      this.activeCameraStream = stream;
+      video.srcObject = stream;
+      return video.play();
+    }).catch(() => {
+      this.cameraPreviewOpen = false;
+      this.cameraUnavailableMessage = 'Não foi possível abrir a câmera. Verifique a permissão do navegador.';
+      this.stopCameraStream();
+    });
+  }
+
+  capturePhotoFromPreview(): void {
+    if (!this.cameraPreviewOpen) {
+      return;
+    }
+
     const video = this.videoElement.nativeElement;
     const canvas = this.canvasElement.nativeElement;
-    video.style.display = 'block';
-    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-      video.srcObject = stream;
-      video.play();
-      setTimeout(() => {
-        canvas.getContext('2d')!.drawImage(video, 0, 0, canvas.width, canvas.height);
-        this.fotoBase64 = canvas.toDataURL('image/png').split(',')[1];
-        this.previewUrl = canvas.toDataURL('image/png');
-        video.pause();
-        video.srcObject = null;
-        video.style.display = 'none';
-      }, 2000); // tira a foto após 2 segundos
-    });
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      return;
+    }
+
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/png');
+    this.fotoBase64 = dataUrl.split(',')[1];
+    this.previewUrl = dataUrl;
+    this.closeCameraPreview();
+  }
+
+  closeCameraPreview(): void {
+    this.cameraPreviewOpen = false;
+    const video = this.videoElement.nativeElement;
+    video.pause();
+    video.srcObject = null;
+    this.stopCameraStream();
+  }
+
+  private stopCameraStream(): void {
+    if (this.activeCameraStream) {
+      this.activeCameraStream.getTracks().forEach(track => track.stop());
+      this.activeCameraStream = null;
+    }
+  }
+
+  openFilePicker(): void {
+    this.fileInput?.nativeElement?.click();
   }
 }

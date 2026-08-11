@@ -52,7 +52,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       } else {
         this.userName = '';
         this.isClient = false;
-        this.userPhotoUrl = null;
+        this.userPhotoUrl = localStorage.getItem('guestAvatarDataUrl');
         this.preReservaTimeLeft = '';
         this.notificationsOpen = false;
         this.unreadNotifications = [];
@@ -217,6 +217,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (!clickedInside) {
       this.closeMenu(); // Fecha o menu se o clique foi fora dele
       this.notificationsOpen = false;
+    }
+  }
+
+  @HostListener('window:guest-avatar-updated', ['$event'])
+  onGuestAvatarUpdated(event: CustomEvent<string>) {
+    if (!this.isLoggedIn) {
+      this.userPhotoUrl = event.detail || localStorage.getItem('guestAvatarDataUrl');
     }
   }
 
