@@ -52,9 +52,35 @@ export class CadastroComponent implements OnInit, OnDestroy {
   // Validador customizado para CPF com máscara
   cpfValidator(control: AbstractControl) {
     const value = control.value ? control.value.replace(/\D/g, '') : '';
+
+    if (!value) {
+      return null;
+    }
+
     if (value.length !== 11) {
+      return { cpfLengthInvalid: true };
+    }
+
+    if (/(\d)\1{10}/.test(value)) {
       return { cpfInvalid: true };
     }
+
+    const calculateCheckDigit = (cpfBase: string, factor: number): number => {
+      let total = 0;
+      for (let i = 0; i < cpfBase.length; i++) {
+        total += Number(cpfBase[i]) * (factor - i);
+      }
+      const remainder = total % 11;
+      return remainder < 2 ? 0 : 11 - remainder;
+    };
+
+    const firstDigit = calculateCheckDigit(value.substring(0, 9), 10);
+    const secondDigit = calculateCheckDigit(value.substring(0, 10), 11);
+
+    if (firstDigit !== Number(value[9]) || secondDigit !== Number(value[10])) {
+      return { cpfInvalid: true };
+    }
+
     return null;
   }
   aguardandoConfirmacao = false;
