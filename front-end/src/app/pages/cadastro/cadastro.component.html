@@ -20,7 +20,6 @@
   <!-- Formulário de Cadastro de Usuário -->
   <mat-card *ngIf="showUserForm" class="form-container">
     <h2>Cadastro de Usuário</h2>
-    <p class="api-debug">API atual: {{ apiBaseUrl }}</p>
     <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('usuario')" *ngIf="!aguardandoConfirmacao">
       <mat-form-field appearance="fill" class="wide-field">
         <mat-label>Nome Completo</mat-label>
@@ -69,7 +68,7 @@
       <!-- NÃO coloque input type="file" dentro de mat-form-field -->
       <div class="foto-upload">
         <label for="foto">Foto:</label>
-        <input id="foto" type="file" accept="image/*" (change)="onFileSelected($event)">
+        <input #fotoInput id="foto" type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)">
       </div>
       <button mat-raised-button type="button" (click)="openCamera()">Tirar Foto</button>
       <img *ngIf="previewUrl" [src]="previewUrl" alt="Prévia da Foto" width="120" style="margin-top:10px;">
@@ -84,7 +83,6 @@
   <!-- Formulário de Cadastro de Clientes -->
   <mat-card *ngIf="!showUserForm && !hideClientRegistrationOption" class="form-container">
     <h2>Cadastro de Clientes</h2>
-    <p class="api-debug">API atual: {{ apiBaseUrl }}</p>
     <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('cliente')">
       <mat-form-field appearance="fill">
         <mat-label>Nome Completo do Cliente</mat-label>
@@ -103,8 +101,11 @@
 
       <mat-form-field appearance="fill">
         <mat-label>Telefone</mat-label>
-        <input matInput type="tel" formControlName="phone" required>
-        <mat-error *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">Telefone é obrigatório.</mat-error>
+        <input matInput type="tel" formControlName="phone" required maxlength="15" (input)="onPhoneInput($event)">
+        <mat-error *ngIf="userForm.get('phone')?.invalid && userForm.get('phone')?.touched">
+          <span *ngIf="userForm.get('phone')?.errors?.required">Telefone é obrigatório.</span>
+          <span *ngIf="userForm.get('phone')?.errors?.phoneInvalid">Telefone inválido.</span>
+        </mat-error>
       </mat-form-field>
 
       <mat-form-field appearance="fill">
