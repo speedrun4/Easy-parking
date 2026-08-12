@@ -125,7 +125,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (timeLeft <= 0) {
         this.isPreReservaExpired = true;
         clearInterval(this.intervalId); // Limpa o intervalo quando a pré-reserva expirar
-        localStorage.removeItem('preReservaData'); // Remove os dados da pré-reserva
+        this.preReservaService.expirePreReservation();
         this.preReservaTimeLeft = ''; // <-- limpa o contador do header
       } else {
         const minutes = Math.floor(timeLeft / 60000); // Calcula os minutos restantes

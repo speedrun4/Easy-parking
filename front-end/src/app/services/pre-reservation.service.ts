@@ -16,12 +16,31 @@ export class PreReservationService {
 
   preReservaCancelled$ = new Subject<void>();
   paymentCompleted$ = new Subject<void>();
+  preReservaExpired$ = new Subject<void>();
+  private expirationWatcherId: any;
 
   notifyPreReservaCancelled() {
     this.preReservaCancelled$.next();
   }
 
   constructor() { }
+
+  startExpirationWatcher() {
+    if (this.expirationWatcherId) {
+      clearInterval(this.expirationWatcherId);
+    }
+
+    this.expirationWatcherId = setInterval(() => {
+      this.checkAndExpireIfNeeded();
+    }, 1000);
+  }
+
+  stopExpirationWatcher() {
+    if (this.expirationWatcherId) {
+      clearInterval(this.expirationWatcherId);
+      this.expirationWatcherId = undefined;
+    }
+  }
 
   getCurrentReservation(): any {
     return this.reservationData.getValue();
@@ -74,6 +93,42 @@ export class PreReservationService {
     this.countdownTime.next(0);
     if (this.timerSubscription) {
       this.timerSubscription.unsubscribe();
+    }
+  }
+
+  expirePreReservation() {
+    this.clearPreReservation();
+    try {
+      localStorage.removeItem('preReservaData');
+    } catch {}
+    this.notifyPreReservaCancelled();
+    this.notifyPreReservaChange();
+    this.preReservaExpired$.next();
+  }
+
+  checkAndExpireIfNeeded(): boolean {
+    let preReservaDataRaw: string | null = null;
+    try {
+      preReservaDataRaw = localStorage.getItem('preReservaData');
+    } catch {
+      return false;
+    }
+
+    if (!preReservaDataRaw) {
+      return false;
+    }
+
+    try {
+      const preReservaData = JSON.parse(preReservaDataRaw);
+      const expirationTime = Number(preReservaData?.timestamp || 0) + (10 * 60 * 1000);
+      if (!preReservaData?.timestamp || Date.now() < expirationTime) {
+        return false;
+      }
+
+      this.expirePreReservation();
+      return true;
+    } catch {
+      return false;
     }
   }
 

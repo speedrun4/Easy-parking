@@ -54,10 +54,8 @@ export class PreReservaComponent implements OnInit {
 
   clearPreReserva() {
     clearInterval(this.timer);
-    localStorage.removeItem('preReservaData'); // Remove do localStorage
     this.preReservaData = null; // Limpa os dados da tela
-    alert('Tempo esgotado! Sua pré-reserva foi cancelada.');
-    this.router.navigate(['/']); // Redireciona para a página inicial
+    this.preReservaService.expirePreReservation();
   }
 
   toggleParkingSelection(parking: any) {
