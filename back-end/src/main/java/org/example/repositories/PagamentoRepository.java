@@ -7,11 +7,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PagamentoRepository extends JpaRepository<Pagamentos, Long> {
     List<Pagamentos> findByUsuarioId(Integer usuarioId);
     List<Pagamentos> findByEstacionamento(String estacionamento);
+    Optional<Pagamentos> findByPagbankChargeId(String pagbankChargeId);
 
     @Query("SELECT p FROM Pagamentos p WHERE LOWER(TRIM(p.estacionamento)) = LOWER(TRIM(:estacionamento))")
     List<Pagamentos> findByEstacionamentoNormalized(@Param("estacionamento") String estacionamento);

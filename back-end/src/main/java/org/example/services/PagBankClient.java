@@ -7,6 +7,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -35,12 +36,32 @@ public class PagBankClient {
 	private volatile String cachedAccessToken;
 	private volatile long tokenExpiresAtMillis;
 
+	private boolean hasOauthCredentials() {
+		return clientId != null && !clientId.isEmpty() && clientSecret != null && !clientSecret.isEmpty();
+	}
+
 	public PagBankClient(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
 
 	public String getBaseUrl() {
 		return sandbox ? "https://sandbox.api.pagseguro.com" : "https://api.pagseguro.com";
+	}
+
+	private boolean shouldSendNotificationUrl() {
+		if (notificationUrl == null || notificationUrl.isEmpty()) {
+			return false;
+		}
+		String url = notificationUrl.trim().toLowerCase();
+		if (!url.startsWith("https://")) {
+			return false;
+		}
+		return !url.contains("localhost") && !url.contains("127.0.0.1");
+	}
+
+	public boolean hasConfiguredCredentials() {
+		boolean hasToken = tokenFallback != null && !tokenFallback.isEmpty();
+		return hasToken || hasOauthCredentials();
 	}
 
 	/**
@@ -112,15 +133,11 @@ public class PagBankClient {
 	}
 
 	public Map<String, Object> createPixCharge(String referenceId, int amountCents, String description, String pixKey) throws Exception {
-		// Validar que está em ambiente LIVE
-		if (sandbox) {
-			throw new IllegalStateException("Cobrança PIX só pode ser criada em ambiente LIVE. Configure pagbank.sandbox=false");
-		}
-
 		// Validar token de acesso
 		String token = getAccessToken();
+		String authMode = hasOauthCredentials() ? "oauth" : "token";
 		if (token == null || token.isEmpty()) {
-			throw new IllegalStateException("Token de acesso PagBank não está configurado");
+			throw new IllegalStateException("Token de acesso PagBank não está configurado (modo auth=" + authMode + ")");
 		}
 
 		String url = getBaseUrl() + "/charges";
@@ -132,18 +149,33 @@ public class PagBankClient {
 		body.put("amount", amount);
 		body.put("description", description);
 		body.put("payment_method", Collections.singletonMap("type", "PIX"));
-		if (notificationUrl != null && !notificationUrl.isEmpty()) {
+		if (shouldSendNotificationUrl()) {
 			body.put("notification_urls", Collections.singletonList(notificationUrl));
 		}
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.setBearerAuth(token);
-		ResponseEntity<String> resp = restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
-		if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
-			return MAPPER.readValue(resp.getBody(), Map.class);
+		try {
+			ResponseEntity<String> resp = restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
+			if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
+				return MAPPER.readValue(resp.getBody(), Map.class);
+			}
+
+			throw new RuntimeException(
+					"Falha ao criar cobrança PIX (auth=" + authMode + ", sandbox=" + sandbox + "): " + resp.getStatusCode() + " - " + resp.getBody()
+			);
+		} catch (HttpStatusCodeException ex) {
+			String guidance = "";
+			if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED || ex.getStatusCode() == HttpStatus.FORBIDDEN) {
+				guidance = " Verifique credenciais LIVE do PagBank. Recomendado usar OAuth (pagbank.client_id e pagbank.client_secret) e manter pagbank.sandbox=false para cobrança real.";
+			}
+			String responseBody = ex.getResponseBodyAsString();
+			throw new RuntimeException(
+					"Falha ao criar cobrança PIX (auth=" + authMode + ", sandbox=" + sandbox + "): " + ex.getStatusCode() + " - " + responseBody + guidance,
+					ex
+			);
 		}
-		throw new RuntimeException("Falha ao criar cobrança PIX: " + resp.getStatusCode() + " - " + resp.getBody());
 	}
 
 	public Map<String, Object> createCardCharge(String referenceId, int amountCents, String description,
@@ -162,7 +194,7 @@ public class PagBankClient {
 		payment.put("capture", true);
 		payment.put("card", cardPayload);
 		body.put("payment_method", payment);
-		if (notificationUrl != null && !notificationUrl.isEmpty()) {
+		if (shouldSendNotificationUrl()) {
 			body.put("notification_urls", Collections.singletonList(notificationUrl));
 		}
 

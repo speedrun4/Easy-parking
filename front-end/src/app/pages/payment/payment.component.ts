@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { interval, Subscription } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { interval, of, Subscription } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import * as QRCode from 'qrcode';
 import { PreReservationService } from 'src/app/services/pre-reservation.service';
@@ -14,6 +14,7 @@ import { PaymentHistoryService } from 'src/app/services/payment-history.service'
 import { AuthService } from 'src/app/services/auth.service';
 import { ReservaService } from 'src/app/services/reserva.service';
 import { CarteiraService } from 'src/app/services/carteira.service';
+import { PagBankService } from 'src/app/services/pagbank.service';
 import { environment } from 'src/environments/environment';
 
 
@@ -45,9 +46,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   isRedirectingToRoute: boolean = false;
   private pollingSub?: Subscription;
-  private pixAutoConfirmTimer?: ReturnType<typeof setTimeout>;
   private pollingCount = 0;
-  private maxPollingCount = 100; // ~5 min com intervalo 3s
+  private maxPollingCount = 300; // ~15 min com intervalo 3s
   private pixCompletionTriggered = false;
   private readonly pixKey = environment.pixKey;
   errorMsg: string = '';
@@ -78,7 +78,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
     private paymentHistoryService: PaymentHistoryService,
     private authService: AuthService,
     private reservaService: ReservaService,
-    private carteiraService: CarteiraService
+    private carteiraService: CarteiraService,
+    private pagBankService: PagBankService
   ) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
@@ -222,7 +223,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
       if (this.pollingSub) {
         this.pollingSub.unsubscribe();
       }
-      this.clearPixAutoConfirmTimer();
       this.qrCodeImage = '';
       this.isProcessingPayment = false;
       this.loading = false;
@@ -239,7 +239,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
     if (this.pollingSub) {
       this.pollingSub.unsubscribe();
     }
-    this.clearPixAutoConfirmTimer();
 
     this.errorMsg = '';
     this.loading = true;
@@ -310,6 +309,15 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.paymentHistoryService.iniciarPix(savedPaymentId, { pixKey: this.pixKey }).subscribe({
           next: r => {
             this.pixChargeId = r.pagbankChargeId || '';
+            const normalizedStatus = (r.status || '').toUpperCase();
+            const hasQrData = !!(r.qrBase64 || r.qrPayload);
+            const isUntrackable = normalizedStatus === 'UNTRACKABLE';
+            if (!this.pixChargeId && (isUntrackable || !hasQrData)) {
+              this.loading = false;
+              this.isProcessingPayment = false;
+              this.errorMsg = 'Falha na integração PIX: cobrança não rastreável no PagBank. Gere um novo pagamento após validar configuração do servidor.';
+              return;
+            }
             this.pixStatus = r.status || 'WAITING';
             this.pixDisplayKey = r.pixKey || this.pixKey;
             if (r.qrBase64) {
@@ -321,15 +329,18 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
             this.loading = false;
             this.isProcessingPayment = false;
-            this.schedulePixAutoConfirm(savedPaymentId);
 
             this.pollingCount = 0;
             this.pollingSub = interval(3000).pipe(
-              switchMap(() => this.paymentHistoryService.consultarStatusPix(savedPaymentId))
-            ).subscribe((statusResp: { status: string }) => {
+              switchMap(() => this.paymentHistoryService.consultarStatusPix(savedPaymentId)),
+              catchError(() => {
+                this.errorMsg = 'Falha temporária ao consultar PIX. Tentando novamente...';
+                return of({ status: this.pixStatus || 'WAITING' } as { status: string; paymentStatus?: string });
+              })
+            ).subscribe((statusResp: { status: string; paymentStatus?: string }) => {
               this.pixStatus = statusResp.status;
               this.pollingCount++;
-              if (statusResp.status && statusResp.status.toUpperCase() === 'PAID') {
+              if (this.isPixPaymentCompleted(statusResp.status, statusResp.paymentStatus)) {
                 this.handlePixPaidSuccess();
               } else if (this.pollingCount >= this.maxPollingCount) {
                 if (this.pollingSub) { this.pollingSub.unsubscribe(); }
@@ -342,7 +353,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           error: err => {
             this.loading = false;
             this.isProcessingPayment = false;
-            this.errorMsg = 'Não foi possível iniciar o PIX. Tente novamente.';
+            this.errorMsg = this.extractBackendErrorMessage(err, 'Não foi possível iniciar o PIX. Tente novamente.');
             console.error('Falha ao iniciar PIX:', err);
           }
         });
@@ -467,7 +478,71 @@ export class PaymentComponent implements OnInit, OnDestroy {
   horarioReservaSaida: padTime(selected.horaSaida || null)
     };
 
+    const isCardMethod = forma === 'Cartão de Crédito' || forma === 'Cartão de Débito';
+    if (isCardMethod) {
+      const purchasePayload = this.buildCardPurchasePayload(parkingName, currentUser, forma);
+      if (!purchasePayload) {
+        if (forma === 'Carteira') {
+          this.carteiraService.adicionarValor(this.totalValue, `Estorno - Pagamento de reserva - ${parkingName}`, 'ajuste');
+        }
+        this.dialog.open(ErrorDialogComponent, {
+          data: {
+            title: 'Erro no pagamento',
+            message: 'Dados do cartao invalidos para processar no PagBank. Verifique nome e CPF do titular.'
+          }
+        });
+        return;
+      }
+
+      this.loading = true;
+      this.pagBankService.createPurchase(purchasePayload).subscribe({
+        next: (purchaseResp: any) => {
+          const charge = purchaseResp?.charge || {};
+          const chargeStatus = String(charge?.status || '').toUpperCase();
+          const approvedStatuses = ['PAID', 'AUTHORIZED'];
+          const isApproved = approvedStatuses.includes(chargeStatus);
+
+          if (!isApproved) {
+            this.loading = false;
+            const declineReason = this.getCardDeclineReason(charge);
+            this.dialog.open(ErrorDialogComponent, {
+              data: {
+                title: 'Cartao nao autorizado',
+                message: declineReason
+              }
+            });
+            return;
+          }
+
+          pagamento.pagbankChargeId = charge?.id || null;
+          pagamento.pagbankStatus = charge?.status || null;
+          pagamento.pagbankOrderId = charge?.reference_id || purchasePayload.referenceId || null;
+
+          // Mantém referência caso o endpoint retorne id/status locais.
+          if (purchaseResp?.paymentId) {
+            this.currentPaymentId = Number(purchaseResp.paymentId);
+          }
+          this.persistLocalPayment(pagamento, forma, parkingName, selected, currentUser);
+        },
+        error: (error) => {
+          this.loading = false;
+          const msg = this.extractCardGatewayError(error);
+          this.dialog.open(ErrorDialogComponent, {
+            data: {
+              title: 'Cartao recusado',
+              message: msg
+            }
+          });
+        }
+      });
+      return;
+    }
+
     this.loading = true;
+    this.persistLocalPayment(pagamento, forma, parkingName, selected, currentUser);
+  }
+
+  private persistLocalPayment(pagamento: any, forma: string, parkingName: string, selected: any, currentUser: any) {
     this.paymentHistoryService.salvarPagamento(pagamento).subscribe({
       next: (res) => {
         this.loading = false;
@@ -521,6 +596,79 @@ export class PaymentComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  private buildCardPurchasePayload(parkingName: string, currentUser: any, forma: string): any | null {
+    const number = (this.cardNumber || '').replace(/\D/g, '');
+    const cvv = (this.cardCVV || '').replace(/\D/g, '');
+    const expiryDigits = (this.cardExpiry || '').replace(/\D/g, '');
+    if (expiryDigits.length !== 6) {
+      return null;
+    }
+
+    const expMonth = expiryDigits.slice(0, 2);
+    const expYear = expiryDigits.slice(2, 6);
+    const holderName = (this.cardName || this.payerName || currentUser?.nomeCompleto || 'CLIENTE').trim();
+    let holderTaxId = (this.payerDocument || currentUser?.cpf || '').replace(/\D/g, '');
+    const method = forma === 'Cartão de Crédito' ? 'CREDIT_CARD' : 'DEBIT_CARD';
+
+    if (!holderName) {
+      return null;
+    }
+
+    // Em ambiente local/dev, permite teste de cartão mesmo sem CPF no perfil.
+    if (holderTaxId.length !== 11) {
+      if (!environment.production) {
+        holderTaxId = '12345678909';
+      } else {
+        return null;
+      }
+    }
+
+    return {
+      method,
+      amount: this.totalValue,
+      description: `Pagamento reserva - ${parkingName}`,
+      referenceId: `APP-${Date.now()}`,
+      card: {
+        number,
+        exp_month: expMonth,
+        exp_year: expYear,
+        security_code: cvv,
+        holder: {
+          name: holderName,
+          tax_id: holderTaxId
+        }
+      }
+    };
+  }
+
+  private getCardDeclineReason(charge: any): string {
+    const paymentResponse = charge?.payment_response || {};
+    const code = paymentResponse?.code;
+    const description = paymentResponse?.message || paymentResponse?.description;
+    const status = charge?.status ? `Status: ${charge.status}.` : '';
+
+    if (code || description) {
+      return `${status} Cartao nao autorizado pelo PagBank.${code ? ` Codigo: ${code}.` : ''}${description ? ` Motivo: ${description}.` : ''}`.trim();
+    }
+
+    return `${status} Cartao nao autorizado pelo PagBank.`.trim();
+  }
+
+  private extractCardGatewayError(error: any): string {
+    const fallback = 'Nao foi possivel autorizar o cartao no PagBank.';
+    const raw = this.extractBackendErrorMessage(error, fallback);
+
+    if (!raw) {
+      return fallback;
+    }
+
+    if (raw.toLowerCase().includes('invalid_parameter')) {
+      return 'Falha de configuracao da integracao de cartao no PagBank. Verifique os dados obrigatorios e tente novamente.';
+    }
+
+    return raw;
   }
 
   private validateCard(): string[] {
@@ -587,40 +735,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
     if (this.pollingSub) {
       this.pollingSub.unsubscribe();
     }
-    this.clearPixAutoConfirmTimer();
-  }
-
-  private clearPixAutoConfirmTimer() {
-    if (this.pixAutoConfirmTimer) {
-      clearTimeout(this.pixAutoConfirmTimer);
-      this.pixAutoConfirmTimer = undefined;
-    }
-  }
-
-  private schedulePixAutoConfirm(paymentId: number) {
-    this.clearPixAutoConfirmTimer();
-
-    if (environment.production || !paymentId || !!this.pixChargeId) {
-      return;
-    }
-
-    this.pixAutoConfirmTimer = setTimeout(() => {
-      if (this.pixCompletionTriggered || this.currentPaymentId !== paymentId || !!this.pixChargeId) {
-        return;
-      }
-
-      this.paymentHistoryService.simularPixPago(paymentId).subscribe({
-        next: (r) => {
-          this.pixStatus = r.status;
-          if (r.status && r.status.toUpperCase() === 'PAID') {
-            this.handlePixPaidSuccess();
-          }
-        },
-        error: () => {
-          this.errorMsg = 'Falha ao confirmar automaticamente o pagamento PIX.';
-        }
-      });
-    }, 5000);
   }
 
   navigateToRoutePage() {
@@ -739,21 +853,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
   manualRefreshStatus(paymentId: number) {
     if (!paymentId) { return; }
 
-    if (!this.pixChargeId) {
-      this.paymentHistoryService.simularPixPago(paymentId).subscribe({
-        next: (r) => {
-          this.pixStatus = r.status;
-          if (r.status && r.status.toUpperCase() === 'PAID') {
-            this.handlePixPaidSuccess();
-          }
-        },
-        error: () => {
-          this.errorMsg = 'Falha ao confirmar o pagamento PIX. Tente novamente.';
-        }
-      });
-      return;
-    }
-
     this.paymentHistoryService.consultarStatusPix(paymentId).subscribe({
       next: (r) => {
         this.pixStatus = r.status;
@@ -764,7 +863,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
         if (r.qrPayload) {
           this.pixQrPayload = r.qrPayload;
         }
-        if (r.status && r.status.toUpperCase() === 'PAID') {
+        if (this.isPixPaymentCompleted(r.status, r.paymentStatus)) {
           this.handlePixPaidSuccess();
         }
       },
@@ -776,7 +875,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   reiniciarPix(paymentId: number) {
     if (this.pollingSub) { this.pollingSub.unsubscribe(); }
-    this.clearPixAutoConfirmTimer();
     this.errorMsg = '';
     this.pixQrBase64 = '';
     this.pixQrPayload = '';
@@ -785,19 +883,31 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.paymentHistoryService.iniciarPix(paymentId, { pixKey: this.pixKey }).subscribe({
       next: r => {
         this.pixChargeId = r.pagbankChargeId || '';
+        const normalizedStatus = (r.status || '').toUpperCase();
+        const hasQrData = !!(r.qrBase64 || r.qrPayload);
+        const isUntrackable = normalizedStatus === 'UNTRACKABLE';
+        if (!this.pixChargeId && (isUntrackable || !hasQrData)) {
+          this.isProcessingPayment = false;
+          this.loading = false;
+          this.errorMsg = 'Falha na integração PIX: cobrança não rastreável no PagBank.';
+          return;
+        }
         this.pixStatus = r.status || 'WAITING';
         this.pixDisplayKey = r.pixKey || this.pixDisplayKey || this.pixKey;
         if (r.qrBase64) this.pixQrBase64 = `data:image/png;base64,${r.qrBase64}`;
         if (r.qrPayload) this.pixQrPayload = r.qrPayload;
-        this.schedulePixAutoConfirm(paymentId);
         // reinicia polling
         this.pollingCount = 0;
         this.pollingSub = interval(3000).pipe(
-          switchMap(() => this.paymentHistoryService.consultarStatusPix(paymentId))
-        ).subscribe((statusResp: { status: string }) => {
+          switchMap(() => this.paymentHistoryService.consultarStatusPix(paymentId)),
+          catchError(() => {
+            this.errorMsg = 'Falha temporária ao consultar PIX. Tentando novamente...';
+            return of({ status: this.pixStatus || 'WAITING' } as { status: string; paymentStatus?: string });
+          })
+        ).subscribe((statusResp: { status: string; paymentStatus?: string }) => {
           this.pixStatus = statusResp.status;
           this.pollingCount++;
-          if (statusResp.status && statusResp.status.toUpperCase() === 'PAID') {
+          if (this.isPixPaymentCompleted(statusResp.status, statusResp.paymentStatus)) {
             this.handlePixPaidSuccess();
           } else if (this.pollingCount >= this.maxPollingCount) {
             if (this.pollingSub) { this.pollingSub.unsubscribe(); }
@@ -807,10 +917,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
           }
         });
       },
-      error: () => {
+      error: (error) => {
         this.isProcessingPayment = false;
         this.loading = false;
-        this.errorMsg = 'Falha ao reiniciar PIX. Tente novamente.';
+        this.errorMsg = this.extractBackendErrorMessage(error, 'Falha ao reiniciar PIX. Tente novamente.');
       }
     });
   }
@@ -823,7 +933,6 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.pixStatus = 'PAID';
     this.isProcessingPayment = false;
     this.loading = false;
-    this.clearPixAutoConfirmTimer();
     if (this.pollingSub) {
       this.pollingSub.unsubscribe();
     }
@@ -857,6 +966,34 @@ export class PaymentComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(() => {
       this.navigateToRoutePage();
     });
+  }
+
+  private isPixPaymentCompleted(pagbankStatus?: string, localPaymentStatus?: string): boolean {
+    const normalizedGatewayStatus = (pagbankStatus || '').trim().toUpperCase();
+    const normalizedLocalStatus = (localPaymentStatus || '').trim().toUpperCase();
+
+    const paidGatewayStatuses = ['PAID', 'CONFIRMED', 'COMPLETED'];
+    const paidLocalStatuses = ['PAGO', 'PAID'];
+
+    return paidGatewayStatuses.includes(normalizedGatewayStatus) || paidLocalStatuses.includes(normalizedLocalStatus);
+  }
+
+  private extractBackendErrorMessage(err: any, fallback: string): string {
+    const backendError = err?.error;
+
+    if (typeof backendError === 'string' && backendError.trim().length > 0) {
+      return backendError;
+    }
+
+    if (backendError?.message && typeof backendError.message === 'string') {
+      return backendError.message;
+    }
+
+    if (err?.message && typeof err.message === 'string') {
+      return err.message;
+    }
+
+    return fallback;
   }
 
   filteredMarkers = this.selectedParkings.map(est => ({

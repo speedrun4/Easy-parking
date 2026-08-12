@@ -81,11 +81,11 @@ public class PagamentoController {
     private UsuariosRepository usuariosRepository;
     @Autowired
     private org.example.services.PagamentoService pagamentoService;
+    @Autowired
+    private org.example.services.PagBankClient pagBankClient;
 
     @org.springframework.beans.factory.annotation.Value("${pagbank.sandbox:true}")
     private boolean pagbankSandbox;
-    @org.springframework.beans.factory.annotation.Value("${pagbank.token}")
-    private String pagbankToken;
     @org.springframework.beans.factory.annotation.Value("${pix.key:}")
     private String pixDefaultKey;
 
@@ -155,6 +155,14 @@ public class PagamentoController {
                 pagamentosRepository.save(p);
                 service.salvarPagamento(p); // irá acionar criação de cobrança se necessário
                 Pagamentos atualizado = pagamentosRepository.findById(id).orElse(p);
+                boolean requiresTrackableCharge = pagBankClient.hasConfiguredCredentials();
+                if (requiresTrackableCharge && (atualizado.getPagbankChargeId() == null || atualizado.getPagbankChargeId().trim().isEmpty())) {
+                    java.util.Map<String, Object> err = new java.util.HashMap<>();
+                    err.put("message", "Não foi possível criar cobrança PIX rastreável no PagBank. Verifique token/oauth e permissões da conta no ambiente atual.");
+                    err.put("status", "UNTRACKABLE");
+                    return ResponseEntity.status(502).body(err);
+                }
+
                 atualizado = service.ensurePixDisplayData(atualizado, resolvedPixKey);
                 atualizado = pagamentosRepository.findById(id).orElse(atualizado);
                 java.util.Map<String, Object> result = new java.util.HashMap<>();
@@ -176,43 +184,46 @@ public class PagamentoController {
     public ResponseEntity<?> consultarStatusPagBank(@PathVariable Long id) {
         return pagamentosRepository.findById(id).map(p -> {
             if (p.getPagbankChargeId() == null) {
-                p = service.ensurePixDisplayData(p, null);
-                java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
-                respBody.put("status", p.getPagbankStatus() != null ? p.getPagbankStatus() : "WAITING");
-                respBody.put("qrBase64", p.getPagbankQrBase64());
-                respBody.put("qrPayload", p.getPagbankQrPayload());
-                respBody.put("pixKey", resolvePixKey(null));
-                return ResponseEntity.ok(respBody);
-            }
-            try {
-                String baseUrl = pagbankSandbox ?
-                        "https://sandbox.api.pagseguro.com" : "https://api.pagseguro.com";
-                String url = baseUrl + "/charges/" + p.getPagbankChargeId();
-                org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-                headers.setBearerAuth(pagbankToken);
-                org.springframework.http.HttpEntity<Void> entity = new org.springframework.http.HttpEntity<>(headers);
-                org.springframework.web.client.RestTemplate rt = new org.springframework.web.client.RestTemplate();
-                org.springframework.http.ResponseEntity<String> resp = rt.exchange(url, org.springframework.http.HttpMethod.GET, entity, String.class);
-                if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
-                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                    java.util.Map<?,?> map = mapper.readValue(resp.getBody(), java.util.Map.class);
-                    Object st = map.get("status");
-                    if (st != null) {
-                        p.setPagbankStatus(st.toString());
-                        if ("PAID".equalsIgnoreCase(st.toString())) {
-                            p.setStatus("pago");
-                        }
-                        pagamentosRepository.save(p);
-                    }
+                boolean requiresTrackableCharge = pagBankClient.hasConfiguredCredentials();
+                if (!requiresTrackableCharge && pagbankSandbox) {
                     p = service.ensurePixDisplayData(p, null);
                     java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
-                    respBody.put("status", p.getPagbankStatus());
+                    respBody.put("status", p.getPagbankStatus() != null ? p.getPagbankStatus() : "WAITING");
+                    respBody.put("paymentStatus", p.getStatus());
                     respBody.put("qrBase64", p.getPagbankQrBase64());
                     respBody.put("qrPayload", p.getPagbankQrPayload());
                     respBody.put("pixKey", resolvePixKey(null));
                     return ResponseEntity.ok(respBody);
                 }
-                return ResponseEntity.status(resp.getStatusCode()).body("Falha ao consultar status");
+
+                java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
+                respBody.put("status", "UNTRACKABLE");
+                respBody.put("paymentStatus", p.getStatus());
+                respBody.put("message", "Pagamento PIX sem cobrança rastreável no PagBank. Gere um novo PIX após validar token/oauth e ambiente.");
+                return ResponseEntity.ok(respBody);
+            }
+            try {
+                java.util.Map<String, Object> map = pagBankClient.getCharge(p.getPagbankChargeId());
+                Object st = map.get("status");
+                if (st != null) {
+                    String normalizedStatus = st.toString().trim().toUpperCase();
+                    p.setPagbankStatus(normalizedStatus);
+                    if ("PAID".equalsIgnoreCase(normalizedStatus)
+                            || "COMPLETED".equalsIgnoreCase(normalizedStatus)
+                            || "CONFIRMED".equalsIgnoreCase(normalizedStatus)) {
+                        p.setStatus("pago");
+                    }
+                    pagamentosRepository.save(p);
+                }
+
+                p = service.ensurePixDisplayData(p, null);
+                java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
+                respBody.put("status", p.getPagbankStatus());
+                respBody.put("paymentStatus", p.getStatus());
+                respBody.put("qrBase64", p.getPagbankQrBase64());
+                respBody.put("qrPayload", p.getPagbankQrPayload());
+                respBody.put("pixKey", resolvePixKey(null));
+                return ResponseEntity.ok(respBody);
             } catch (Exception e) {
                 e.printStackTrace();
                 return ResponseEntity.status(500).body("Falha ao consultar status: " + e.getMessage());

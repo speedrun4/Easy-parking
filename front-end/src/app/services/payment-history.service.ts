@@ -40,7 +40,7 @@ salvarPagamento(dadosPagamento: any) {
   }
 
   consultarStatusPix(pagamentoId: number) {
-    return this.http.get<{ status: string; qrBase64?: string; qrPayload?: string; pixKey?: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/status`);
+    return this.http.get<{ status: string; paymentStatus?: string; qrBase64?: string; qrPayload?: string; pixKey?: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/status`);
   }
 
   simularPixPago(pagamentoId: number) {

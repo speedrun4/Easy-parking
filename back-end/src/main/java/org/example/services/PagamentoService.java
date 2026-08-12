@@ -51,10 +51,16 @@ public class PagamentoService {
 
         // Se for forma de pagamento PIX via PagBank e ainda não tiver integração
         if ("PIX".equalsIgnoreCase(saved.getFormaPagamento()) && saved.getPagbankStatus() == null) {
-            try {
-                criarCobrancaPagBank(saved);
-            } catch (Exception e) {
-                e.printStackTrace();
+            boolean hasPagBankCredentials = pagBankClient.hasConfiguredCredentials();
+            if (hasPagBankCredentials) {
+                try {
+                    criarCobrancaPagBank(saved);
+                } catch (Exception e) {
+                    throw new RuntimeException("Falha ao criar cobrança PIX no PagBank: " + e.getMessage(), e);
+                }
+            } else {
+                saved.setPagbankStatus("WAITING");
+                repository.save(saved);
             }
             saved = ensurePixDisplayData(saved, null);
         }
