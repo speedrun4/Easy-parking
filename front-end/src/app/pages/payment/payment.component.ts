@@ -9,9 +9,11 @@ import { AlertDialogCancelComponent } from 'src/app/components/alert-dialog-canc
 import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
 import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
 import { PixProgressModalComponent } from 'src/app/components/pix-progress-modal/pix-progress-modal.component';
+import { ConfirmationDialogComponent } from 'src/app/components/confirmation-dialog/confirmation-dialog.component';
 import { PaymentHistoryService } from 'src/app/services/payment-history.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ReservaService } from 'src/app/services/reserva.service';
+import { CarteiraService } from 'src/app/services/carteira.service';
 import { environment } from 'src/environments/environment';
 
 
@@ -30,7 +32,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   promoValidationMessage: string = '';
   isValidatingPromotion: boolean = false;
   selectedPaymentMethod: string = '';
-  paymentMethods = ['Pix', 'Cartão de Crédito', 'Cartão de Débito'];
+  paymentMethods = ['Pix', 'Cartão de Crédito', 'Cartão de Débito', 'Carteira'];
   qrCodeData: string = '';
   qrCodeImage: string = '';
   pixQrBase64: string = '';
@@ -75,7 +77,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private paymentHistoryService: PaymentHistoryService,
     private authService: AuthService,
-    private reservaService: ReservaService
+    private reservaService: ReservaService,
+    private carteiraService: CarteiraService
   ) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
@@ -354,19 +357,45 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   confirmPayment() {
-  if (this.selectedPaymentMethod === 'Pix') {
-    return;
-  }
-  // Ao clicar em confirmar, parar e ocultar imediatamente o contador do header
-  this.preReservaService.notifyPreReservaCancelled();
-  console.log('selectedParkings no pagamento:', this.selectedParkings);
-  // Força o campo horaSaida a existir, mesmo que venha como selectedExitTime
-  this.selectedParkings = this.selectedParkings.map(p => ({
-    ...p,
-    horaSaida: p.horaSaida || p.selectedExitTime || p.selectedHoraSaida || null
-  }));
-  const selected = this.selectedParkings[0];
-  console.log('Valor de horário de saída enviado:', selected.horaSaida);
+    if (this.selectedPaymentMethod === 'Pix') {
+      return;
+    }
+
+    if (!this.selectedPaymentMethod) {
+      this.dialog.open(SucessoModalComponent, {
+        data: {
+          title: 'Atenção',
+          message: 'Selecione um método de pagamento.'
+        }
+      });
+      return;
+    }
+
+    if (this.selectedPaymentMethod === 'Cartão de Crédito' || this.selectedPaymentMethod === 'Cartão de Débito') {
+      const cardErrors = this.validateCard();
+      if (cardErrors.length) {
+        this.dialog.open(ErrorDialogComponent, {
+          data: { title: 'Erro de Cartão', message: cardErrors.join('\n') }
+        });
+        return;
+      }
+    }
+
+    this.preReservaService.notifyPreReservaCancelled();
+    console.log('selectedParkings no pagamento:', this.selectedParkings);
+    this.selectedParkings = this.selectedParkings.map(p => ({
+      ...p,
+      horaSaida: p.horaSaida || p.selectedExitTime || p.selectedHoraSaida || null
+    }));
+    const selected = this.selectedParkings[0];
+    if (!selected) {
+      this.dialog.open(ErrorDialogComponent, {
+        data: { title: 'Erro no pagamento', message: 'Nenhum estacionamento selecionado para pagamento.' }
+      });
+      return;
+    }
+
+    console.log('Valor de horário de saída enviado:', selected.horaSaida);
     const parkingName = selected.title || selected.companyName || selected.nome || selected.name || 'Estacionamento reservado';
     const parkingAddress = selected.address || selected.endereco || selected.street || '';
     const currentUser = this.authService.getCurrentUser();
@@ -388,7 +417,41 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
     const padTime = (t: string) => t && t.length === 5 ? t + ':00' : t;
 
-    const forma = this.selectedPaymentMethod === 'Pix' ? 'PIX' : this.selectedPaymentMethod;
+    const forma = this.selectedPaymentMethod === 'Carteira' ? 'Carteira' : this.selectedPaymentMethod;
+
+    if (forma === 'Carteira') {
+      const saldoAtual = this.carteiraService.obterCarteira().saldo;
+      if (!this.carteiraService.temSaldoSuficiente(this.totalValue)) {
+        const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+          data: {
+            title: 'Saldo insuficiente',
+            message: `Você não tem saldo suficiente na carteira (saldo atual: R$ ${saldoAtual.toFixed(2)}). Deseja adicionar saldo agora?`,
+            confirmText: 'Sim',
+            cancelText: 'Não'
+          }
+        });
+
+        dialogRef.afterClosed().subscribe((goToWallet: boolean) => {
+          if (goToWallet) {
+            this.router.navigate(['/carteira']);
+          }
+        });
+        return;
+      }
+
+      const descricaoDebito = `Pagamento de reserva - ${parkingName}`;
+      const debitoRealizado = this.carteiraService.removerValorSePossivel(this.totalValue, descricaoDebito);
+      if (!debitoRealizado) {
+        this.dialog.open(ErrorDialogComponent, {
+          data: {
+            title: 'Saldo insuficiente',
+            message: 'Não foi possível debitar o valor da carteira. Tente novamente.'
+          }
+        });
+        return;
+      }
+    }
+
     const pagamento: any = {
       nome: this.cardName || this.payerName || 'Usuário Pix',
       formaPagamento: forma,
@@ -404,144 +467,60 @@ export class PaymentComponent implements OnInit, OnDestroy {
   horarioReservaSaida: padTime(selected.horaSaida || null)
     };
 
+    this.loading = true;
     this.paymentHistoryService.salvarPagamento(pagamento).subscribe({
       next: (res) => {
-        console.log('Pagamento salvo com sucesso', res);
-  const savedPaymentId = (res as any)?.id;
-  this.currentPaymentId = savedPaymentId || null;
-
-        // Se PIX, inicia a cobrança e exibe QR com polling de status
-        if (forma === 'PIX' && savedPaymentId) {
-          this.isProcessingPayment = true;
-          const dialogRef = this.dialog.open(PixProgressModalComponent, {
-            data: {
-              paymentId: savedPaymentId,
-              status: 'INICIANDO',
-              qrBase64: null,
-              qrPayload: null
-            }
-          });
-          this.paymentHistoryService.iniciarPix(savedPaymentId, { pixKey: this.pixKey }).subscribe({
-            next: r => {
-              this.pixChargeId = r.pagbankChargeId || '';
-              this.pixStatus = r.status || 'WAITING';
-              if (r.qrBase64) {
-                this.pixQrBase64 = `data:image/png;base64,${r.qrBase64}`;
-              }
-              if (r.qrPayload) {
-                this.pixQrPayload = r.qrPayload;
-              }
-              // atualiza modal
-              if (dialogRef && dialogRef.componentInstance) {
-                dialogRef.componentInstance.status = this.pixStatus;
-                dialogRef.componentInstance.qrBase64 = this.pixQrBase64;
-                dialogRef.componentInstance.qrPayload = this.pixQrPayload;
-              }
-              // inicia polling a cada 3s
-              this.pollingCount = 0;
-              this.pollingSub = interval(3000).pipe(
-                switchMap(() => this.paymentHistoryService.consultarStatusPix(savedPaymentId))
-              ).subscribe((statusResp: { status: string }) => {
-                this.pixStatus = statusResp.status;
-                this.pollingCount++;
-                if (dialogRef && dialogRef.componentInstance) {
-                  dialogRef.componentInstance.status = this.pixStatus;
-                }
-                if (statusResp.status && statusResp.status.toUpperCase() === 'PAID') {
-                  dialogRef.close();
-                  this.handlePixPaidSuccess();
-                } else if (this.pollingCount >= this.maxPollingCount) {
-                  // timeout
-                  if (this.pollingSub) { this.pollingSub.unsubscribe(); }
-                  this.isProcessingPayment = false;
-                  this.loading = false;
-                  this.errorMsg = 'Tempo esgotado para confirmação do PIX. Você pode tentar novamente.';
-                  if (dialogRef && dialogRef.componentInstance) {
-                    dialogRef.componentInstance.status = 'TIMEOUT';
-                    dialogRef.componentInstance.errorMsg = this.errorMsg;
-                  }
-                }
-              });
-            },
-            error: err => {
-              this.isProcessingPayment = false;
-              this.loading = false;
-              this.errorMsg = 'Não foi possível iniciar o PIX. Tente novamente.';
-              console.error('Falha ao iniciar PIX:', err);
-              if (dialogRef && dialogRef.componentInstance) {
-                dialogRef.componentInstance.status = 'ERRO';
-                dialogRef.componentInstance.errorMsg = this.errorMsg;
-              }
-            }
-          });
-        } else {
-          // Outras formas seguem fluxo anterior
-          const estacionamentoId = selected.id || selected.estacionamentoId || selected.idEstacionamento || selected.parkingId;
-          if (estacionamentoId) {
-            const reserva = {
-              cliente: { id: currentUser.id },
-              estacionamento: { id: estacionamentoId },
-              horario: new Date()
-            };
-            this.reservaService.criarReserva(reserva).subscribe(() => {
-              console.log('Reserva criada e vinculada ao estacionamento!');
-            });
-          }
-          // Armazena o id do pagamento para uso posterior (se necessário)
-          if (savedPaymentId) {
-            this.currentPaymentId = savedPaymentId;
-          }
-        }
-      },
-      error: (error) => {
-        console.error('Erro ao salvar pagamento:', error);
-      }
-    });
-
-    // Validação de método de pagamento
-    if (!this.selectedPaymentMethod) {
-      this.dialog.open(SucessoModalComponent, {
-        data: {
-          title: 'Atenção',
-          message: 'Selecione um método de pagamento.'
-        }
-      });
-      return;
-    }
-
-    // Validação de dados
-    if (this.selectedPaymentMethod === 'Cartão de Crédito' || this.selectedPaymentMethod === 'Cartão de Débito') {
-      const cardErrors = this.validateCard();
-      if (cardErrors.length) {
-        this.dialog.open(ErrorDialogComponent, {
-          data: { title: 'Erro de Cartão', message: cardErrors.join('\n') }
-        });
-        return;
-      }
-    }
-
-    this.loading = true;
-
-    if (this.selectedPaymentMethod !== 'Pix') {
-      setTimeout(() => {
         this.loading = false;
-          const dialogRef = this.dialog.open(SucessoModalComponent, {
-            data: {
-              title: 'Pagamento Confirmado',
-              prefix: `Pagamento realizado com sucesso via ${this.selectedPaymentMethod}. Você pode ver seu QR na guia `,
-              linkText: 'Minhas Reservas',
-              linkTo: ['/minhas-reservas'],
-              suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
-            }
+        console.log('Pagamento salvo com sucesso', res);
+        const savedPaymentId = (res as any)?.id;
+        if (savedPaymentId) {
+          this.currentPaymentId = savedPaymentId;
+        }
+
+        const estacionamentoId = selected.id || selected.estacionamentoId || selected.idEstacionamento || selected.parkingId;
+        if (estacionamentoId) {
+          const reserva = {
+            cliente: { id: currentUser.id },
+            estacionamento: { id: estacionamentoId },
+            horario: new Date()
+          };
+          this.reservaService.criarReserva(reserva).subscribe(() => {
+            console.log('Reserva criada e vinculada ao estacionamento!');
           });
-        // marca pagamento concluído para interromper contador de pré-reserva
+        }
+
+        const dialogRef = this.dialog.open(SucessoModalComponent, {
+          data: {
+            title: 'Pagamento Confirmado',
+            prefix: `Pagamento realizado com sucesso via ${this.selectedPaymentMethod}. Você pode ver seu QR na guia `,
+            linkText: 'Minhas Reservas',
+            linkTo: ['/minhas-reservas'],
+            suffix: '. Clique em fechar para seguir para a rota até o estacionamento.'
+          }
+        });
+
         this.preReservaService.confirmPayment();
         this.preReservaService.notifyPreReservaCancelled();
         dialogRef.afterClosed().subscribe(() => {
           this.navigateToRoutePage();
         });
-      }, 2000);
-    }
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Erro ao salvar pagamento:', error);
+
+        if (forma === 'Carteira') {
+          this.carteiraService.adicionarValor(this.totalValue, `Estorno - Pagamento de reserva - ${parkingName}`, 'ajuste');
+        }
+
+        this.dialog.open(ErrorDialogComponent, {
+          data: {
+            title: 'Erro no pagamento',
+            message: 'Não foi possível finalizar o pagamento. Tente novamente.'
+          }
+        });
+      }
+    });
   }
 
   private validateCard(): string[] {

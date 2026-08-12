@@ -50,4 +50,17 @@ export class CarteiraService {
     // Simule um salvamento na base de dados aqui
     console.log('Transação salva:', transacao);
   }
+
+  temSaldoSuficiente(valor: number): boolean {
+    return this.carteira.saldo >= (Number(valor) || 0);
+  }
+
+  removerValorSePossivel(valor: number, descricao: string): boolean {
+    if (!this.temSaldoSuficiente(valor)) {
+      return false;
+    }
+
+    this.removerValor(valor, descricao);
+    return true;
+  }
 }
