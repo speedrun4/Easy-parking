@@ -83,6 +83,9 @@ public class Pagamentos {
     @Column(name = "pagbank_status")
     private String pagbankStatus; // WAITING, PAID, etc
 
+    @Column(name = "pix_gateway_provider")
+    private String pixGatewayProvider; // MERCADO_PAGO, PAGBANK, STATIC
+
     @Lob
     @Column(name = "pagbank_qr_base64", columnDefinition = "LONGTEXT")
     private String pagbankQrBase64; // imagem do QR retornada pelo PagBank
@@ -243,10 +246,12 @@ public class Pagamentos {
     public String getPagbankStatus() { return pagbankStatus; }
     public void setPagbankStatus(String pagbankStatus) { this.pagbankStatus = pagbankStatus; }
 
+    public String getPixGatewayProvider() { return pixGatewayProvider; }
+    public void setPixGatewayProvider(String pixGatewayProvider) { this.pixGatewayProvider = pixGatewayProvider; }
+
     public String getPagbankQrBase64() { return pagbankQrBase64; }
     public void setPagbankQrBase64(String pagbankQrBase64) { this.pagbankQrBase64 = pagbankQrBase64; }
 
     public String getPagbankQrPayload() { return pagbankQrPayload; }
     public void setPagbankQrPayload(String pagbankQrPayload) { this.pagbankQrPayload = pagbankQrPayload; }
 }
-

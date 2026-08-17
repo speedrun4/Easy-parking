@@ -3,14 +3,12 @@ package org.example.services;
 import org.example.models.Pagamentos;
 import org.example.repositories.PagamentoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
@@ -26,44 +24,21 @@ public class PagamentoService {
     @Autowired
     private QRCodeService qrCodeService;
 
-    @Value("${pagbank.email}")
-    private String pagbankEmail;
-
-    @Value("${pagbank.token}")
-    private String pagbankToken;
-
     @Value("${pagbank.sandbox:true}")
     private boolean pagbankSandbox;
 
     @Value("${pix.key:}")
     private String pixDefaultKey;
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-    @Autowired
-    private RestTemplate restTemplate;
-
     @Autowired
     private PagBankClient pagBankClient;
+
+    @Autowired
+    private MercadoPagoClient mercadoPagoClient;
 
     public Pagamentos salvarPagamento(Pagamentos pagamento) {
         Pagamentos saved = repository.save(pagamento);
 
-        // Se for forma de pagamento PIX via PagBank e ainda não tiver integração
-        if ("PIX".equalsIgnoreCase(saved.getFormaPagamento()) && saved.getPagbankStatus() == null) {
-            boolean hasPagBankCredentials = pagBankClient.hasConfiguredCredentials();
-            if (hasPagBankCredentials) {
-                try {
-                    criarCobrancaPagBank(saved);
-                } catch (Exception e) {
-                    throw new RuntimeException("Falha ao criar cobrança PIX no PagBank: " + e.getMessage(), e);
-                }
-            } else {
-                saved.setPagbankStatus("WAITING");
-                repository.save(saved);
-            }
-            saved = ensurePixDisplayData(saved, null);
-        }
         // Gera QR de entrada se ainda não existir
         if (saved.getEntryQrToken() == null) {
             try {
@@ -82,6 +57,112 @@ public class PagamentoService {
         return saved;
     }
 
+    public boolean hasTrackablePixGateway() {
+        return mercadoPagoClient.hasConfiguredCredentials()
+                || (pagBankClient.hasConfiguredCredentials() && !pagbankSandbox);
+    }
+
+    public Pagamentos ensurePixCharge(Pagamentos pagamento, String pixKeyOverride) throws Exception {
+        if (pagamento == null || !"PIX".equalsIgnoreCase(pagamento.getFormaPagamento())) {
+            return pagamento;
+        }
+
+        if (hasText(pagamento.getPagbankChargeId())) {
+            return ensurePixDisplayData(pagamento, pixKeyOverride);
+        }
+
+        if (mercadoPagoClient.hasConfiguredCredentials()) {
+            Map<String, Object> response = mercadoPagoClient.createPixPayment(
+                    buildPaymentReference(pagamento),
+                    pagamento.getValorPago(),
+                    buildPixDescription(pagamento),
+                    pagamento.getUsuario()
+            );
+            return applyMercadoPagoPixResponse(pagamento, response);
+        }
+
+        if (pagBankClient.hasConfiguredCredentials() && !pagbankSandbox) {
+            criarCobrancaPagBank(pagamento);
+            Pagamentos atualizado = repository.findById(pagamento.getId()).orElse(pagamento);
+            return ensurePixDisplayData(atualizado, pixKeyOverride);
+        }
+
+        pagamento.setPixGatewayProvider("STATIC");
+        if (!hasText(pagamento.getPagbankStatus())) {
+            pagamento.setPagbankStatus("WAITING");
+        }
+        repository.save(pagamento);
+        return ensurePixDisplayData(pagamento, pixKeyOverride);
+    }
+
+    public Pagamentos applyMercadoPagoPixResponse(Pagamentos pagamento, Map<String, Object> response) {
+        if (pagamento == null) {
+            return null;
+        }
+
+        pagamento.setPixGatewayProvider("MERCADO_PAGO");
+        Object paymentId = response.get("id");
+        if (paymentId != null) {
+            pagamento.setPagbankChargeId(paymentId.toString());
+        }
+        Object externalReference = response.get("external_reference");
+        if (externalReference != null) {
+            pagamento.setPagbankOrderId(externalReference.toString());
+        }
+        updateGatewayStatus(pagamento, response.get("status"));
+
+        Map<String, Object> pointOfInteraction = asMap(response.get("point_of_interaction"));
+        Map<String, Object> transactionData = asMap(pointOfInteraction.get("transaction_data"));
+        String qrBase64 = readString(transactionData.get("qr_code_base64"));
+        String qrPayload = readString(transactionData.get("qr_code"));
+        if (hasText(qrBase64)) {
+            pagamento.setPagbankQrBase64(qrBase64);
+        }
+        if (hasText(qrPayload)) {
+            pagamento.setPagbankQrPayload(qrPayload);
+        }
+
+        Pagamentos atualizado = repository.save(pagamento);
+        return ensurePixDisplayData(atualizado, null);
+    }
+
+    public Pagamentos applyPagBankPixResponse(Pagamentos pagamento, Map<String, Object> response) {
+        if (pagamento == null) {
+            return null;
+        }
+
+        pagamento.setPixGatewayProvider("PAGBANK");
+        Object chargeId = response.get("id");
+        if (chargeId != null) {
+            pagamento.setPagbankChargeId(chargeId.toString());
+        }
+        updateGatewayStatus(pagamento, response.get("status"));
+
+        Map<String, Object> qr = asMap(response.get("qr_code"));
+        String qrBase64 = readString(qr.get("base64"));
+        String qrPayload = readString(qr.get("text"));
+        if (hasText(qrBase64)) {
+            pagamento.setPagbankQrBase64(qrBase64);
+        }
+        if (hasText(qrPayload)) {
+            pagamento.setPagbankQrPayload(qrPayload);
+        }
+
+        Pagamentos atualizado = repository.save(pagamento);
+        return ensurePixDisplayData(atualizado, null);
+    }
+
+    public boolean isPaidGatewayStatus(String status) {
+        if (!hasText(status)) {
+            return false;
+        }
+        String normalized = status.trim().toUpperCase();
+        return "APPROVED".equals(normalized)
+                || "PAID".equals(normalized)
+                || "CONFIRMED".equals(normalized)
+                || "COMPLETED".equals(normalized);
+    }
+
     public Pagamentos ensurePixDisplayData(Pagamentos pagamento, String pixKeyOverride) {
         if (pagamento == null) {
             return null;
@@ -96,6 +177,15 @@ public class PagamentoService {
         if (pagamento.getPagbankQrBase64() != null && !pagamento.getPagbankQrBase64().isEmpty() && hasValidPayload) {
             return pagamento;
         }
+        if (hasValidPayload) {
+            try {
+                pagamento.setPagbankQrBase64(generateQrBase64(existingPayload));
+                return repository.save(pagamento);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return pagamento;
+            }
+        }
 
         String pixKey = (pixKeyOverride != null && !pixKeyOverride.trim().isEmpty())
                 ? pixKeyOverride.trim()
@@ -108,6 +198,9 @@ public class PagamentoService {
             String pixPayload = buildPixPayload(pagamento, pixKey);
             pagamento.setPagbankQrPayload(pixPayload);
             pagamento.setPagbankQrBase64(generateQrBase64(pixPayload));
+            if (!hasText(pagamento.getPixGatewayProvider())) {
+                pagamento.setPixGatewayProvider("STATIC");
+            }
             if (pagamento.getPagbankStatus() == null || pagamento.getPagbankStatus().isEmpty()) {
                 pagamento.setPagbankStatus("WAITING");
             }
@@ -202,6 +295,41 @@ public class PagamentoService {
 
     public void deletarPorId(Long id) {
         repository.deleteById(id);
+    }
+
+    private void updateGatewayStatus(Pagamentos pagamento, Object rawStatus) {
+        String normalizedStatus = hasText(readString(rawStatus))
+                ? readString(rawStatus).trim().toUpperCase()
+                : "WAITING";
+        pagamento.setPagbankStatus(normalizedStatus);
+        if (isPaidGatewayStatus(normalizedStatus)) {
+            pagamento.setStatus("pago");
+        } else if (!hasText(pagamento.getStatus())) {
+            pagamento.setStatus("aguardando_pagamento");
+        }
+    }
+
+    private String buildPaymentReference(Pagamentos pagamento) {
+        return "PAY-" + pagamento.getId();
+    }
+
+    private String buildPixDescription(Pagamentos pagamento) {
+        return "Easy Parking pagamento " + pagamento.getId();
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
+
+    private String readString(Object value) {
+        return value != null ? value.toString() : null;
+    }
+
+    private Map<String, Object> asMap(Object value) {
+        if (value instanceof Map) {
+            return (Map<String, Object>) value;
+        }
+        return java.util.Collections.emptyMap();
     }
 
     private String buildToken(Pagamentos p, String type) {
@@ -319,17 +447,6 @@ public class PagamentoService {
 
         int cents = p.getValorPago() != null ? p.getValorPago().multiply(new java.math.BigDecimal(100)).intValue() : 100;
         java.util.Map<String, Object> map = pagBankClient.createPixCharge("PAY-" + p.getId(), cents, "Easy-Park pagamento " + p.getId());
-        Object chargeId = map.get("id");
-        p.setPagbankChargeId(chargeId != null ? chargeId.toString() : null);
-        p.setPagbankStatus(String.valueOf(map.getOrDefault("status", "WAITING")));
-
-        Object qr = map.get("qr_code");
-        if (qr instanceof java.util.Map) {
-            Object qrBase64 = ((java.util.Map<?,?>) qr).get("base64");
-            Object qrText = ((java.util.Map<?,?>) qr).get("text");
-            if (qrBase64 != null) p.setPagbankQrBase64(qrBase64.toString());
-            if (qrText != null) p.setPagbankQrPayload(qrText.toString());
-        }
-        repository.save(p);
+        applyPagBankPixResponse(p, map);
     }
 }

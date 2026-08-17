@@ -1,6 +1,9 @@
-# Integração PagBank (PagSeguro) - Easy-parking
+# Integração de pagamentos - Easy-parking
 
-Este documento descreve como configurar e usar a integração com o PagBank para pagamentos PIX, cartão de crédito e débito.
+Este documento descreve como configurar e usar a integração de pagamentos do Easy Parking.
+
+- PIX: Mercado Pago (preferencial) com fallback para PagBank ou QR estático quando necessário.
+- Cartão de crédito/débito: PagBank.
 
 ## Configuração
 
@@ -15,6 +18,10 @@ Edite `back-end/src/main/resources/application.properties`:
   - `pagbank.token=SEU_TOKEN_DE_TESTE`
 - Webhook de notificações
   - `pagbank.notification_url=http://SEU_HOST/api/pagbank/notifications`
+- Mercado Pago para PIX
+  - `mercadopago.access-token=APP_USR-...`
+  - `mercadopago.notification-url=https://SEU_HOST/api/mercadopago/notifications`
+  - `mercadopago.payer-email=pagamentos@seudominio.com`
 
 > Em produção, use HTTPS e um host público. No sandbox é possível usar um túnel como ngrok.
 
@@ -37,13 +44,13 @@ npm run start
 
 ## Endpoints
 
-### Criar compra (charge) com PagBank
+### Criar compra (charge)
 
 `POST /api/pagbank/purchase`
 
 Body exemplos:
 
-- PIX
+- PIX (Mercado Pago quando configurado; senão fallback existente)
 ```json
 {
   "method": "PIX",
@@ -78,7 +85,8 @@ Resposta: `{ "charge": { ... }, "paymentId": 123, "paymentStatus": "aguardando_p
 
 > Observações:
 > - Em produção, use tokenização no cliente para dados de cartão (PCI), enviando apenas o token ao backend.
-> - Em PIX, a resposta inclui `qr_code.base64` e `qr_code.text` para exibir ao usuário.
+> - Em PIX via Mercado Pago, a resposta inclui `point_of_interaction.transaction_data.qr_code_base64` e `qr_code`.
+> - O backend persiste os dados do QR no pagamento local e mantém o formato atual de resposta para o front.
 
 ### Fluxo PIX com Pagamentos local
 
@@ -93,8 +101,10 @@ Resposta: `{ "charge": { ... }, "paymentId": 123, "paymentStatus": "aguardando_p
 
 `POST /api/pagbank/notifications`
 
-- Atualiza status do pagamento local, quando o `reference_id` inclui o ID (ex.: `PAY-<id>`).
-- Configure `pagbank.notification_url` para que o PagBank envie as notificações.
+`POST /api/mercadopago/notifications`
+
+- Atualiza status do pagamento local quando a referência inclui o ID (ex.: `PAY-<id>`).
+- Configure `pagbank.notification_url` e/ou `mercadopago.notification-url` com uma URL HTTPS pública.
 
 ## Angular
 

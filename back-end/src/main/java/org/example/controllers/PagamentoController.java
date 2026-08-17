@@ -83,6 +83,8 @@ public class PagamentoController {
     private org.example.services.PagamentoService pagamentoService;
     @Autowired
     private org.example.services.PagBankClient pagBankClient;
+    @Autowired
+    private org.example.services.MercadoPagoClient mercadoPagoClient;
 
     @org.springframework.beans.factory.annotation.Value("${pagbank.sandbox:true}")
     private boolean pagbankSandbox;
@@ -109,6 +111,15 @@ public class PagamentoController {
             return pixDefaultKey.trim();
         }
         return null;
+    }
+
+    private String resolvePixProvider(Pagamentos pagamento) {
+        if (pagamento == null || pagamento.getPixGatewayProvider() == null || pagamento.getPixGatewayProvider().trim().isEmpty()) {
+            return pagamento != null && pagamento.getPagbankChargeId() != null && !pagamento.getPagbankChargeId().trim().isEmpty()
+                    ? "PAGBANK"
+                    : "STATIC";
+        }
+        return pagamento.getPixGatewayProvider().trim().toUpperCase();
     }
 
     @PostMapping
@@ -153,12 +164,12 @@ public class PagamentoController {
                 }
                 p.setStatus("aguardando_pagamento");
                 pagamentosRepository.save(p);
-                service.salvarPagamento(p); // irá acionar criação de cobrança se necessário
-                Pagamentos atualizado = pagamentosRepository.findById(id).orElse(p);
-                boolean requiresTrackableCharge = pagBankClient.hasConfiguredCredentials();
+                Pagamentos atualizado = service.ensurePixCharge(p, resolvedPixKey);
+                atualizado = pagamentosRepository.findById(id).orElse(atualizado);
+                boolean requiresTrackableCharge = service.hasTrackablePixGateway();
                 if (requiresTrackableCharge && (atualizado.getPagbankChargeId() == null || atualizado.getPagbankChargeId().trim().isEmpty())) {
                     java.util.Map<String, Object> err = new java.util.HashMap<>();
-                    err.put("message", "Não foi possível criar cobrança PIX rastreável no PagBank. Verifique token/oauth e permissões da conta no ambiente atual.");
+                    err.put("message", "Não foi possível criar cobrança PIX rastreável no gateway configurado. Verifique as credenciais do Mercado Pago/PagBank.");
                     err.put("status", "UNTRACKABLE");
                     return ResponseEntity.status(502).body(err);
                 }
@@ -171,6 +182,7 @@ public class PagamentoController {
                 result.put("qrBase64", atualizado.getPagbankQrBase64());
                 result.put("qrPayload", atualizado.getPagbankQrPayload());
                 result.put("pixKey", resolvedPixKey);
+                result.put("provider", resolvePixProvider(atualizado));
                 return ResponseEntity.ok(result);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -183,8 +195,9 @@ public class PagamentoController {
     @GetMapping("/{id}/pagbank/status")
     public ResponseEntity<?> consultarStatusPagBank(@PathVariable Long id) {
         return pagamentosRepository.findById(id).map(p -> {
+            String provider = resolvePixProvider(p);
             if (p.getPagbankChargeId() == null) {
-                boolean requiresTrackableCharge = pagBankClient.hasConfiguredCredentials();
+                boolean requiresTrackableCharge = service.hasTrackablePixGateway();
                 if (!requiresTrackableCharge && pagbankSandbox) {
                     p = service.ensurePixDisplayData(p, null);
                     java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
@@ -193,27 +206,24 @@ public class PagamentoController {
                     respBody.put("qrBase64", p.getPagbankQrBase64());
                     respBody.put("qrPayload", p.getPagbankQrPayload());
                     respBody.put("pixKey", resolvePixKey(null));
+                    respBody.put("provider", resolvePixProvider(p));
                     return ResponseEntity.ok(respBody);
                 }
 
                 java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
                 respBody.put("status", "UNTRACKABLE");
                 respBody.put("paymentStatus", p.getStatus());
-                respBody.put("message", "Pagamento PIX sem cobrança rastreável no PagBank. Gere um novo PIX após validar token/oauth e ambiente.");
+                respBody.put("message", "Pagamento PIX sem cobrança rastreável no gateway configurado. Gere um novo PIX após validar as credenciais.");
+                respBody.put("provider", provider);
                 return ResponseEntity.ok(respBody);
             }
             try {
-                java.util.Map<String, Object> map = pagBankClient.getCharge(p.getPagbankChargeId());
-                Object st = map.get("status");
-                if (st != null) {
-                    String normalizedStatus = st.toString().trim().toUpperCase();
-                    p.setPagbankStatus(normalizedStatus);
-                    if ("PAID".equalsIgnoreCase(normalizedStatus)
-                            || "COMPLETED".equalsIgnoreCase(normalizedStatus)
-                            || "CONFIRMED".equalsIgnoreCase(normalizedStatus)) {
-                        p.setStatus("pago");
-                    }
-                    pagamentosRepository.save(p);
+                if ("MERCADO_PAGO".equals(provider)) {
+                    java.util.Map<String, Object> map = mercadoPagoClient.getPayment(p.getPagbankChargeId());
+                    p = service.applyMercadoPagoPixResponse(p, map);
+                } else {
+                    java.util.Map<String, Object> map = pagBankClient.getCharge(p.getPagbankChargeId());
+                    p = service.applyPagBankPixResponse(p, map);
                 }
 
                 p = service.ensurePixDisplayData(p, null);
@@ -223,6 +233,7 @@ public class PagamentoController {
                 respBody.put("qrBase64", p.getPagbankQrBase64());
                 respBody.put("qrPayload", p.getPagbankQrPayload());
                 respBody.put("pixKey", resolvePixKey(null));
+                respBody.put("provider", resolvePixProvider(p));
                 return ResponseEntity.ok(respBody);
             } catch (Exception e) {
                 e.printStackTrace();

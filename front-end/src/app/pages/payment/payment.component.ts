@@ -39,6 +39,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   pixQrBase64: string = '';
   pixQrPayload: string = '';
   pixDisplayKey: string = environment.pixKey;
+  pixProviderLabel: string = 'Mercado Pago';
   pixStatus: string = '';
   pixChargeId: string = '';
   isProcessingPayment: boolean = false;
@@ -315,11 +316,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
             if (!this.pixChargeId && (isUntrackable || !hasQrData)) {
               this.loading = false;
               this.isProcessingPayment = false;
-              this.errorMsg = 'Falha na integração PIX: cobrança não rastreável no PagBank. Gere um novo pagamento após validar configuração do servidor.';
+              this.errorMsg = 'Falha na integração PIX: cobrança não rastreável no gateway configurado. Gere um novo pagamento após validar a configuração do servidor.';
               return;
             }
             this.pixStatus = r.status || 'WAITING';
             this.pixDisplayKey = r.pixKey || this.pixKey;
+            this.pixProviderLabel = this.resolvePixProviderLabel(r.provider);
             if (r.qrBase64) {
               this.pixQrBase64 = `data:image/png;base64,${r.qrBase64}`;
             }
@@ -857,6 +859,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       next: (r) => {
         this.pixStatus = r.status;
         this.pixDisplayKey = r.pixKey || this.pixDisplayKey || this.pixKey;
+        this.pixProviderLabel = this.resolvePixProviderLabel(r.provider);
         if (r.qrBase64) {
           this.pixQrBase64 = `data:image/png;base64,${r.qrBase64}`;
         }
@@ -889,11 +892,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
         if (!this.pixChargeId && (isUntrackable || !hasQrData)) {
           this.isProcessingPayment = false;
           this.loading = false;
-          this.errorMsg = 'Falha na integração PIX: cobrança não rastreável no PagBank.';
+          this.errorMsg = 'Falha na integração PIX: cobrança não rastreável no gateway configurado.';
           return;
         }
         this.pixStatus = r.status || 'WAITING';
         this.pixDisplayKey = r.pixKey || this.pixDisplayKey || this.pixKey;
+        this.pixProviderLabel = this.resolvePixProviderLabel(r.provider);
         if (r.qrBase64) this.pixQrBase64 = `data:image/png;base64,${r.qrBase64}`;
         if (r.qrPayload) this.pixQrPayload = r.qrPayload;
         // reinicia polling
@@ -972,10 +976,21 @@ export class PaymentComponent implements OnInit, OnDestroy {
     const normalizedGatewayStatus = (pagbankStatus || '').trim().toUpperCase();
     const normalizedLocalStatus = (localPaymentStatus || '').trim().toUpperCase();
 
-    const paidGatewayStatuses = ['PAID', 'CONFIRMED', 'COMPLETED'];
+    const paidGatewayStatuses = ['APPROVED', 'PAID', 'CONFIRMED', 'COMPLETED'];
     const paidLocalStatuses = ['PAGO', 'PAID'];
 
     return paidGatewayStatuses.includes(normalizedGatewayStatus) || paidLocalStatuses.includes(normalizedLocalStatus);
+  }
+
+  private resolvePixProviderLabel(provider?: string): string {
+    const normalizedProvider = (provider || '').trim().toUpperCase();
+    if (normalizedProvider === 'PAGBANK') {
+      return 'PagBank';
+    }
+    if (normalizedProvider === 'STATIC') {
+      return 'PIX Copia e Cola';
+    }
+    return 'Mercado Pago';
   }
 
   private extractBackendErrorMessage(err: any, fallback: string): string {

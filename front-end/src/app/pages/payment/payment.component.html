@@ -38,9 +38,9 @@
         </mat-radio-group>
       </section>
 
-      <!-- PIX via PagBank -->
+      <!-- PIX -->
       <div *ngIf="selectedPaymentMethod === 'Pix'" class="pix-container">
-        <h4>PIX (PagBank)</h4>
+        <h4>PIX ({{ pixProviderLabel }})</h4>
         <ng-container *ngIf="pixQrBase64; else aguardandoQr">
           <img [src]="pixQrBase64" alt="QR PIX" class="qr-code" />
         </ng-container>

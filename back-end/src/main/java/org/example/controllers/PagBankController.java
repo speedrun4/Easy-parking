@@ -1,6 +1,8 @@
 package org.example.controllers;
 
 import org.example.services.PagBankClient;
+import org.example.services.MercadoPagoClient;
+import org.example.services.PagamentoService;
 import org.example.repositories.PagamentoRepository;
 import org.example.repositories.UsuariosRepository;
 import org.example.models.Pagamentos;
@@ -19,6 +21,12 @@ public class PagBankController {
 
     @Autowired
     private PagBankClient pagBankClient;
+
+    @Autowired
+    private MercadoPagoClient mercadoPagoClient;
+
+    @Autowired
+    private PagamentoService pagamentoService;
 
     @Autowired
     private PagamentoRepository pagamentoRepository;
@@ -53,10 +61,22 @@ public class PagBankController {
             String productName = String.valueOf(body.getOrDefault("productName", description));
             Number usuarioId = (Number) body.get("usuarioId");
             int cents = amount.multiply(new BigDecimal(100)).intValue();
+            Usuarios usuario = null;
+
+            if (usuarioId != null) {
+                usuario = usuariosRepository.findById(usuarioId.intValue()).orElse(null);
+                if (usuario == null) {
+                    return ResponseEntity.badRequest().body("Usuário não encontrado: " + usuarioId);
+                }
+            }
 
             Map<String, Object> result;
             if ("PIX".equals(method)) {
-                result = pagBankClient.createPixCharge(referenceId, cents, description);
+                if (mercadoPagoClient.hasConfiguredCredentials()) {
+                    result = mercadoPagoClient.createPixPayment(referenceId, amount, description, usuario);
+                } else {
+                    result = pagBankClient.createPixCharge(referenceId, cents, description);
+                }
             } else if ("CREDIT_CARD".equals(method) || "DEBIT_CARD".equals(method)) {
                 Map<String, Object> card = (Map<String, Object>) body.get("card");
                 if (card == null) {
@@ -70,10 +90,6 @@ public class PagBankController {
             // Persistência opcional: se vier usuarioId, criamos/atualizamos um Pagamentos local
             Pagamentos pagamentoLocal = null;
             if (usuarioId != null) {
-                Usuarios usuario = usuariosRepository.findById(usuarioId.intValue()).orElse(null);
-                if (usuario == null) {
-                    return ResponseEntity.badRequest().body("Usuário não encontrado: " + usuarioId);
-                }
                 Pagamentos p = new Pagamentos();
                 p.setUsuario(usuario);
                 p.setFormaPagamento(method);
@@ -89,18 +105,20 @@ public class PagBankController {
                     // Para cartão, se status vier PAID marcamos como pago, senão aguardando
                     p.setStatus("PAID".equalsIgnoreCase(apiStatus) ? "pago" : "aguardando_pagamento");
                 }
-                Object chargeId = result.get("id");
-                p.setPagbankChargeId(chargeId != null ? chargeId.toString() : null);
-                p.setPagbankStatus(apiStatus);
-                // QR PIX
-                Object qr = result.get("qr_code");
-                if (qr instanceof Map) {
-                    Object qrBase64 = ((Map<?,?>) qr).get("base64");
-                    Object qrText = ((Map<?,?>) qr).get("text");
-                    if (qrBase64 != null) p.setPagbankQrBase64(qrBase64.toString());
-                    if (qrText != null) p.setPagbankQrPayload(qrText.toString());
+                if ("PIX".equals(method)) {
+                    if (mercadoPagoClient.hasConfiguredCredentials()) {
+                        p = pagamentoService.applyMercadoPagoPixResponse(p, result);
+                    } else {
+                        p = pagamentoService.applyPagBankPixResponse(p, result);
+                    }
+                } else {
+                    Object chargeId = result.get("id");
+                    p.setPagbankChargeId(chargeId != null ? chargeId.toString() : null);
+                    p.setPagbankStatus(apiStatus);
+                    p.setPixGatewayProvider("PAGBANK");
+                    p = pagamentoRepository.save(p);
                 }
-                pagamentoLocal = pagamentoRepository.save(p);
+                pagamentoLocal = p;
             }
 
             Map<String, Object> response = new HashMap<>();
@@ -108,6 +126,7 @@ public class PagBankController {
             if (pagamentoLocal != null) {
                 response.put("paymentId", pagamentoLocal.getId());
                 response.put("paymentStatus", pagamentoLocal.getStatus());
+                response.put("provider", pagamentoLocal.getPixGatewayProvider());
             }
             return ResponseEntity.ok(response);
         } catch (Exception e) {
