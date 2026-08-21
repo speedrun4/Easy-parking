@@ -8,6 +8,7 @@ export interface AsaasPurchaseRequest {
   description?: string;
   referenceId?: string;
   usuarioId?: number;
+  productName?: string;
   card?: {
     number: string;
     exp_month: string;

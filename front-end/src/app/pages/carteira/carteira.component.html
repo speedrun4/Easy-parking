@@ -37,28 +37,42 @@
 
       <!-- Input para dados do cartão -->
       <div *ngIf="metodoSelecionado === 'cartao'">
-        <p><strong>Pagamento seguro com Stripe:</strong> confirme para processar seu cartão com segurança.</p>
+        <p><strong>Pagamento seguro com Asaas:</strong> informe os dados do cartao para recarregar a carteira.</p>
         <label>
           Nome no Cartão:
           <input type="text" [(ngModel)]="dadosCartao.nome" placeholder="Nome do Titular" />
         </label>
-        <div class="stripe-field-wrapper">
-          <label>Dados do cartão</label>
-          <div id="wallet-card-element" class="stripe-card-element"></div>
-        </div>
+        <label>
+          Numero do Cartao:
+          <input type="text" [ngModel]="dadosCartao.numero" (ngModelChange)="onCardNumberInput($event)" placeholder="0000 0000 0000 0000" inputmode="numeric" />
+        </label>
+        <label>
+          Validade:
+          <input type="text" [ngModel]="dadosCartao.validade" (ngModelChange)="onCardExpiryInput($event)" placeholder="MM/AAAA" inputmode="numeric" />
+        </label>
+        <label>
+          CVV:
+          <input type="text" [ngModel]="dadosCartao.cvv" (ngModelChange)="onCardCvvInput($event)" placeholder="123" inputmode="numeric" />
+        </label>
       </div>
 
       <!-- QR Code para PIX -->
       <div *ngIf="metodoSelecionado === 'pix'">
-        <p>Use o QR Code abaixo para realizar o pagamento:</p>
-        <div class="qrcode-container">
+        <p *ngIf="!qrCodeSrc">Clique em gerar PIX para criar a cobranca pelo Asaas.</p>
+        <p *ngIf="qrCodeSrc">Use o QR Code abaixo para realizar o pagamento:</p>
+        <div class="qrcode-container" *ngIf="qrCodeSrc">
           <!-- Exibe o QR Code gerado -->
           <img [src]="qrCodeSrc" alt="QR Code para PIX" />
         </div>
-        <div class="pix-code-container">
+        <div class="pix-code-container" *ngIf="codigoPix">
           <p><strong>Código PIX:</strong></p>
           <input type="text" [value]="codigoPix" readonly class="pix-code" />
           <button (click)="copiarCodigoPix()">Copiar Código</button>
+        </div>
+        <p *ngIf="pixStatus"><strong>Status:</strong> {{ pixStatus }}</p>
+        <div *ngIf="currentPixPaymentId && !isLoading">
+          <button (click)="atualizarStatusPix()">Atualizar status</button>
+          <button *ngIf="isSandboxMode" (click)="simularPixPago()">Simular pagamento</button>
         </div>
       </div>
 
@@ -70,13 +84,13 @@
 
       <!-- Botão de confirmação -->
       <div *ngIf="isLoading">
-        <p>{{ metodoSelecionado === 'cartao' ? 'Processando pagamento no Stripe...' : 'Processando pagamento...' }}</p>
+        <p>{{ metodoSelecionado === 'cartao' ? 'Processando pagamento no Asaas...' : 'Processando pagamento...' }}</p>
         <div class="spinner"></div> <!-- Você pode usar um ícone de spinner aqui -->
       </div>
 
       <!-- Se não estiver carregando, mostre o botão de confirmação -->
       <button *ngIf="metodoSelecionado && !isLoading" (click)="confirmarPagamento()">
-        {{ metodoSelecionado === 'cartao' ? 'Pagar com Stripe' : 'Confirmar pagamento' }}
+        {{ getConfirmButtonText() }}
       </button>
       <button (click)="fecharModal()">Cancelar</button>
     </div>
