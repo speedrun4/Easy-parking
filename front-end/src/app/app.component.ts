@@ -4,6 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { PreReservationService } from './services/pre-reservation.service';
+import { ParkingExpirationAlertService } from './services/parking-expiration-alert.service';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +19,8 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private dialog: MatDialog,
-    private preReservaService: PreReservationService
+    private preReservaService: PreReservationService,
+    private parkingExpirationAlertService: ParkingExpirationAlertService
   ) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
@@ -31,6 +33,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.preReservaService.startExpirationWatcher();
     this.preReservaService.checkAndExpireIfNeeded();
+    this.parkingExpirationAlertService.start();
 
     this.preReservaExpiredSub = this.preReservaService.preReservaExpired$.subscribe(() => {
       if (this.isShowingPreReservaExpiredModal) {

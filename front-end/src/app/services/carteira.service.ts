@@ -22,9 +22,11 @@ export class CarteiraService {
   }
 
   adicionarValor(valor: number, descricao: string, metodo: string,): void {
+    const metodoFormatado = metodo ? metodo.toUpperCase() : 'N/A';
+    const descricaoComMetodo = `${descricao} (${metodoFormatado})`;
     const transacao: Transacao = {
       data: new Date(),
-      descricao,
+      descricao: descricaoComMetodo,
       valor,
       tipo: "entrada",
     };

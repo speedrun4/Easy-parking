@@ -205,5 +205,26 @@ li {
     text-align: center;
     margin-top: 10px;
   }
-  
 
+.stripe-field-wrapper {
+    border: 1px solid rgba(15, 77, 52, 0.15);
+    border-radius: 10px;
+    background: #fff;
+    padding: 10px 12px 12px;
+}
+
+.stripe-field-wrapper label {
+    display: block;
+    margin-bottom: 8px;
+    color: #365b4d;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.stripe-card-element {
+    min-height: 56px;
+    padding: 12px 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+  

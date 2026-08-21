@@ -104,3 +104,22 @@ h2 {
   margin: 8px 0 0;
   color: #264d3d;
 }
+
+.reserva-actions {
+  margin-top: 12px;
+}
+
+.renew-link {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #0f7a57;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.renew-link:disabled {
+  background: #9fb8ad;
+  cursor: not-allowed;
+}

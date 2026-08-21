@@ -6,12 +6,24 @@ import { EstacionamentoService } from '../../services/estacionamento.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as L from 'leaflet';
 
+interface RenewalReservationState {
+  paymentId: number;
+  estacionamento: string;
+  endereco?: string;
+  latitude?: number;
+  longitude?: number;
+  dataReservaEntrada?: string;
+  horarioReservaEntrada?: string;
+  horarioReservaSaida?: string;
+}
+
 @Component({
   selector: 'app-welcome',
   templateUrl: './welcome.component.html',
   styleUrls: ['./welcome.component.scss'],
 })
 export class WelcomeComponent implements OnInit {
+  private readonly renewalStorageKey = 'pendingRenewalReservation';
   private readonly advanceBookingHours = 24;
   private readonly advanceBookingDiscountRate = 0.05;
   private readonly firstReservationPromoCode = 'first-reservation-10';
@@ -26,6 +38,8 @@ export class WelcomeComponent implements OnInit {
   promotionBannerMessage: string = '';
   currentPromotionCode: string = '';
   selectedTime: string | undefined;
+  renewalModeMessage: string = '';
+  private renewalReservation: RenewalReservationState | null = null;
 
   timeOptions: string[] = [];
   exitTimeOptions: { [key: string]: string[] } = {};
@@ -45,11 +59,13 @@ export class WelcomeComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     const navigation = this.router.getCurrentNavigation();
-    const state = navigation?.extras?.state as { paymentConfirmed: boolean };
+    const state = navigation?.extras?.state as {
+      paymentConfirmed?: boolean;
+      renewalReservation?: RenewalReservationState;
+    };
 
-    if (state) {
-      this.paymentConfirmed = state.paymentConfirmed;
-    }
+    this.paymentConfirmed = !!state?.paymentConfirmed;
+    this.renewalReservation = state?.renewalReservation || this.readRenewalReservationFromStorage();
 
     this.searchForm = this.fb.group({
       search: [''],
@@ -89,6 +105,7 @@ export class WelcomeComponent implements OnInit {
       }
 
       this.updateMapMarkers();
+      this.applyRenewalSelectionIfNeeded();
     });
 
     this.timeOptions = this.generateTimeOptions();
@@ -117,6 +134,120 @@ export class WelcomeComponent implements OnInit {
       queryParamsHandling: 'merge',
       replaceUrl: true
     });
+  }
+
+  private applyRenewalSelectionIfNeeded(): void {
+    if (!this.renewalReservation || !this.filteredMarkers?.length) {
+      return;
+    }
+
+    const parking = this.findParkingForRenewal(this.renewalReservation);
+    if (!parking) {
+      this.renewalModeMessage = 'Nao foi possivel localizar automaticamente o estacionamento da sua reserva para renovacao.';
+      this.renewalReservation = null;
+      return;
+    }
+
+    const renewalDate = this.resolveRenewalDate(this.renewalReservation);
+    const renewalEntryTime = this.resolveRenewalEntryTime(this.renewalReservation);
+
+    this.selectedParkings = [{
+      ...parking,
+      useDaily12h: false,
+      selectedDate: renewalDate,
+      selectedTime: renewalEntryTime,
+      selectedExitTime: ''
+    }];
+
+    this.latitude = parking.latitude;
+    this.longitude = parking.longitude;
+    this.zoom = 16;
+    if (this.map) {
+      this.map.setView([parking.latitude, parking.longitude], this.zoom);
+    }
+
+    this.renewalModeMessage = `Renovacao pronta para ${parking.title}. Escolha o novo horario de saida e confirme o pagamento.`;
+    this.searchForm.get('search')?.setValue(parking.title);
+    localStorage.removeItem(this.renewalStorageKey);
+    this.renewalReservation = null;
+  }
+
+  private readRenewalReservationFromStorage(): RenewalReservationState | null {
+    const raw = localStorage.getItem(this.renewalStorageKey);
+    if (!raw) {
+      return null;
+    }
+    try {
+      return JSON.parse(raw);
+    } catch {
+      localStorage.removeItem(this.renewalStorageKey);
+      return null;
+    }
+  }
+
+  private findParkingForRenewal(renewal: RenewalReservationState): any | null {
+    const byCoordinates = this.filteredMarkers.find((marker) =>
+      this.isSameCoordinate(marker.latitude, renewal.latitude) &&
+      this.isSameCoordinate(marker.longitude, renewal.longitude)
+    );
+    if (byCoordinates) {
+      return byCoordinates;
+    }
+
+    const normalizedName = this.normalizeText(renewal.estacionamento || '');
+    if (!normalizedName) {
+      return null;
+    }
+
+    return this.filteredMarkers.find((marker) =>
+      this.normalizeText(marker.title).includes(normalizedName) ||
+      normalizedName.includes(this.normalizeText(marker.title))
+    ) || null;
+  }
+
+  private isSameCoordinate(a: number | undefined, b: number | undefined): boolean {
+    if (typeof a !== 'number' || typeof b !== 'number') {
+      return false;
+    }
+    return Math.abs(a - b) < 0.000001;
+  }
+
+  private resolveRenewalDate(renewal: RenewalReservationState): string {
+    const today = new Date();
+    const parsed = renewal.dataReservaEntrada ? new Date(renewal.dataReservaEntrada) : today;
+    const validDate = Number.isNaN(parsed.getTime()) ? today : parsed;
+    const baseDate = new Date(validDate.getFullYear(), validDate.getMonth(), validDate.getDate());
+
+    return this.formatDate(baseDate < this.minDate ? this.minDate : baseDate);
+  }
+
+  private resolveRenewalEntryTime(renewal: RenewalReservationState): string {
+    const source = renewal.horarioReservaSaida || renewal.horarioReservaEntrada || '';
+    const parsed = this.parseTimeToMinutes(source);
+    if (parsed === null) {
+      return '';
+    }
+    return this.minutesToTime(parsed);
+  }
+
+  private parseTimeToMinutes(timeValue: string): number | null {
+    if (!timeValue || !timeValue.includes(':')) {
+      return null;
+    }
+    const [hourRaw, minuteRaw] = timeValue.split(':');
+    const hour = Number(hourRaw);
+    const minute = Number(minuteRaw);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) {
+      return null;
+    }
+    return (hour * 60) + minute;
+  }
+
+  private minutesToTime(totalMinutes: number): string {
+    const normalized = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+    const h = Math.floor(normalized / 60).toString().padStart(2, '0');
+    const m = (normalized % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
   }
 
   private isKnownPromoCode(promoCode: string | null): boolean {

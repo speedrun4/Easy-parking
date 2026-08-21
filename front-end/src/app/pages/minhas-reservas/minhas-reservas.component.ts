@@ -4,12 +4,24 @@ import { PaymentHistory } from 'src/app/models/payment-history.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { PaymentHistoryService } from 'src/app/services/payment-history.service';
 
+interface RenewalReservationState {
+  paymentId: number;
+  estacionamento: string;
+  endereco?: string;
+  latitude?: number;
+  longitude?: number;
+  dataReservaEntrada?: string;
+  horarioReservaEntrada?: string;
+  horarioReservaSaida?: string;
+}
+
 @Component({
   selector: 'app-minhas-reservas',
   templateUrl: './minhas-reservas.component.html',
   styleUrls: ['./minhas-reservas.component.scss']
 })
 export class MinhasReservasComponent implements OnInit {
+  private readonly renewalStorageKey = 'pendingRenewalReservation';
   reservas: PaymentHistory[] = [];
   loading = true;
   error = '';
@@ -57,6 +69,33 @@ export class MinhasReservasComponent implements OnInit {
     }
     this.router.navigate(['/qr-code'], {
       state: { paymentId: reserva.id }
+    });
+  }
+
+  canRenewReservation(reserva: PaymentHistory): boolean {
+    return !!reserva?.id && !!reserva?.estacionamento;
+  }
+
+  renewReservation(reserva: PaymentHistory): void {
+    if (!this.canRenewReservation(reserva)) {
+      return;
+    }
+
+    const renewalReservation: RenewalReservationState = {
+      paymentId: reserva.id,
+      estacionamento: reserva.estacionamento,
+      endereco: reserva.endereco,
+      latitude: reserva.latitude,
+      longitude: reserva.longitude,
+      dataReservaEntrada: reserva.dataReservaEntrada,
+      horarioReservaEntrada: reserva.horarioReservaEntrada,
+      horarioReservaSaida: reserva.horarioReservaSaida
+    };
+
+    localStorage.setItem(this.renewalStorageKey, JSON.stringify(renewalReservation));
+    this.router.navigate(['/welcome'], {
+      queryParams: { renewal: Date.now() },
+      state: { renewalReservation }
     });
   }
 }

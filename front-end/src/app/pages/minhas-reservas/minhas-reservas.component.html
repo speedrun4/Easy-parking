@@ -36,6 +36,16 @@
       <p class="reserva-time" *ngIf="!reserva.dataReservaEntrada && !reserva.horarioReservaEntrada && !reserva.horarioReservaSaida">
         Horário da reserva indisponível.
       </p>
+      <div class="reserva-actions">
+        <button
+          type="button"
+          class="renew-link"
+          [disabled]="!canRenewReservation(reserva)"
+          (click)="renewReservation(reserva)"
+        >
+          Renovar agora
+        </button>
+      </div>
     </article>
   </div>
 </div>

@@ -10,10 +10,15 @@
   <p>Saldo atual: {{ carteira.saldo | currency:'BRL' }}</p>
 
   <div class="operacao-form">
-    <input type="number" [(ngModel)]="valorOperacao" placeholder="Valor" />
+    <input
+      type="text"
+      [ngModel]="valorOperacaoDisplay"
+      (ngModelChange)="onValorOperacaoInput($event)"
+      placeholder="Valor"
+      inputmode="numeric"
+    />
     <input type="text" [(ngModel)]="descricaoOperacao" placeholder="Descrição" />
     <button (click)="abrirModal()">Adicionar</button>
-    <button (click)="remover()">Remover</button>
   </div>
 
   <h3>Histórico de Transações</h3>
@@ -32,22 +37,15 @@
 
       <!-- Input para dados do cartão -->
       <div *ngIf="metodoSelecionado === 'cartao'">
-        <label>
-          Número do Cartão:
-          <input type="text" [(ngModel)]="dadosCartao.numero" placeholder="XXXX XXXX XXXX XXXX" maxlength="16" />
-        </label>
+        <p><strong>Pagamento seguro com Stripe:</strong> confirme para processar seu cartão com segurança.</p>
         <label>
           Nome no Cartão:
           <input type="text" [(ngModel)]="dadosCartao.nome" placeholder="Nome do Titular" />
         </label>
-        <label>
-          Validade:
-          <input type="text" [(ngModel)]="dadosCartao.validade" placeholder="MM/AA" maxlength="5" />
-        </label>
-        <label>
-          CVV:
-          <input type="text" [(ngModel)]="dadosCartao.cvv" placeholder="CVV" maxlength="3" />
-        </label>
+        <div class="stripe-field-wrapper">
+          <label>Dados do cartão</label>
+          <div id="wallet-card-element" class="stripe-card-element"></div>
+        </div>
       </div>
 
       <!-- QR Code para PIX -->
@@ -72,11 +70,14 @@
 
       <!-- Botão de confirmação -->
       <div *ngIf="isLoading">
-        <p>Processando pagamento...</p>
+        <p>{{ metodoSelecionado === 'cartao' ? 'Processando pagamento no Stripe...' : 'Processando pagamento...' }}</p>
         <div class="spinner"></div> <!-- Você pode usar um ícone de spinner aqui -->
       </div>
 
       <!-- Se não estiver carregando, mostre o botão de confirmação -->
+      <button *ngIf="metodoSelecionado && !isLoading" (click)="confirmarPagamento()">
+        {{ metodoSelecionado === 'cartao' ? 'Pagar com Stripe' : 'Confirmar pagamento' }}
+      </button>
       <button (click)="fecharModal()">Cancelar</button>
     </div>
   </div>
