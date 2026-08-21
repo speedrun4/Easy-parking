@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Carteira } from 'src/app/models/carteira.model';
 import { CarteiraService } from 'src/app/services/carteira.service';
-import { PagBankService } from 'src/app/services/pagbank.service';
+import { AsaasService } from 'src/app/services/asaas.service';
 import * as QRCode from 'qrcode';
 
 @Component({
@@ -38,7 +38,7 @@ export class CarteiraComponent implements OnInit, OnDestroy {
   private stripePublicKeyLookupAttempted: boolean = false;
   private stripeInitializedPublicKey: string = '';
 
-  constructor(private carteiraService: CarteiraService, private pagBankService: PagBankService) { }
+  constructor(private carteiraService: CarteiraService, private asaasService: AsaasService) { }
 
   ngOnInit(): void {
     if (this.metodoSelecionado === 'pix') {
@@ -122,7 +122,7 @@ export class CarteiraComponent implements OnInit, OnDestroy {
       this.isLoading = true;
       await this.ensureStripeCardElement();
 
-      const stripeIntent = await this.pagBankService.createStripePaymentIntent({
+      const stripeIntent = await this.asaasService.createStripePaymentIntent({
         amount: Number(this.valorOperacao.toFixed(2)),
         description: this.descricaoOperacao || 'Recarga da carteira Easy Parking',
         customerName: this.dadosCartao.nome || 'Cliente Easy Parking',
@@ -322,7 +322,7 @@ export class CarteiraComponent implements OnInit, OnDestroy {
     if (!this.stripePublicKeyLookupAttempted) {
       this.stripePublicKeyLookupAttempted = true;
       try {
-        const response = await this.pagBankService.getStripePublicKey().toPromise();
+        const response = await this.asaasService.getStripePublicKey().toPromise();
         const publicKey = String(response?.publicKey || '').trim();
         if (publicKey) {
           this.backendStripePublicKey = publicKey;

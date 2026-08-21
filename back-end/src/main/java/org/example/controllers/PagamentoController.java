@@ -82,9 +82,7 @@ public class PagamentoController {
     @Autowired
     private org.example.services.PagamentoService pagamentoService;
     @Autowired
-    private org.example.services.PagBankClient pagBankClient;
-    @Autowired
-    private org.example.services.MercadoPagoClient mercadoPagoClient;
+    private org.example.services.AsaasClient asaasClient;
 
     @org.springframework.beans.factory.annotation.Value("${pagbank.sandbox:true}")
     private boolean pagbankSandbox;
@@ -116,7 +114,7 @@ public class PagamentoController {
     private String resolvePixProvider(Pagamentos pagamento) {
         if (pagamento == null || pagamento.getPixGatewayProvider() == null || pagamento.getPixGatewayProvider().trim().isEmpty()) {
             return pagamento != null && pagamento.getPagbankChargeId() != null && !pagamento.getPagbankChargeId().trim().isEmpty()
-                    ? "PAGBANK"
+                    ? "ASAAS"
                     : "STATIC";
         }
         return pagamento.getPixGatewayProvider().trim().toUpperCase();
@@ -153,9 +151,9 @@ public class PagamentoController {
         return ResponseEntity.ok(salvo);
     }
 
-    // Inicia/força criação de cobrança PIX do PagBank para um pagamento existente
-    @PostMapping("/{id}/pagbank/pix")
-    public ResponseEntity<?> criarPixPagBank(@PathVariable Long id, @RequestBody(required = false) PixStartRequest request) {
+    // Inicia/força criação de cobrança PIX para um pagamento existente
+    @PostMapping({"/{id}/asaas/pix", "/{id}/pagbank/pix"})
+    public ResponseEntity<?> criarPixAsaas(@PathVariable Long id, @RequestBody(required = false) PixStartRequest request) {
         return pagamentosRepository.findById(id).map(p -> {
             try {
                 String resolvedPixKey = resolvePixKey(request != null ? request.getPixKey() : null);
@@ -169,7 +167,7 @@ public class PagamentoController {
                 boolean requiresTrackableCharge = service.hasTrackablePixGateway();
                 if (requiresTrackableCharge && (atualizado.getPagbankChargeId() == null || atualizado.getPagbankChargeId().trim().isEmpty())) {
                     java.util.Map<String, Object> err = new java.util.HashMap<>();
-                    err.put("message", "Não foi possível criar cobrança PIX rastreável no gateway configurado. Verifique as credenciais do Mercado Pago/PagBank.");
+                    err.put("message", "Não foi possível criar cobrança PIX rastreável no gateway configurado. Verifique as credenciais do Asaas.");
                     err.put("status", "UNTRACKABLE");
                     return ResponseEntity.status(502).body(err);
                 }
@@ -177,6 +175,7 @@ public class PagamentoController {
                 atualizado = service.ensurePixDisplayData(atualizado, resolvedPixKey);
                 atualizado = pagamentosRepository.findById(id).orElse(atualizado);
                 java.util.Map<String, Object> result = new java.util.HashMap<>();
+                result.put("asaasChargeId", atualizado.getPagbankChargeId());
                 result.put("pagbankChargeId", atualizado.getPagbankChargeId());
                 result.put("status", atualizado.getPagbankStatus());
                 result.put("qrBase64", atualizado.getPagbankQrBase64());
@@ -191,15 +190,24 @@ public class PagamentoController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // Consulta status da cobrança no PagBank e atualiza o pagamento local
-    @GetMapping("/{id}/pagbank/status")
-    public ResponseEntity<?> consultarStatusPagBank(@PathVariable Long id) {
+    // Consulta status da cobrança e atualiza o pagamento local
+    @GetMapping({"/{id}/asaas/status", "/{id}/pagbank/status"})
+    public ResponseEntity<?> consultarStatusAsaas(@PathVariable Long id) {
         return pagamentosRepository.findById(id).map(p -> {
             String provider = resolvePixProvider(p);
             if (p.getPagbankChargeId() == null) {
-                boolean requiresTrackableCharge = service.hasTrackablePixGateway();
-                if (!requiresTrackableCharge && pagbankSandbox) {
-                    p = service.ensurePixDisplayData(p, null);
+                java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
+                respBody.put("status", "UNTRACKABLE");
+                respBody.put("paymentStatus", p.getStatus());
+                respBody.put("message", "Pagamento PIX sem cobrança rastreável no Asaas. Gere um novo PIX após validar ASAAS_API_KEY.");
+                respBody.put("provider", provider);
+                return ResponseEntity.ok(respBody);
+            }
+            try {
+                if ("ASAAS".equals(provider)) {
+                    java.util.Map<String, Object> map = asaasClient.getPayment(p.getPagbankChargeId());
+                    p = service.applyAsaasPixResponse(p, map);
+                } else {
                     java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
                     respBody.put("status", p.getPagbankStatus() != null ? p.getPagbankStatus() : "WAITING");
                     respBody.put("paymentStatus", p.getStatus());
@@ -207,23 +215,8 @@ public class PagamentoController {
                     respBody.put("qrPayload", p.getPagbankQrPayload());
                     respBody.put("pixKey", resolvePixKey(null));
                     respBody.put("provider", resolvePixProvider(p));
+                    respBody.put("message", "Cobrança sem provedor rastreável externo.");
                     return ResponseEntity.ok(respBody);
-                }
-
-                java.util.Map<String, Object> respBody = new java.util.HashMap<String, Object>();
-                respBody.put("status", "UNTRACKABLE");
-                respBody.put("paymentStatus", p.getStatus());
-                respBody.put("message", "Pagamento PIX sem cobrança rastreável no gateway configurado. Gere um novo PIX após validar as credenciais.");
-                respBody.put("provider", provider);
-                return ResponseEntity.ok(respBody);
-            }
-            try {
-                if ("MERCADO_PAGO".equals(provider)) {
-                    java.util.Map<String, Object> map = mercadoPagoClient.getPayment(p.getPagbankChargeId());
-                    p = service.applyMercadoPagoPixResponse(p, map);
-                } else {
-                    java.util.Map<String, Object> map = pagBankClient.getCharge(p.getPagbankChargeId());
-                    p = service.applyPagBankPixResponse(p, map);
                 }
 
                 p = service.ensurePixDisplayData(p, null);
@@ -243,7 +236,7 @@ public class PagamentoController {
     }
 
     // --- SANDBOX: simula confirmação do PIX como PAID (não existe em produção)
-    @PostMapping("/{id}/pagbank/simular-pago")
+    @PostMapping({"/{id}/asaas/simular-pago", "/{id}/pagbank/simular-pago"})
     public ResponseEntity<?> simularPixPago(@PathVariable Long id) {
         return pagamentosRepository.findById(id).map(p -> {
             if (!pagbankSandbox) {

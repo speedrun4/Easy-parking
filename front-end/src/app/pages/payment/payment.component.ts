@@ -14,7 +14,7 @@ import { PaymentHistoryService } from 'src/app/services/payment-history.service'
 import { AuthService } from 'src/app/services/auth.service';
 import { ReservaService } from 'src/app/services/reserva.service';
 import { CarteiraService } from 'src/app/services/carteira.service';
-import { PagBankService } from 'src/app/services/pagbank.service';
+import { AsaasService } from 'src/app/services/asaas.service';
 import { environment } from 'src/environments/environment';
 
 
@@ -39,7 +39,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   pixQrBase64: string = '';
   pixQrPayload: string = '';
   pixDisplayKey: string = environment.pixKey;
-  pixProviderLabel: string = 'Mercado Pago';
+  pixProviderLabel: string = 'Asaas';
   pixStatus: string = '';
   pixChargeId: string = '';
   isProcessingPayment: boolean = false;
@@ -80,7 +80,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private reservaService: ReservaService,
     private carteiraService: CarteiraService,
-    private pagBankService: PagBankService
+    private asaasService: AsaasService
   ) {
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras?.state as {
@@ -309,7 +309,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
         this.paymentHistoryService.iniciarPix(savedPaymentId, { pixKey: this.pixKey }).subscribe({
           next: r => {
-            this.pixChargeId = r.pagbankChargeId || '';
+            this.pixChargeId = r.asaasChargeId || r.pagbankChargeId || '';
             const normalizedStatus = (r.status || '').toUpperCase();
             const hasQrData = !!(r.qrBase64 || r.qrPayload);
             const isUntrackable = normalizedStatus === 'UNTRACKABLE';
@@ -490,18 +490,18 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.dialog.open(ErrorDialogComponent, {
           data: {
             title: 'Erro no pagamento',
-            message: 'Dados do cartao invalidos para processar no PagBank. Verifique nome e CPF do titular.'
+            message: 'Dados do cartao invalidos para processar no gateway configurado. Verifique nome e CPF do titular.'
           }
         });
         return;
       }
 
       this.loading = true;
-      this.pagBankService.createPurchase(purchasePayload).subscribe({
+      this.asaasService.createPurchase(purchasePayload).subscribe({
         next: (purchaseResp: any) => {
           const charge = purchaseResp?.charge || {};
           const chargeStatus = String(charge?.status || '').toUpperCase();
-          const approvedStatuses = ['PAID', 'AUTHORIZED'];
+          const approvedStatuses = ['PAID', 'AUTHORIZED', 'RECEIVED', 'CONFIRMED'];
           const isApproved = approvedStatuses.includes(chargeStatus);
 
           if (!isApproved) {
@@ -518,7 +518,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
           pagamento.pagbankChargeId = charge?.id || null;
           pagamento.pagbankStatus = charge?.status || null;
-          pagamento.pagbankOrderId = charge?.reference_id || purchasePayload.referenceId || null;
+          pagamento.pagbankOrderId = charge?.externalReference || charge?.reference_id || purchasePayload.referenceId || null;
 
           // Mantém referência caso o endpoint retorne id/status locais.
           if (purchaseResp?.paymentId) {
@@ -613,6 +613,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
     const holderName = (this.cardName || this.payerName || currentUser?.nomeCompleto || 'CLIENTE').trim();
     let holderTaxId = (this.payerDocument || currentUser?.cpf || '').replace(/\D/g, '');
     const method = forma === 'Cartão de Crédito' ? 'CREDIT_CARD' : 'DEBIT_CARD';
+    const holderEmail = (currentUser?.email || '').trim();
+    const holderPhone = (currentUser?.telefone || '').replace(/\D/g, '');
 
     if (!holderName) {
       return null;
@@ -632,6 +634,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       amount: this.totalValue,
       description: `Pagamento reserva - ${parkingName}`,
       referenceId: `APP-${Date.now()}`,
+      usuarioId: currentUser?.id,
       card: {
         number,
         exp_month: expMonth,
@@ -639,7 +642,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
         security_code: cvv,
         holder: {
           name: holderName,
-          tax_id: holderTaxId
+          tax_id: holderTaxId,
+          email: holderEmail || undefined,
+          phone: holderPhone || undefined
         }
       }
     };
@@ -652,14 +657,14 @@ export class PaymentComponent implements OnInit, OnDestroy {
     const status = charge?.status ? `Status: ${charge.status}.` : '';
 
     if (code || description) {
-      return `${status} Cartao nao autorizado pelo PagBank.${code ? ` Codigo: ${code}.` : ''}${description ? ` Motivo: ${description}.` : ''}`.trim();
+      return `${status} Cartao nao autorizado pelo Asaas.${code ? ` Codigo: ${code}.` : ''}${description ? ` Motivo: ${description}.` : ''}`.trim();
     }
 
-    return `${status} Cartao nao autorizado pelo PagBank.`.trim();
+    return `${status} Cartao nao autorizado pelo Asaas.`.trim();
   }
 
   private extractCardGatewayError(error: any): string {
-    const fallback = 'Nao foi possivel autorizar o cartao no PagBank.';
+    const fallback = 'Nao foi possivel autorizar o cartao no Asaas.';
     const raw = this.extractBackendErrorMessage(error, fallback);
 
     if (!raw) {
@@ -667,7 +672,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
     }
 
     if (raw.toLowerCase().includes('invalid_parameter')) {
-      return 'Falha de configuracao da integracao de cartao no PagBank. Verifique os dados obrigatorios e tente novamente.';
+      return 'Falha de configuracao da integracao de cartao no Asaas. Verifique os dados obrigatorios e tente novamente.';
     }
 
     return raw;
@@ -679,7 +684,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   const number = (this.cardNumber || '').replace(/\D/g, '');
     if (!number.match(/^\d{13,19}$/)) {
       errors.push('Número do cartão inválido (13-19 dígitos).');
-    } else if (!this.luhnCheck(number)) {
+    } else if (!this.luhnCheck(number) && !this.isAsaasSandboxTestCard(number)) {
       errors.push('Número do cartão falhou na validação Luhn.');
     }
     if (!this.cardName || this.cardName.trim().length < 3) {
@@ -731,6 +736,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
       shouldDouble = !shouldDouble;
     }
     return sum % 10 === 0;
+  }
+
+  private isAsaasSandboxTestCard(num: string): boolean {
+    return num === '4444444444444444'
+      || num === '5184019740373151'
+      || num === '4916561358240741';
   }
 
   ngOnDestroy(): void {
@@ -885,7 +896,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.isProcessingPayment = true;
     this.paymentHistoryService.iniciarPix(paymentId, { pixKey: this.pixKey }).subscribe({
       next: r => {
-        this.pixChargeId = r.pagbankChargeId || '';
+        this.pixChargeId = r.asaasChargeId || r.pagbankChargeId || '';
         const normalizedStatus = (r.status || '').toUpperCase();
         const hasQrData = !!(r.qrBase64 || r.qrPayload);
         const isUntrackable = normalizedStatus === 'UNTRACKABLE';
@@ -984,13 +995,16 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   private resolvePixProviderLabel(provider?: string): string {
     const normalizedProvider = (provider || '').trim().toUpperCase();
+    if (normalizedProvider === 'ASAAS') {
+      return 'Asaas';
+    }
     if (normalizedProvider === 'PAGBANK') {
       return 'PagBank';
     }
     if (normalizedProvider === 'STATIC') {
       return 'PIX Copia e Cola';
     }
-    return 'Mercado Pago';
+    return 'Asaas';
   }
 
   private extractBackendErrorMessage(err: any, fallback: string): string {

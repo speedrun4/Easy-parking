@@ -84,7 +84,7 @@ public class Pagamentos {
     private String pagbankStatus; // WAITING, PAID, etc
 
     @Column(name = "pix_gateway_provider")
-    private String pixGatewayProvider; // MERCADO_PAGO, PAGBANK, STATIC
+    private String pixGatewayProvider; // ASAAS, STATIC
 
     @Lob
     @Column(name = "pagbank_qr_base64", columnDefinition = "LONGTEXT")

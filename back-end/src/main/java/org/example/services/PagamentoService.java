@@ -24,17 +24,11 @@ public class PagamentoService {
     @Autowired
     private QRCodeService qrCodeService;
 
-    @Value("${pagbank.sandbox:true}")
-    private boolean pagbankSandbox;
-
     @Value("${pix.key:}")
     private String pixDefaultKey;
 
     @Autowired
-    private PagBankClient pagBankClient;
-
-    @Autowired
-    private MercadoPagoClient mercadoPagoClient;
+    private AsaasClient asaasClient;
 
     public Pagamentos salvarPagamento(Pagamentos pagamento) {
         Pagamentos saved = repository.save(pagamento);
@@ -58,8 +52,7 @@ public class PagamentoService {
     }
 
     public boolean hasTrackablePixGateway() {
-        return mercadoPagoClient.hasConfiguredCredentials()
-                || (pagBankClient.hasConfiguredCredentials() && !pagbankSandbox);
+        return asaasClient.hasConfiguredCredentials();
     }
 
     public Pagamentos ensurePixCharge(Pagamentos pagamento, String pixKeyOverride) throws Exception {
@@ -71,77 +64,50 @@ public class PagamentoService {
             return ensurePixDisplayData(pagamento, pixKeyOverride);
         }
 
-        if (mercadoPagoClient.hasConfiguredCredentials()) {
-            Map<String, Object> response = mercadoPagoClient.createPixPayment(
-                    buildPaymentReference(pagamento),
-                    pagamento.getValorPago(),
-                    buildPixDescription(pagamento),
-                    pagamento.getUsuario()
-            );
-            return applyMercadoPagoPixResponse(pagamento, response);
+        if (!asaasClient.hasConfiguredCredentials()) {
+            throw new IllegalStateException("Configure ASAAS_API_KEY para criar cobranças PIX no Asaas.");
         }
 
-        if (pagBankClient.hasConfiguredCredentials() && !pagbankSandbox) {
-            criarCobrancaPagBank(pagamento);
-            Pagamentos atualizado = repository.findById(pagamento.getId()).orElse(pagamento);
-            return ensurePixDisplayData(atualizado, pixKeyOverride);
-        }
-
-        pagamento.setPixGatewayProvider("STATIC");
-        if (!hasText(pagamento.getPagbankStatus())) {
-            pagamento.setPagbankStatus("WAITING");
-        }
-        repository.save(pagamento);
-        return ensurePixDisplayData(pagamento, pixKeyOverride);
+        Map<String, Object> response = asaasClient.createPixPayment(
+                buildPaymentReference(pagamento),
+                pagamento.getValorPago(),
+                buildPixDescription(pagamento),
+                pagamento.getUsuario()
+        );
+        return applyAsaasPixResponse(pagamento, response);
     }
 
-    public Pagamentos applyMercadoPagoPixResponse(Pagamentos pagamento, Map<String, Object> response) {
+    public Pagamentos applyAsaasPixResponse(Pagamentos pagamento, Map<String, Object> response) {
         if (pagamento == null) {
             return null;
         }
 
-        pagamento.setPixGatewayProvider("MERCADO_PAGO");
+        pagamento.setPixGatewayProvider("ASAAS");
         Object paymentId = response.get("id");
         if (paymentId != null) {
             pagamento.setPagbankChargeId(paymentId.toString());
         }
-        Object externalReference = response.get("external_reference");
+        Object externalReference = response.containsKey("externalReference")
+                ? response.get("externalReference")
+                : response.get("external_reference");
         if (externalReference != null) {
             pagamento.setPagbankOrderId(externalReference.toString());
         }
         updateGatewayStatus(pagamento, response.get("status"));
 
-        Map<String, Object> pointOfInteraction = asMap(response.get("point_of_interaction"));
-        Map<String, Object> transactionData = asMap(pointOfInteraction.get("transaction_data"));
-        String qrBase64 = readString(transactionData.get("qr_code_base64"));
-        String qrPayload = readString(transactionData.get("qr_code"));
+        Map<String, Object> pixTransaction = asMap(response.get("pixTransaction"));
+        String qrBase64 = readString(pixTransaction.get("encodedImage"));
+        String qrPayload = readString(pixTransaction.get("payload"));
+        if (!hasText(qrPayload)) {
+            qrPayload = readString(pixTransaction.get("qrCode"));
+        }
         if (hasText(qrBase64)) {
-            pagamento.setPagbankQrBase64(qrBase64);
-        }
-        if (hasText(qrPayload)) {
-            pagamento.setPagbankQrPayload(qrPayload);
-        }
-
-        Pagamentos atualizado = repository.save(pagamento);
-        return ensurePixDisplayData(atualizado, null);
-    }
-
-    public Pagamentos applyPagBankPixResponse(Pagamentos pagamento, Map<String, Object> response) {
-        if (pagamento == null) {
-            return null;
-        }
-
-        pagamento.setPixGatewayProvider("PAGBANK");
-        Object chargeId = response.get("id");
-        if (chargeId != null) {
-            pagamento.setPagbankChargeId(chargeId.toString());
-        }
-        updateGatewayStatus(pagamento, response.get("status"));
-
-        Map<String, Object> qr = asMap(response.get("qr_code"));
-        String qrBase64 = readString(qr.get("base64"));
-        String qrPayload = readString(qr.get("text"));
-        if (hasText(qrBase64)) {
+            if (qrBase64.startsWith("data:image")) {
+                int commaIdx = qrBase64.indexOf(",");
+                if (commaIdx >= 0 && commaIdx < qrBase64.length() - 1) {
+                    qrBase64 = qrBase64.substring(commaIdx + 1);
+                }
+            }
             pagamento.setPagbankQrBase64(qrBase64);
         }
         if (hasText(qrPayload)) {
@@ -159,6 +125,7 @@ public class PagamentoService {
         String normalized = status.trim().toUpperCase();
         return "APPROVED".equals(normalized)
                 || "PAID".equals(normalized)
+                || "RECEIVED".equals(normalized)
                 || "CONFIRMED".equals(normalized)
                 || "COMPLETED".equals(normalized);
     }
@@ -438,15 +405,4 @@ public class PagamentoService {
         }
     }
 
-    // Cria cobrança PIX simples via PagBank (usando token de integração)
-    private void criarCobrancaPagBank(Pagamentos p) throws Exception {
-        // Validar que está em ambiente LIVE
-        if (pagbankSandbox) {
-            throw new IllegalStateException("Cobrança PIX só pode ser criada em ambiente LIVE. Configure pagbank.sandbox=false");
-        }
-
-        int cents = p.getValorPago() != null ? p.getValorPago().multiply(new java.math.BigDecimal(100)).intValue() : 100;
-        java.util.Map<String, Object> map = pagBankClient.createPixCharge("PAY-" + p.getId(), cents, "Easy-Park pagamento " + p.getId());
-        applyPagBankPixResponse(p, map);
-    }
 }

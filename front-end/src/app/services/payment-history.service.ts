@@ -33,18 +33,18 @@ salvarPagamento(dadosPagamento: any) {
   }
 
   iniciarPix(pagamentoId: number, payload: { pixKey?: string } = {}) {
-  return this.http.post<{ pagbankChargeId?: string; status?: string; qrBase64?: string; qrPayload?: string; pixKey?: string; provider?: string }>(
-      `${this.apiUrl}/${pagamentoId}/pagbank/pix`,
+  return this.http.post<{ asaasChargeId?: string; pagbankChargeId?: string; status?: string; qrBase64?: string; qrPayload?: string; pixKey?: string; provider?: string }>(
+      `${this.apiUrl}/${pagamentoId}/asaas/pix`,
       payload
     );
   }
 
   consultarStatusPix(pagamentoId: number) {
-  return this.http.get<{ status: string; paymentStatus?: string; qrBase64?: string; qrPayload?: string; pixKey?: string; provider?: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/status`);
+  return this.http.get<{ status: string; paymentStatus?: string; qrBase64?: string; qrPayload?: string; pixKey?: string; provider?: string }>(`${this.apiUrl}/${pagamentoId}/asaas/status`);
   }
 
   simularPixPago(pagamentoId: number) {
-    return this.http.post<{ status: string }>(`${this.apiUrl}/${pagamentoId}/pagbank/simular-pago`, {});
+    return this.http.post<{ status: string }>(`${this.apiUrl}/${pagamentoId}/asaas/simular-pago`, {});
   }
 
 }
