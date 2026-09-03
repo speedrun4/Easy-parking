@@ -24,7 +24,7 @@ COPY back-end/ .
 RUN mvn clean package -DskipTests -q
 
 # Stage 3: Runtime
-FROM openjdk:8-jdk-alpine
+FROM eclipse-temurin:8-jre-alpine
 WORKDIR /app
 
 # Instalar curl para healthcheck
