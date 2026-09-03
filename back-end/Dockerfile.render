@@ -13,7 +13,7 @@ RUN mvn clean package -DskipTests -q
 FROM eclipse-temurin:8-jre-alpine
 WORKDIR /app
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl ca-certificates && update-ca-certificates
 RUN mkdir -p /app/data /app/logs
 
 COPY --from=builder /app/target/aesy-parking-back-1.0-SNAPSHOT.jar app.jar
@@ -25,4 +25,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:${PORT:-8080}/api/health || exit 1
 
-ENTRYPOINT ["sh", "-c", "java -Dspring.profiles.active=render -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Dspring.profiles.active=render -Dhttps.protocols=TLSv1.2 -Djdk.tls.client.protocols=TLSv1.2 -jar app.jar"]
