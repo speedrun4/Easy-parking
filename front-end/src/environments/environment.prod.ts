@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   // Production backend URL for mobile builds (HTTPS required).
-  // Update this to your final API domain before publishing.
-  apiBaseUrl: 'http://137.131.217.46:8080',
+  // Backend hospedado no Render.
+  apiBaseUrl: 'https://easy-parking-f12s.onrender.com',
   pixKey: 'mourajuniorf@gmail.com'
 };
