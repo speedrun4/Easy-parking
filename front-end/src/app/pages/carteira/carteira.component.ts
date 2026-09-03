@@ -12,7 +12,7 @@ import { PaymentHistoryService } from 'src/app/services/payment-history.service'
   styleUrls: ['./carteira.component.scss']
 })
 export class CarteiraComponent implements OnInit, OnDestroy {
-  readonly isSandboxMode = !environment.production;
+  readonly isSandboxMode = !!environment.enablePixSimulation;
   carteira: Carteira = { saldo: 0, historicoTransacoes: [] };
   valorOperacao = 0;
   valorOperacaoDisplay = '';

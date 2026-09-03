@@ -53,6 +53,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
   private readonly pixKey = environment.pixKey;
   errorMsg: string = '';
   currentPaymentId: number | null = null; // armazena id do pagamento para ações manuais
+  // Enquanto o gateway Asaas estiver em modo Sandbox, códigos Pix gerados não podem ser
+  // pagos por um app de banco real, então liberamos um botão de simulação de pagamento.
+  readonly isSandboxMode = !!environment.enablePixSimulation;
 
   cardNumber: string = '';
   cardName: string = '';
@@ -883,6 +886,25 @@ export class PaymentComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.errorMsg = 'Falha ao consultar status. Tente novamente.';
+      }
+    });
+  }
+
+  // Simula a confirmação do pagamento PIX (apenas Sandbox/testes) chamando o endpoint
+  // de sandbox do backend, já que um app de banco real não consegue pagar um QR Code
+  // gerado em ambiente Sandbox do Asaas.
+  simularPixPago() {
+    if (!this.isSandboxMode || !this.currentPaymentId) { return; }
+
+    this.isProcessingPayment = true;
+    this.paymentHistoryService.simularPixPago(this.currentPaymentId).subscribe({
+      next: () => {
+        this.isProcessingPayment = false;
+        this.manualRefreshStatus(this.currentPaymentId!);
+      },
+      error: () => {
+        this.isProcessingPayment = false;
+        this.errorMsg = 'Não foi possível simular o pagamento PIX.';
       }
     });
   }

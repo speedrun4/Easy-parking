@@ -57,7 +57,9 @@
         <div class="pix-actions">
           <button mat-stroked-button color="primary" [attr.aria-label]="'Atualizar status PIX'" [disabled]="isProcessingPayment || !currentPaymentId" (click)="manualRefreshStatus(currentPaymentId!)">Atualizar status</button>
           <button mat-stroked-button color="accent" [attr.aria-label]="'Reiniciar processo PIX'" [disabled]="isProcessingPayment || !currentPaymentId" (click)="reiniciarPix(currentPaymentId!)">Reiniciar PIX</button>
+          <button *ngIf="isSandboxMode" mat-flat-button color="warn" [attr.aria-label]="'Simular pagamento PIX'" [disabled]="isProcessingPayment || !currentPaymentId" (click)="simularPixPago()">Simular pagamento</button>
         </div>
+        <p *ngIf="isSandboxMode" class="pix-sandbox-hint">Ambiente de testes (Sandbox): use "Simular pagamento" para concluir, pois este código Pix não pode ser pago por um app de banco real.</p>
       </div>
 
       <!-- Formulário de Cartão de Crédito -->

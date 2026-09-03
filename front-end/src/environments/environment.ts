@@ -7,7 +7,8 @@ export const environment = {
   // Backend base URL for development (web) on default local port.
   // For Android emulator use http://10.0.2.2:8080. For a physical device, replace with your PC's LAN IP, e.g., http://192.168.0.10:8080
   apiBaseUrl: 'http://localhost:8080',
-  pixKey: 'mourajuniorf@gmail.com'
+  pixKey: 'mourajuniorf@gmail.com',
+  enablePixSimulation: true
 };
 
 /*
