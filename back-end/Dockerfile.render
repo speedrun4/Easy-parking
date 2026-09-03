@@ -2,7 +2,7 @@
 # Perfil ativado: render (H2 embutido, porta dinâmica via variável PORT)
 
 # Stage 1: Build
-FROM maven:3.8.1-openjdk-8 AS builder
+FROM maven:3.8.6-eclipse-temurin-8 AS builder
 WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline
@@ -10,7 +10,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests -q
 
 # Stage 2: Runtime
-FROM openjdk:8-jdk-alpine
+FROM eclipse-temurin:8-jre-alpine
 WORKDIR /app
 
 RUN apk add --no-cache curl
