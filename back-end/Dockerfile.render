@@ -1,0 +1,28 @@
+# Dockerfile específico para deploy do backend no Render (sem frontend, sem MySQL)
+# Perfil ativado: render (H2 embutido, porta dinâmica via variável PORT)
+
+# Stage 1: Build
+FROM maven:3.8.1-openjdk-8 AS builder
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src ./src
+RUN mvn clean package -DskipTests -q
+
+# Stage 2: Runtime
+FROM openjdk:8-jdk-alpine
+WORKDIR /app
+
+RUN apk add --no-cache curl
+RUN mkdir -p /app/data /app/logs
+
+COPY --from=builder /app/target/aesy-parking-back-1.0-SNAPSHOT.jar app.jar
+
+ENV SPRING_PROFILES_ACTIVE=render
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:${PORT:-8080}/api/health || exit 1
+
+ENTRYPOINT ["sh", "-c", "java -Dspring.profiles.active=render -jar app.jar"]

@@ -1,0 +1,28 @@
+# Blueprint do Render para o backend do Easy Parking
+# Ao conectar este repositório no Render (New > Blueprint), ele cria o serviço
+# automaticamente usando esta configuração.
+#
+# Banco de dados: H2 embutido (perfil "render"), sem persistência entre deploys.
+# Ideal para testar o app rapidamente. Para produção real, troque por um MySQL
+# gerenciado depois.
+
+services:
+  - type: web
+    name: easy-parking-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./back-end/Dockerfile.render
+    dockerContext: ./back-end
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: APP_MAIL_ENABLED
+        value: "false"
+      - key: CORS_ORIGINS
+        value: "http://localhost,capacitor://localhost,ionic://localhost"
+      - key: ASAAS_API_KEY
+        sync: false
+      - key: PIX_KEY
+        sync: false
