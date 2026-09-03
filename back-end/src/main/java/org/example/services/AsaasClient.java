@@ -102,6 +102,22 @@ public class AsaasClient {
         return payment;
     }
 
+    /**
+     * Disponível apenas no ambiente Sandbox da Asaas: simula a confirmação do
+     * pagamento de uma cobrança (ex.: PIX dinâmico), atualizando o status para
+     * RECEIVED sem movimentar dinheiro real. Não existe endpoint equivalente
+     * em produção.
+     */
+    public Map<String, Object> confirmSandboxPayment(String paymentId) throws Exception {
+        if (!hasConfiguredCredentials()) {
+            throw new IllegalStateException("A chave de API do Asaas não está configurada");
+        }
+        if (!hasText(paymentId)) {
+            throw new IllegalArgumentException("paymentId é obrigatório");
+        }
+        return exchange("/sandbox/payment/" + paymentId.trim() + "/confirm", HttpMethod.POST, java.util.Collections.emptyMap());
+    }
+
     public Map<String, Object> createCardPayment(String method,
                                                  String externalReference,
                                                  BigDecimal amount,

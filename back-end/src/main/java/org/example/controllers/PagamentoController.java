@@ -242,12 +242,26 @@ public class PagamentoController {
             if (!pagbankSandbox) {
                 return ResponseEntity.status(403).body("Simulação permitida apenas em sandbox");
             }
-            // Marca como pago localmente para testes
-            p.setPagbankStatus("PAID");
-            p.setStatus("pago");
-            pagamentosRepository.save(p);
+            String provider = resolvePixProvider(p);
+            if ("ASAAS".equals(provider) && p.getPagbankChargeId() != null && !p.getPagbankChargeId().trim().isEmpty()) {
+                try {
+                    // Confirma oficialmente a cobrança no Sandbox da Asaas, para que o
+                    // status também fique correto do lado do gateway (não só local).
+                    java.util.Map<String, Object> confirmed = asaasClient.confirmSandboxPayment(p.getPagbankChargeId());
+                    p = service.applyAsaasPixResponse(p, confirmed);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return ResponseEntity.status(502).body("Falha ao confirmar pagamento no Asaas Sandbox: " + e.getMessage());
+                }
+            } else {
+                // Sem cobrança rastreável no gateway: marca como pago apenas localmente para testes
+                p.setPagbankStatus("PAID");
+                p.setStatus("pago");
+                pagamentosRepository.save(p);
+            }
             java.util.Map<String, Object> resp = new java.util.HashMap<String, Object>();
             resp.put("status", p.getPagbankStatus());
+            resp.put("paymentStatus", p.getStatus());
             return ResponseEntity.ok(resp);
         }).orElse(ResponseEntity.notFound().build());
     }
