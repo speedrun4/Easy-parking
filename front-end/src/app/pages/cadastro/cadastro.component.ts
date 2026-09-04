@@ -280,22 +280,25 @@ export class CadastroComponent implements OnInit, OnDestroy {
     }
 
     this.currentFacingMode = 'environment';
-    this.detectMultipleCameras();
+    // Assume que existe câmera frontal/traseira até confirmar via enumerateDevices
+    // (antes de a permissão ser concedida, o navegador pode não expor a lista completa).
+    this.canSwitchCamera = true;
     this.startCamera(this.currentFacingMode);
   }
 
   private detectMultipleCameras(): void {
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-      this.canSwitchCamera = false;
       return;
     }
     navigator.mediaDevices.enumerateDevices().then(devices => {
       const videoInputs = devices.filter(d => d.kind === 'videoinput');
-      this.canSwitchCamera = videoInputs.length > 1;
+      // Só desativa o botão se tivermos certeza de que há apenas 1 câmera;
+      // mantém habilitado em caso de dúvida (lista vazia/sem labels).
+      if (videoInputs.length === 1) {
+        this.canSwitchCamera = false;
+      }
     }).catch(() => {
-      // Alguns navegadores/dispositivos só reportam os labels/dispositivos completos
-      // após a primeira concessão de permissão; se falhar, assume que pode haver mais de uma.
-      this.canSwitchCamera = true;
+      // Mantém habilitado se não for possível detectar.
     });
   }
 
@@ -314,6 +317,7 @@ export class CadastroComponent implements OnInit, OnDestroy {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode } } }).then(stream => {
       this.activeCameraStream = stream;
       video.srcObject = stream;
+      this.detectMultipleCameras();
       return video.play();
     }).catch(() => {
       this.cameraPreviewOpen = false;
