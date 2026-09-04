@@ -154,11 +154,24 @@
   display: block;
 }
 
+.camera-video-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+}
+
 .camera-panel video {
   width: 100%;
   max-width: 280px;
   border-radius: 6px;
   background: #000;
+}
+
+.camera-switch-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  opacity: 0.85;
 }
 
 .camera-panel-actions {

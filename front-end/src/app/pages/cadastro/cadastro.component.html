@@ -81,7 +81,13 @@
       <p class="camera-error" *ngIf="cameraUnavailableMessage">{{ cameraUnavailableMessage }}</p>
 
       <div class="camera-panel" [class.camera-panel-open]="cameraPreviewOpen">
-        <video #videoElement width="280" height="210" autoplay playsinline></video>
+        <div class="camera-video-wrapper">
+          <video #videoElement width="280" height="210" autoplay playsinline></video>
+          <button mat-mini-fab color="basic" type="button" class="camera-switch-btn" *ngIf="canSwitchCamera"
+                  (click)="switchCamera()" aria-label="Alternar câmera" title="Alternar câmera">
+            <mat-icon>flip_camera_ios</mat-icon>
+          </button>
+        </div>
         <div class="camera-panel-actions">
           <button mat-raised-button color="primary" type="button" (click)="capturePhotoFromPreview()">Capturar Foto</button>
           <button mat-stroked-button color="warn" type="button" (click)="closeCameraPreview()">Cancelar</button>

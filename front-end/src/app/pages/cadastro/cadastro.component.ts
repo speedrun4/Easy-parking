@@ -20,6 +20,8 @@ export class CadastroComponent implements OnInit, OnDestroy {
   readonly apiBaseUrl = environment.apiBaseUrl;
   private readonly firstReservationPromoCode = 'first-reservation-10';
   private activeCameraStream: MediaStream | null = null;
+  currentFacingMode: 'user' | 'environment' = 'environment';
+  canSwitchCamera = false;
 
   // Validador customizado para telefone
   phoneValidator(control: AbstractControl) {
@@ -277,13 +279,39 @@ export class CadastroComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.currentFacingMode = 'environment';
+    this.detectMultipleCameras();
+    this.startCamera(this.currentFacingMode);
+  }
+
+  private detectMultipleCameras(): void {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+      this.canSwitchCamera = false;
+      return;
+    }
+    navigator.mediaDevices.enumerateDevices().then(devices => {
+      const videoInputs = devices.filter(d => d.kind === 'videoinput');
+      this.canSwitchCamera = videoInputs.length > 1;
+    }).catch(() => {
+      // Alguns navegadores/dispositivos só reportam os labels/dispositivos completos
+      // após a primeira concessão de permissão; se falhar, assume que pode haver mais de uma.
+      this.canSwitchCamera = true;
+    });
+  }
+
+  switchCamera(): void {
+    this.currentFacingMode = this.currentFacingMode === 'environment' ? 'user' : 'environment';
+    this.startCamera(this.currentFacingMode);
+  }
+
+  private startCamera(facingMode: 'user' | 'environment'): void {
     this.cameraPreviewOpen = true;
     const video = this.videoElement.nativeElement;
     video.setAttribute('playsinline', 'true');
     video.muted = true;
     this.stopCameraStream();
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } }).then(stream => {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facingMode } } }).then(stream => {
       this.activeCameraStream = stream;
       video.srcObject = stream;
       return video.play();
