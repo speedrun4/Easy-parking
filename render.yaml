@@ -2,9 +2,13 @@
 # Ao conectar este repositório no Render (New > Blueprint), ele cria o serviço
 # automaticamente usando esta configuração.
 #
-# Banco de dados: H2 embutido (perfil "render"), sem persistência entre deploys.
-# Ideal para testar o app rapidamente. Para produção real, troque por um MySQL
-# gerenciado depois.
+# Banco de dados: H2 embutido (perfil "render"), gravado em um disco persistente
+# (ver seção "disks" abaixo) montado em /app/data. Isso garante que os cadastros
+# de usuário e de estacionamento continuem salvos mesmo após reinícios/novos
+# deploys do serviço, ou reinstalação do app no celular (os dados ficam no
+# servidor, não no dispositivo). Note: no plano free, discos persistentes têm
+# custo (não fazem parte da cota gratuita) — para produção real, considere
+# trocar por um Postgres/MySQL gerenciado.
 
 services:
   - type: web
@@ -15,6 +19,10 @@ services:
     dockerfilePath: ./back-end/Dockerfile.render
     dockerContext: ./back-end
     healthCheckPath: /api/health
+    disk:
+      name: easy-parking-data
+      mountPath: /app/data
+      sizeGB: 1
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
