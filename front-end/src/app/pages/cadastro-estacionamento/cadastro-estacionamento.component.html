@@ -58,7 +58,7 @@
 
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>CEP Filiais</mat-label>
-        <input matInput id="branchCeps" formControlName="branchCeps">
+        <input matInput id="branchCeps" formControlName="branchCeps" (input)="onBranchCepsInput($event)" inputmode="numeric" autocomplete="off" placeholder="00000-000, 00000-000">
         <mat-error *ngIf="parkingForm.get('branchCeps')?.invalid && parkingForm.get('branchCeps')?.touched">
           CEP filiais é obrigatório.
         </mat-error>

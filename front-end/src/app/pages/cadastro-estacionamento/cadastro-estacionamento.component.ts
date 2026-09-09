@@ -254,6 +254,31 @@ export class CadastroEstacionamentoComponent implements OnInit {
     this.parkingForm.get('cep')?.setValue(cep);
   }
 
+  // Formata cada CEP informado (aceita múltiplos separados por vírgula) no padrão 00000-000
+  onBranchCepsInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    const rawValue = inputElement.value;
+    const endsWithSeparator = /,\s*$/.test(rawValue);
+
+    const formatted = rawValue
+      .split(',')
+      .map(part => {
+        let digits = part.replace(/\D/g, '');
+        if (digits.length > 8) {
+          digits = digits.substring(0, 8);
+        }
+        if (digits.length > 5) {
+          digits = digits.replace(/(\d{5})(\d{0,3})/, '$1-$2');
+        }
+        return digits;
+      })
+      .join(', ')
+      .replace(/,\s*$/, endsWithSeparator ? ', ' : '');
+
+    inputElement.value = formatted;
+    this.parkingForm.get('branchCeps')?.setValue(formatted);
+  }
+
   onHourlyRateInput(event: Event): void {
     this.onCurrencyInput(event, 'hourlyRate');
   }
