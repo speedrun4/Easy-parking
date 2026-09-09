@@ -79,6 +79,7 @@
       </div>
 
       <p class="camera-error" *ngIf="cameraUnavailableMessage">{{ cameraUnavailableMessage }}</p>
+      <p class="camera-error" *ngIf="filePermissionMessage">{{ filePermissionMessage }}</p>
 
       <div class="camera-panel" [class.camera-panel-open]="cameraPreviewOpen">
         <div class="camera-video-wrapper">
@@ -165,4 +166,3 @@
     </div>
   </ng-template>
 </div>
-

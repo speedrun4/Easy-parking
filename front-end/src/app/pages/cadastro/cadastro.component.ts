@@ -10,6 +10,13 @@ import { environment } from 'src/environments/environment';
 import { ConfirmationDialogComponent } from 'src/app/components/confirmation-dialog/confirmation-dialog.component';
 import { SucessoModalComponent } from 'src/app/components/sucess-modal/sucess-modal.component';
 import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+interface FilePickerPermissionPlugin {
+  requestPhotosPermission(): Promise<{ granted: boolean }>;
+}
+
+const filePickerPermission = registerPlugin<FilePickerPermissionPlugin>('FilePickerPermission');
 
 @Component({
   selector: 'app-cadastro',
@@ -103,6 +110,7 @@ export class CadastroComponent implements OnInit, OnDestroy {
   previewUrl: string | null = null;
   cameraPreviewOpen = false;
   cameraUnavailableMessage = '';
+  filePermissionMessage = '';
 
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
@@ -361,7 +369,17 @@ export class CadastroComponent implements OnInit, OnDestroy {
     }
   }
 
-  openFilePicker(): void {
+  async openFilePicker(): Promise<void> {
+    this.filePermissionMessage = '';
+
+    if (Capacitor.getPlatform() === 'android') {
+      const permission = await filePickerPermission.requestPhotosPermission();
+      if (!permission.granted) {
+        this.filePermissionMessage = 'Permissão para acessar seus arquivos foi negada.';
+        return;
+      }
+    }
+
     this.fileInput?.nativeElement?.click();
   }
 }

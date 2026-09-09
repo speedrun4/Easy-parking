@@ -8,6 +8,7 @@ import android.webkit.WebChromeClient;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
+import com.easyparking.app.plugins.FilePickerPermissionPlugin;
 
 public class MainActivity extends BridgeActivity {
 
@@ -16,6 +17,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        registerPlugin(FilePickerPermissionPlugin.class);
 
         // Pede a permissão de câmera do sistema (popup nativo do Android) assim que o app abre,
         // para que o navegador dentro do app (WebView) consiga usar getUserMedia() sem bloquear.
