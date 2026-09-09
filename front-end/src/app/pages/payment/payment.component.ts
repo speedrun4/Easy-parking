@@ -761,48 +761,77 @@ export class PaymentComponent implements OnInit, OnDestroy {
   navigateToRoutePage() {
     this.isRedirectingToRoute = true;
 
+    const parking = this.selectedParkings[0];
+    console.log('Parking selecionado:', parking); // Veja o que aparece no console
+
+    const parkingLocation = {
+      lat: parking.latitude ?? parking.lat,
+      lon: parking.longitude ?? parking.lon,
+      title: parking.title,
+      address: parking.address,
+      phone: parking.phone,
+      cep: parking.cep
+    };
+
+    const goToRoute = (userLocation: { lat: number; lon: number } | null) => {
+      localStorage.removeItem('paymentData');
+      localStorage.removeItem('preReservaData');
+
+      this.router.navigate(['/route'], {
+        state: {
+          origin: userLocation,
+          destination: parkingLocation
+        }
+      }).catch(() => {
+        this.isRedirectingToRoute = false;
+      }).then(() => {
+        this.isRedirectingToRoute = false;
+      });
+    };
+
     if (!navigator.geolocation) {
-      this.isRedirectingToRoute = false;
-      alert('Geolocalização não suportada pelo navegador.');
+      // Sem suporte a geolocalização: segue para a rota mesmo assim, sem a origem do usuário.
+      goToRoute(null);
       return;
     }
 
+    // Define um timeout de segurança: se a permissão de localização nativa (Android) ainda
+    // não tiver sido concedida a tempo, a chamada do browser pode nunca retornar. Nesse caso,
+    // seguimos para a rota mesmo sem a localização do usuário, em vez de travar a tela.
+    let settled = false;
+    const fallbackTimer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        goToRoute(null);
+      }
+    }, 8000);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(fallbackTimer);
+
         const userLocation = {
           lat: position.coords.latitude,
           lon: position.coords.longitude
         };
 
-        const parking = this.selectedParkings[0];
-        console.log('Parking selecionado:', parking); // Veja o que aparece no console
-
-        const parkingLocation = {
-          lat: parking.latitude ?? parking.lat,
-          lon: parking.longitude ?? parking.lon,
-          title: parking.title,
-          address: parking.address,
-          phone: parking.phone,
-          cep: parking.cep
-        };
-
-        localStorage.removeItem('paymentData');
-        localStorage.removeItem('preReservaData');
-
-        this.router.navigate(['/route'], {
-          state: {
-            origin: userLocation,
-            destination: parkingLocation
-          }
-        }).catch(() => {
-          this.isRedirectingToRoute = false;
-        });
+        goToRoute(userLocation);
       },
       (error) => {
-        this.isRedirectingToRoute = false;
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(fallbackTimer);
         console.error('Erro ao obter localização:', error);
-        alert('Não foi possível obter sua localização atual.');
-      }
+        // Segue para a rota mesmo sem a localização do usuário.
+        goToRoute(null);
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
     );
   }
 

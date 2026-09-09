@@ -137,9 +137,9 @@ export class CadastroEstacionamentoComponent implements OnInit {
     this.estacionamentoService.salvarEstacionamento(estacionamento).subscribe({
       next: (response) => {
         console.log('Cadastro realizado com sucesso!', response);
-        this.openSuccessModal();
         this.parkingForm.reset();
         this.initializeParkingForm();
+        this.openSuccessModal();
       },
       error: (err) => {
         alert('Erro ao cadastrar estacionamento!');
@@ -148,9 +148,12 @@ export class CadastroEstacionamentoComponent implements OnInit {
   }
   openSuccessModal(): void {
     console.log("Abrindo modal de sucesso");
-    this.dialog.open(SucessoModalComponent, {
+    const dialogRef = this.dialog.open(SucessoModalComponent, {
       width: '200px',  // Define o tamanho do modal
       data: { message: 'Estacionamento cadastrado com sucesso!' }  // Passa a mensagem para o modal
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this.router.navigate(['/cliente']);
     });
   }
   
