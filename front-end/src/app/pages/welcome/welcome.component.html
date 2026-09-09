@@ -64,7 +64,7 @@
         <mat-select [value]="marker.useDaily12h ? 'daily' : 'hourly'" (selectionChange)="updatePricingMode(marker, $event.value === 'daily')">
           <mat-option value="hourly">Por hora ({{ marker.label }})</mat-option>
           <mat-option value="daily" [disabled]="!canUseDaily12h(marker)">
-            Diaria 12h ({{ marker.dailyRate12h ? ('R$ ' + marker.dailyRate12h) : 'indisponivel' }})
+            Diaria 12h ({{ marker.dailyRate12h ? ('R$ ' + (getDailyRateWithFee(marker.dailyRate12h) | number:'1.2-2')) : 'indisponivel' }})
           </mat-option>
         </mat-select>
       </mat-form-field>
@@ -89,6 +89,9 @@
     <p>
       <strong>Valor Total:</strong>
       {{ calculateTotal(marker) | currency:'BRL':'symbol':'1.2-2':'pt' }}
+    </p>
+    <p *ngIf="getPlatformFee(marker) > 0" style="font-size: 0.9em; color: #64748b;">
+      Acréscimo de 10% sobre o valor cadastrado: {{ getPlatformFee(marker) | currency:'BRL':'symbol':'1.2-2':'pt' }}
     </p>
     <p *ngIf="isAdvanceBookingEligible(marker)" style="color: #1e7a34; margin-top: -4px;">
       Promocao aplicada: 5% OFF por reserva com 24h de antecedencia

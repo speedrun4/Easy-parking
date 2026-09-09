@@ -30,6 +30,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   totalValue: number = 0;
   originalTotalValue: number = 0;
   discountTotalValue: number = 0;
+  platformFeeTotal: number = 0;
   promoValidationMessage: string = '';
   isValidatingPromotion: boolean = false;
   selectedPaymentMethod: string = '';
@@ -143,6 +144,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
       this.baseDiscountTotalValue = this.roundToCents(
         this.selectedParkings.reduce((acc: number, p: any) => acc + Number(p?.discountAmount || 0), 0)
       );
+      this.platformFeeTotal = this.roundToCents(
+        this.selectedParkings.reduce((acc: number, p: any) => acc + Number(p?.platformFeeAmount || 0), 0)
+      );
       this.applyPaymentTotals(0);
       return;
     }
@@ -154,6 +158,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
     this.baseOriginalTotalValue = this.totalValue;
     this.baseDiscountTotalValue = 0;
+    this.platformFeeTotal = 0;
     this.applyPaymentTotals(0);
   }
 

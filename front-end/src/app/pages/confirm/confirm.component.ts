@@ -17,6 +17,7 @@ import { PaymentHistoryService } from 'src/app/services/payment-history.service'
 export class ConfirmComponent implements OnInit {
   private readonly advanceBookingHours = 24;
   private readonly advanceBookingDiscountRate = 0.05;
+  private readonly platformFeeRate = 0.10;
   private readonly firstReservationPromoCode = 'first-reservation-10';
 
   selectedParkings: any[] = [];  // Lista de estacionamentos selecionados
@@ -144,7 +145,16 @@ export class ConfirmComponent implements OnInit {
     if (!baseTotal || !this.isAdvanceBookingEligible(parking)) {
       return 0;
     }
+
     return Math.round(baseTotal * this.advanceBookingDiscountRate * 100) / 100;
+  }
+
+  getPlatformFee(parking: any): number {
+    return this.roundCurrency(this.calculateRawParkingTotal(parking) * this.platformFeeRate);
+  }
+
+  getDailyRateWithFee(rate: number): number {
+    return this.roundCurrency(Number(rate || 0) * (1 + this.platformFeeRate));
   }
 
   calculateParkingTotal(parking: any): number {
@@ -159,6 +169,10 @@ export class ConfirmComponent implements OnInit {
   }
 
   private calculateBaseParkingTotal(parking: any): number {
+    return this.roundCurrency(this.calculateRawParkingTotal(parking) * (1 + this.platformFeeRate));
+  }
+
+  private calculateRawParkingTotal(parking: any): number {
     if (!parking?.selectedTime) return 0;
 
     if (parking.useDaily12h) {
@@ -190,6 +204,10 @@ export class ConfirmComponent implements OnInit {
 
     const total = diffHours * hourlyRate;
     return Math.ceil(total * 100) / 100;
+  }
+
+  private roundCurrency(value: number): number {
+    return Math.round(value * 100) / 100;
   }
 
   private getReservationDateTime(dateValue: string | Date, timeValue: string): Date | null {
@@ -253,6 +271,7 @@ export class ConfirmComponent implements OnInit {
           selectedExitTime: parking.selectedExitTime,
           baseTotal,
           discountAmount,
+          platformFeeAmount: this.getPlatformFee(parking),
           total: Math.round((baseTotal - discountAmount) * 100) / 100
         };
       }),

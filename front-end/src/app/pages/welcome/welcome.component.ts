@@ -26,6 +26,7 @@ export class WelcomeComponent implements OnInit {
   private readonly renewalStorageKey = 'pendingRenewalReservation';
   private readonly advanceBookingHours = 24;
   private readonly advanceBookingDiscountRate = 0.05;
+  private readonly platformFeeRate = 0.10;
   private readonly firstReservationPromoCode = 'first-reservation-10';
   searchForm: FormGroup;
   latitude = -23.55052;
@@ -85,8 +86,9 @@ export class WelcomeComponent implements OnInit {
     this.estacionamentoService.estacionamentos$.subscribe((data) => {
       this.filteredMarkers = data.map(est => ({
         title: est.companyName,
-        label: `R$${est.hourlyRate}/h`,
+        label: `R$${this.getHourlyRateWithFee(est.hourlyRate).toFixed(2)}/h`,
         hourlyRate: est.hourlyRate,
+        registeredHourlyRate: est.hourlyRate,
         dailyRate12h: est.dailyRate12h,
         address: est.address,
         latitude: est.latitude,
@@ -432,8 +434,9 @@ export class WelcomeComponent implements OnInit {
         this.markers = estacionamentos.map((estacionamento: any) => ({
           latitude: estacionamento.latitude,
           longitude: estacionamento.longitude,
-          label: `R$ ${estacionamento.hourlyRate}/h`,
+          label: `R$ ${this.getHourlyRateWithFee(estacionamento.hourlyRate).toFixed(2)}/h`,
           hourlyRate: estacionamento.hourlyRate,
+          registeredHourlyRate: estacionamento.hourlyRate,
           dailyRate12h: estacionamento.dailyRate12h,
           title: estacionamento.companyName,
           address: estacionamento.address,
@@ -479,8 +482,9 @@ export class WelcomeComponent implements OnInit {
       this.markers = filtrados.map((estacionamento: any) => ({
         latitude: estacionamento.latitude,
         longitude: estacionamento.longitude,
-        label: `R$ ${estacionamento.hourlyRate}/h`,
+        label: `R$ ${this.getHourlyRateWithFee(estacionamento.hourlyRate).toFixed(2)}/h`,
         hourlyRate: estacionamento.hourlyRate,
+         registeredHourlyRate: estacionamento.hourlyRate,
         dailyRate12h: estacionamento.dailyRate12h,
         title: estacionamento.companyName,
         address: estacionamento.address,
@@ -680,7 +684,7 @@ formatDate(date: Date): string {
   }
 
   getAdvanceBookingDiscount(marker: any): number {
-    const baseTotal = this.calculateBaseTotal(marker);
+    const baseTotal = this.calculateBaseTotalWithFee(marker);
     if (!baseTotal || !this.isAdvanceBookingEligible(marker)) {
       return 0;
     }
@@ -688,7 +692,7 @@ formatDate(date: Date): string {
   }
 
   calculateTotal(marker: any): number {
-  const baseTotal = this.calculateBaseTotal(marker);
+  const baseTotal = this.calculateBaseTotalWithFee(marker);
   if (!baseTotal) {
     return 0;
   }
@@ -698,7 +702,24 @@ formatDate(date: Date): string {
   return Math.round(totalWithDiscount * 100) / 100;
 }
 
-  private calculateBaseTotal(marker: any): number {
+  getHourlyRateWithFee(rate: number): number {
+    return this.roundCurrency(Number(rate || 0) * (1 + this.platformFeeRate));
+  }
+
+  getDailyRateWithFee(rate: number): number {
+    return this.getHourlyRateWithFee(rate);
+  }
+
+  getPlatformFee(marker: any): number {
+    const baseTotal = this.calculateRawBaseTotal(marker);
+    return this.roundCurrency(baseTotal * this.platformFeeRate);
+  }
+
+  private calculateBaseTotalWithFee(marker: any): number {
+    return this.roundCurrency(this.calculateRawBaseTotal(marker) * (1 + this.platformFeeRate));
+  }
+
+  private calculateRawBaseTotal(marker: any): number {
   if (!marker?.selectedTime) return 0;
 
   if (marker.useDaily12h) {
@@ -726,10 +747,16 @@ formatDate(date: Date): string {
 
   const diffHours = diffMs / (1000 * 60 * 60);
 
-  const hourlyRate = Number(marker.hourlyRate || marker.label.replace(/[^\d.-]/g, ''));
+  const hourlyRate = Number(
+    marker.registeredHourlyRate ?? marker.hourlyRate ?? marker.label.replace(/[^\d.-]/g, '')
+  );
 
   const total = diffHours * hourlyRate;
   return Math.ceil(total * 100) / 100; // Arredonda para 2 casas decimais
+}
+
+  private roundCurrency(value: number): number {
+    return Math.round(value * 100) / 100;
 }
 
   private getReservationDateTime(dateValue: string | Date, timeValue: string): Date | null {
