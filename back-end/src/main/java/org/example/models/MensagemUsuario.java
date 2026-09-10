@@ -20,8 +20,7 @@ public class MensagemUsuario {
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "senha", "cpf", "codigoConfirmacao", "fotoBase64"})
     private Usuarios destinatario;
 
-    @Lob
-    @Column(name = "conteudo", nullable = false)
+    @Column(name = "conteudo", nullable = false, columnDefinition = "TEXT")
     private String conteudo;
 
     @Column(name = "lida", nullable = false)

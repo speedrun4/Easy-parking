@@ -15,8 +15,7 @@ public class Usuarios {
     private String senha;
     private String cpf;
     private String perfil;
-    @Column(name = "foto")
-    @Lob
+    @Column(name = "foto", columnDefinition = "TEXT")
     private String fotoBase64; // Foto em base64
     private String codigoConfirmacao;
     // Construtores
