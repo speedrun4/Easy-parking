@@ -45,7 +45,7 @@ public class Pagamentos {
     private String entryQrToken;
 
     @Lob
-    @Column(name = "entry_qr_image_base64", columnDefinition = "LONGTEXT")
+    @Column(name = "entry_qr_image_base64", columnDefinition = "TEXT")
     private String entryQrImageBase64;
 
     @Column(name = "entry_qr_status")
@@ -61,7 +61,7 @@ public class Pagamentos {
     private String exitQrToken;
 
     @Lob
-    @Column(name = "exit_qr_image_base64", columnDefinition = "LONGTEXT")
+    @Column(name = "exit_qr_image_base64", columnDefinition = "TEXT")
     private String exitQrImageBase64;
 
     @Column(name = "exit_qr_status")
@@ -87,11 +87,11 @@ public class Pagamentos {
     private String pixGatewayProvider; // ASAAS, STATIC
 
     @Lob
-    @Column(name = "pagbank_qr_base64", columnDefinition = "LONGTEXT")
+    @Column(name = "pagbank_qr_base64", columnDefinition = "TEXT")
     private String pagbankQrBase64; // imagem do QR retornada pelo PagBank
 
     @Lob
-    @Column(name = "pagbank_qr_payload", columnDefinition = "LONGTEXT")
+    @Column(name = "pagbank_qr_payload", columnDefinition = "TEXT")
     private String pagbankQrPayload; // texto copia e cola
 
     // Novos campos para reserva
