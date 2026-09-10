@@ -2,13 +2,11 @@
 # Ao conectar este repositório no Render (New > Blueprint), ele cria o serviço
 # automaticamente usando esta configuração.
 #
-# Banco de dados: H2 embutido (perfil "render"), gravado em um disco persistente
-# (ver seção "disks" abaixo) montado em /app/data. Isso garante que os cadastros
-# de usuário e de estacionamento continuem salvos mesmo após reinícios/novos
-# deploys do serviço, ou reinstalação do app no celular (os dados ficam no
-# servidor, não no dispositivo). Note: no plano free, discos persistentes têm
-# custo (não fazem parte da cota gratuita) — para produção real, considere
-# trocar por um Postgres/MySQL gerenciado.
+# Banco de dados: Postgres externo (ex: Supabase ou Neon, planos free). O plano free do
+# Render não suporta disco persistente para web services, então H2 em arquivo local NÃO
+# é confiável (dados são apagados quando o serviço "dorme" por inatividade ou recebe um
+# novo deploy). Configure as variáveis DATABASE_URL, DATABASE_USERNAME e DATABASE_PASSWORD
+# no painel do Render (Environment) apontando para o banco Postgres externo.
 
 services:
   - type: web
@@ -19,10 +17,6 @@ services:
     dockerfilePath: ./back-end/Dockerfile.render
     dockerContext: ./back-end
     healthCheckPath: /api/health
-    disk:
-      name: easy-parking-data
-      mountPath: /app/data
-      sizeGB: 1
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: render
@@ -30,6 +24,12 @@ services:
         value: "false"
       - key: CORS_ORIGINS
         value: "http://localhost,capacitor://localhost,ionic://localhost"
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
       - key: ASAAS_API_KEY
         sync: false
       - key: PIX_KEY
