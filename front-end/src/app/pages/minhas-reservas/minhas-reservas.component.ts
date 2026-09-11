@@ -53,6 +53,7 @@ export class MinhasReservasComponent implements OnInit {
       next: (data) => {
         this.reservas = (data || [])
           .filter(r => (r.formaPagamento || '').toLowerCase() !== 'cancelado')
+          .filter(r => this.hasReservationDetails(r))
           .sort((a, b) => (b.id || 0) - (a.id || 0));
         this.loading = false;
       },
@@ -61,6 +62,14 @@ export class MinhasReservasComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  private hasReservationDetails(reserva: PaymentHistory): boolean {
+    return !!reserva?.estacionamento?.trim() &&
+      !!reserva?.endereco?.trim() &&
+      !!reserva?.dataReservaEntrada &&
+      !!reserva?.horarioReservaEntrada &&
+      !!reserva?.horarioReservaSaida;
   }
 
   openReservationQr(reserva: PaymentHistory): void {
