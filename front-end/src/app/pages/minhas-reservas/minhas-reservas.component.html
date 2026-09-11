@@ -41,10 +41,14 @@
           type="button"
           class="renew-link"
           [disabled]="!canRenewReservation(reserva)"
+          [attr.title]="getRenewalAvailabilityMessage(reserva)"
           (click)="renewReservation(reserva)"
         >
           Renovar agora
         </button>
+        <small *ngIf="!canRenewReservation(reserva)" class="renewal-hint">
+          Disponível nos 5 minutos antes da saída.
+        </small>
       </div>
     </article>
   </div>

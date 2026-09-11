@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { PaymentHistory } from 'src/app/models/payment-history.model';
 import { AuthService } from 'src/app/services/auth.service';
@@ -20,8 +20,10 @@ interface RenewalReservationState {
   templateUrl: './minhas-reservas.component.html',
   styleUrls: ['./minhas-reservas.component.scss']
 })
-export class MinhasReservasComponent implements OnInit {
+export class MinhasReservasComponent implements OnInit, OnDestroy {
   private readonly renewalStorageKey = 'pendingRenewalReservation';
+  private renewalAvailabilityTimer?: ReturnType<typeof setInterval>;
+  currentTime = new Date();
   reservas: PaymentHistory[] = [];
   loading = true;
   error = '';
@@ -34,7 +36,16 @@ export class MinhasReservasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.renewalAvailabilityTimer = setInterval(() => {
+      this.currentTime = new Date();
+    }, 30000);
     this.loadReservas();
+  }
+
+  ngOnDestroy(): void {
+    if (this.renewalAvailabilityTimer) {
+      clearInterval(this.renewalAvailabilityTimer);
+    }
   }
 
   closeInfoPopup(): void {
@@ -82,7 +93,32 @@ export class MinhasReservasComponent implements OnInit {
   }
 
   canRenewReservation(reserva: PaymentHistory): boolean {
-    return !!reserva?.id && !!reserva?.estacionamento;
+    const exitDateTime = this.getReservationExitDateTime(reserva);
+    if (!reserva?.id || !reserva?.estacionamento || !exitDateTime) {
+      return false;
+    }
+
+    const renewalStart = new Date(exitDateTime.getTime() - 5 * 60 * 1000);
+    return this.currentTime >= renewalStart && this.currentTime <= exitDateTime;
+  }
+
+  getRenewalAvailabilityMessage(reserva: PaymentHistory): string {
+    if (this.canRenewReservation(reserva)) {
+      return 'Renovacao disponivel ate o horario de saida.';
+    }
+
+    return 'Disponivel apenas nos 5 minutos antes do horario de saida.';
+  }
+
+  private getReservationExitDateTime(reserva: PaymentHistory): Date | null {
+    const date = (reserva?.dataReservaEntrada || '').trim();
+    const time = (reserva?.horarioReservaSaida || '').trim();
+    if (!date || !time || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}(?::\d{2})?$/.test(time)) {
+      return null;
+    }
+
+    const exitDateTime = new Date(`${date}T${time}`);
+    return Number.isNaN(exitDateTime.getTime()) ? null : exitDateTime;
   }
 
   renewReservation(reserva: PaymentHistory): void {
