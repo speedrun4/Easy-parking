@@ -62,5 +62,6 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.preReservaExpiredSub?.unsubscribe();
     this.preReservaService.stopExpirationWatcher();
+    this.parkingExpirationAlertService.stop();
   }
 }

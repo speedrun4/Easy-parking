@@ -15,11 +15,15 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
 import com.easyparking.app.plugins.FilePickerPermissionPlugin;
+import com.easyparking.app.plugins.LocalReminderPlugin;
 
 public class MainActivity extends BridgeActivity {
 
+    public static final String EXTRA_NAVIGATE_ROUTE = "extra_navigate_route";
+
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1002;
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1003;
 
     private ValueCallback<Uri[]> filePathCallback;
     private ActivityResultLauncher<Intent> fileChooserLauncher;
@@ -28,6 +32,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         registerPlugin(FilePickerPermissionPlugin.class);
+        registerPlugin(LocalReminderPlugin.class);
 
         // Registra o launcher que trata o resultado do seletor de arquivo/câmera
         // aberto por onShowFileChooser (necessário para <input type="file"> na WebView).
@@ -64,6 +69,10 @@ public class MainActivity extends BridgeActivity {
         // Pede a permissão de localização do sistema assim que o app abre, para que a
         // WebView consiga responder ao navigator.geolocation.getCurrentPosition() sem travar.
         requestLocationPermissionIfNeeded();
+
+        // Pede a permissão de notificações (obrigatória a partir do Android 13) para que os
+        // alertas de reserva prestes a vencer possam ser exibidos.
+        requestNotificationPermissionIfNeeded();
 
         // Habilita a API de geolocalização dentro da WebView (desabilitada por padrão).
         this.bridge.getWebView().getSettings().setGeolocationEnabled(true);
@@ -123,6 +132,36 @@ public class MainActivity extends BridgeActivity {
                 return true;
             }
         });
+
+        handleNavigationIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleNavigationIntent(intent);
+    }
+
+    // Quando o app é aberto a partir do toque em uma notificação de alerta de reserva,
+    // navega direto para a rota informada usando o router do Angular (via pushState +
+    // popstate), sem precisar recarregar a página.
+    private void handleNavigationIntent(Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        String route = intent.getStringExtra(EXTRA_NAVIGATE_ROUTE);
+        if (route == null || route.isEmpty()) {
+            return;
+        }
+
+        String escapedRoute = route.replace("'", "\\'");
+        String script = "window.history.pushState({}, '', '" + escapedRoute + "');"
+                + "window.dispatchEvent(new PopStateEvent('popstate'));";
+
+        this.bridge.getWebView().post(() ->
+                this.bridge.getWebView().evaluateJavascript(script, null)
+        );
     }
 
     private void requestCameraPermissionIfNeeded() {
@@ -152,6 +191,20 @@ public class MainActivity extends BridgeActivity {
                             Manifest.permission.ACCESS_COARSE_LOCATION
                     },
                     LOCATION_PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        // POST_NOTIFICATIONS (API 33/Tiramisu) só existe a partir do Android 13.
+        // Usamos o valor numérico da API pois o compileSdkVersion do projeto é 32.
+        if (android.os.Build.VERSION.SDK_INT >= 33
+                && ContextCompat.checkSelfPermission(this, "android.permission.POST_NOTIFICATIONS")
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{"android.permission.POST_NOTIFICATIONS"},
+                    NOTIFICATION_PERMISSION_REQUEST_CODE
             );
         }
     }
