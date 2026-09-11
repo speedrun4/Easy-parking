@@ -106,6 +106,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.carteiraService.carregarCarteira().subscribe({
+      error: (err) => console.error('Erro ao carregar saldo da carteira:', err)
+    });
+
     try {
       const storedData = localStorage.getItem('paymentData') || localStorage.getItem('preReservaData');
       if (storedData) {
@@ -493,7 +497,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
       const purchasePayload = this.buildCardPurchasePayload(parkingName, currentUser, forma);
       if (!purchasePayload) {
         if (forma === 'Carteira') {
-          this.carteiraService.adicionarValor(this.totalValue, `Estorno - Pagamento de reserva - ${parkingName}`, 'ajuste');
+          this.carteiraService.adicionarValor(this.totalValue, `Estorno - Pagamento de reserva - ${parkingName}`, 'ajuste').subscribe({
+            error: (err) => console.error('Erro ao estornar valor na carteira:', err)
+          });
         }
         this.dialog.open(ErrorDialogComponent, {
           data: {
@@ -595,7 +601,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
         console.error('Erro ao salvar pagamento:', error);
 
         if (forma === 'Carteira') {
-          this.carteiraService.adicionarValor(this.totalValue, `Estorno - Pagamento de reserva - ${parkingName}`, 'ajuste');
+          this.carteiraService.adicionarValor(this.totalValue, `Estorno - Pagamento de reserva - ${parkingName}`, 'ajuste').subscribe({
+            error: (err) => console.error('Erro ao estornar valor na carteira:', err)
+          });
         }
 
         this.dialog.open(ErrorDialogComponent, {

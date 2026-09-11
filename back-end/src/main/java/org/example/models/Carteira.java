@@ -1,5 +1,7 @@
 package org.example.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -21,8 +23,9 @@ public class Carteira {
     private String tipo;
     // Tipo de transação: "entrada" (adicionado) ou "saída" (retirado)
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "senha"})
     private Usuarios usuario;
 
     // Getters e setters
@@ -80,5 +83,13 @@ public class Carteira {
 
     public void setTipo(String tipo) {
         this.tipo = tipo;
+    }
+
+    public Usuarios getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuarios usuario) {
+        this.usuario = usuario;
     }
 }

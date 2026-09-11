@@ -43,6 +43,14 @@ export class CarteiraComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.carteira = this.carteiraService.obterCarteira();
+    this.carteiraService.carregarCarteira().subscribe({
+      next: (carteira) => {
+        this.carteira = carteira;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar carteira:', err);
+      }
+    });
   }
 
   abrirModal() {
@@ -282,13 +290,22 @@ export class CarteiraComponent implements OnInit, OnDestroy {
 
     this.walletCreditApplied = true;
     this.stopPixStatusPolling();
-    this.carteiraService.adicionarValor(this.valorOperacao, this.descricaoOperacao, metodo);
-    this.carteira = this.carteiraService.obterCarteira();
-    this.valorOperacao = 0;
-    this.valorOperacaoDisplay = '';
-    this.descricaoOperacao = '';
-    this.isLoading = false;
-    this.fecharModal();
+    this.carteiraService.adicionarValor(this.valorOperacao, this.descricaoOperacao, metodo).subscribe({
+      next: (carteira) => {
+        this.carteira = carteira;
+        this.valorOperacao = 0;
+        this.valorOperacaoDisplay = '';
+        this.descricaoOperacao = '';
+        this.isLoading = false;
+        this.fecharModal();
+      },
+      error: (err) => {
+        console.error('Erro ao registrar recarga na carteira:', err);
+        this.isLoading = false;
+        alert('Pagamento confirmado, mas houve um erro ao salvar o saldo. Tente atualizar a página.');
+        this.fecharModal();
+      }
+    });
   }
 
   private buildCardPurchasePayload(currentUser: any): any | null {

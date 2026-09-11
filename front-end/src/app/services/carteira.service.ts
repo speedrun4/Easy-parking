@@ -1,6 +1,10 @@
 
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Carteira } from 'src/app/models/carteira.model';
+import { AuthService } from 'src/app/services/auth.service';
+import { environment } from 'src/environments/environment';
 
 
 export interface Transacao {
@@ -15,54 +19,108 @@ export interface Transacao {
 })
 
 export class CarteiraService {
-  private carteira: Carteira = { saldo: 0, historicoTransacoes: [] }; // Simulação inicial
+  private apiUrl = `${environment.apiBaseUrl}/api/carteira`;
+  private carteira: Carteira = { saldo: 0, historicoTransacoes: [] };
 
+  constructor(private http: HttpClient, private authService: AuthService) {}
+
+  private getUsuarioId(): number | null {
+    const currentUser = this.authService.getCurrentUser();
+    return currentUser?.id || null;
+  }
+
+  // Retorna o último snapshot carregado da carteira (usar carregarCarteira() para atualizar do backend)
   obterCarteira(): Carteira {
     return this.carteira;
   }
 
-  adicionarValor(valor: number, descricao: string, metodo: string,): void {
-    const metodoFormatado = metodo ? metodo.toUpperCase() : 'N/A';
-    const descricaoComMetodo = `${descricao} (${metodoFormatado})`;
-    const transacao: Transacao = {
-      data: new Date(),
-      descricao: descricaoComMetodo,
-      valor,
-      tipo: "entrada",
-    };
+  // Busca saldo e histórico persistidos no backend para o usuário logado
+  carregarCarteira(): Observable<Carteira> {
+    const usuarioId = this.getUsuarioId();
+    return new Observable<Carteira>(observer => {
+      if (!usuarioId) {
+        observer.next(this.carteira);
+        observer.complete();
+        return;
+      }
 
-    this.carteira.saldo += valor;
-    this.carteira.historicoTransacoes.push(transacao);
-
-    // Simule um salvamento na base de dados aqui
-    console.log('Transação salva:', transacao);
+      this.http.get<any>(`${this.apiUrl}/${usuarioId}`).subscribe({
+        next: (res) => {
+          this.carteira = this.mapResponse(res);
+          observer.next(this.carteira);
+          observer.complete();
+        },
+        error: (err) => {
+          observer.error(err);
+        }
+      });
+    });
   }
 
-  removerValor(valor: number, descricao: string): void {
-    const transacao: Transacao = {
-      data: new Date(),
-      descricao,
-      valor,
-      tipo: "saida"
+  private mapResponse(res: any): Carteira {
+    const historico: Transacao[] = (res?.historicoTransacoes || []).map((t: any) => ({
+      data: new Date(t.data),
+      descricao: t.descricao,
+      valor: t.tipo === 'entrada' ? t.valorAdicionado : t.valorRetirado,
+      tipo: t.tipo
+    }));
+    return {
+      saldo: res?.saldo || 0,
+      historicoTransacoes: historico
     };
+  }
 
-    this.carteira.saldo -= valor;
-    this.carteira.historicoTransacoes.push(transacao);
+  adicionarValor(valor: number, descricao: string, metodo: string): Observable<Carteira> {
+    const usuarioId = this.getUsuarioId();
+    return new Observable<Carteira>(observer => {
+      if (!usuarioId) {
+        observer.error('Usuário não autenticado.');
+        return;
+      }
 
-    // Simule um salvamento na base de dados aqui
-    console.log('Transação salva:', transacao);
+      this.http.post<any>(`${this.apiUrl}/${usuarioId}/adicionar`, { valor, descricao, metodo }).subscribe({
+        next: (res) => {
+          this.carteira = this.mapResponse(res);
+          observer.next(this.carteira);
+          observer.complete();
+        },
+        error: (err) => observer.error(err)
+      });
+    });
+  }
+
+  removerValor(valor: number, descricao: string): Observable<Carteira> {
+    const usuarioId = this.getUsuarioId();
+    return new Observable<Carteira>(observer => {
+      if (!usuarioId) {
+        observer.error('Usuário não autenticado.');
+        return;
+      }
+
+      this.http.post<any>(`${this.apiUrl}/${usuarioId}/remover`, { valor, descricao }).subscribe({
+        next: (res) => {
+          this.carteira = this.mapResponse(res);
+          observer.next(this.carteira);
+          observer.complete();
+        },
+        error: (err) => observer.error(err)
+      });
+    });
   }
 
   temSaldoSuficiente(valor: number): boolean {
     return this.carteira.saldo >= (Number(valor) || 0);
   }
 
+  // Mantido síncrono para não quebrar chamadas existentes: debita localmente e persiste em segundo plano.
   removerValorSePossivel(valor: number, descricao: string): boolean {
     if (!this.temSaldoSuficiente(valor)) {
       return false;
     }
 
-    this.removerValor(valor, descricao);
+    this.removerValor(valor, descricao).subscribe({
+      error: (err) => console.error('Erro ao persistir débito da carteira:', err)
+    });
     return true;
   }
 }

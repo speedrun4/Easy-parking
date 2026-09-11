@@ -94,7 +94,6 @@ public class QRCodeController {
 
             // Retornar a imagem do QR Code como resposta
             String qrCodeBase64 = java.util.Base64.getEncoder().encodeToString(qrCodeBytes);
-            carteiraService.adicionarValor(valor, "Pagamento Pix", "entrada");
 
             Map<String, String> response = new HashMap<>();
             response.put("codigoPix", codigoPix);
