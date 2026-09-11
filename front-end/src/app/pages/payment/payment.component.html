@@ -41,6 +41,23 @@
         </mat-radio-group>
       </section>
 
+      <section *ngIf="selectedPaymentMethod === 'Carteira'" class="wallet-payment-info" aria-live="polite">
+        <ng-container *ngIf="isLoadingWalletBalance; else walletBalanceLoaded">
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>Atualizando saldo da carteira...</span>
+        </ng-container>
+        <ng-template #walletBalanceLoaded>
+          <ng-container *ngIf="!walletBalanceLoadError; else walletBalanceError">
+            <span>Saldo disponível na carteira</span>
+            <strong>R$ {{ walletBalance.toFixed(2) }}</strong>
+            <small>Após este pagamento: R$ {{ (walletBalance - totalValue).toFixed(2) }}</small>
+          </ng-container>
+          <ng-template #walletBalanceError>
+            <span class="wallet-balance-error">Não foi possível atualizar o saldo da carteira. Tente novamente.</span>
+          </ng-template>
+        </ng-template>
+      </section>
+
       <!-- PIX -->
       <div *ngIf="selectedPaymentMethod === 'Pix'" class="pix-container">
         <h4>PIX ({{ pixProviderLabel }})</h4>
@@ -121,7 +138,7 @@
 
       <div class="confirm-button-container" fxLayout="row" fxLayoutAlign="end center">
         <button mat-stroked-button color="warn" (click)="cancelPayment()">Cancelar</button>
-        <button *ngIf="selectedPaymentMethod !== 'Pix'" mat-raised-button color="primary" class="confirm-payment-btn" [disabled]="loading" (click)="confirmPayment()">
+        <button *ngIf="selectedPaymentMethod !== 'Pix'" mat-raised-button color="primary" class="confirm-payment-btn" [disabled]="loading || (selectedPaymentMethod === 'Carteira' && isLoadingWalletBalance)" (click)="confirmPayment()">
           {{ loading ? 'Processando...' : 'Confirmar Pagamento' }}
         </button>
       </div>

@@ -46,6 +46,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
   isProcessingPayment: boolean = false;
   cardBrand: string = '';
   loading: boolean = false;
+  walletBalance: number = 0;
+  isLoadingWalletBalance: boolean = false;
+  walletBalanceLoadError: boolean = false;
   isRedirectingToRoute: boolean = false;
   private pollingSub?: Subscription;
   private pollingCount = 0;
@@ -106,9 +109,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.carteiraService.carregarCarteira().subscribe({
-      error: (err) => console.error('Erro ao carregar saldo da carteira:', err)
-    });
+    this.loadWalletBalance();
 
     try {
       const storedData = localStorage.getItem('paymentData') || localStorage.getItem('preReservaData');
@@ -229,6 +230,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.showCreditCardForm = this.selectedPaymentMethod === 'Cartão de Crédito';
     this.showDebitCardForm = this.selectedPaymentMethod === 'Cartão de Débito';
 
+    if (this.selectedPaymentMethod === 'Carteira') {
+      this.loadWalletBalance();
+    }
+
     if (this.selectedPaymentMethod === 'Pix') {
       // Para PIX, inicia automaticamente o fluxo de cobrança e exibição do QR.
       this.startPixFlow();
@@ -240,6 +245,23 @@ export class PaymentComponent implements OnInit, OnDestroy {
       this.isProcessingPayment = false;
       this.loading = false;
     }
+  }
+
+  private loadWalletBalance(): void {
+    this.isLoadingWalletBalance = true;
+    this.walletBalanceLoadError = false;
+
+    this.carteiraService.carregarCarteira().subscribe({
+      next: (carteira) => {
+        this.walletBalance = carteira.saldo;
+        this.isLoadingWalletBalance = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar saldo da carteira:', err);
+        this.isLoadingWalletBalance = false;
+        this.walletBalanceLoadError = true;
+      }
+    });
   }
 
   private startPixFlow() {

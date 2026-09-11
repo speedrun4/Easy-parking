@@ -164,6 +164,32 @@
   background: rgba(255, 255, 255, 0.96);
 }
 
+.wallet-payment-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(31, 122, 88, 0.28);
+  border-radius: 14px;
+  background: #f0fbf4;
+  color: #124532;
+}
+
+.wallet-payment-info strong {
+  margin-left: auto;
+  color: #0f4d34;
+  font-size: 1.25rem;
+}
+
+.wallet-payment-info small {
+  color: #54796a;
+}
+
+.wallet-balance-error {
+  color: #b91c1c;
+}
+
 .payment-form h4,
 .pix-container h4 {
   margin-top: 0;
@@ -273,6 +299,14 @@ textarea {
   .payment-summary {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .wallet-payment-info {
+    flex-wrap: wrap;
+  }
+
+  .wallet-payment-info strong {
+    margin-left: 0;
   }
 
   .confirm-button-container {
