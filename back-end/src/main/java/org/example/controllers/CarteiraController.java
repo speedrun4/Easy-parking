@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class CarteiraController {
         public void setMetodo(String metodo) { this.metodo = metodo; }
     }
 
-    // Retorna saldo atual + histórico de transações do usuário
+    // Retorna saldo atual + historico de transacoes do usuario
     @GetMapping("/{usuarioId}")
     public ResponseEntity<?> obterCarteira(@PathVariable Integer usuarioId) {
         List<Carteira> historico = carteiraService.obterHistorico(usuarioId);
@@ -51,7 +52,7 @@ public class CarteiraController {
     public ResponseEntity<?> adicionarValor(@PathVariable Integer usuarioId, @RequestBody CarteiraOperacaoRequest request) {
         Usuarios usuario = usuariosRepository.findById(usuarioId).orElse(null);
         if (usuario == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Usuário não encontrado."));
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Usuario nao encontrado."));
         }
 
         String metodoFormatado = request.getMetodo() != null ? request.getMetodo().toUpperCase() : "N/A";
@@ -60,7 +61,7 @@ public class CarteiraController {
         try {
             carteiraService.adicionarValor(usuario, request.getValor(), descricaoComMetodo, request.getMetodo());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", e.getMessage()));
         }
 
         return obterCarteira(usuarioId);
@@ -70,18 +71,18 @@ public class CarteiraController {
     public ResponseEntity<?> removerValor(@PathVariable Integer usuarioId, @RequestBody CarteiraOperacaoRequest request) {
         Usuarios usuario = usuariosRepository.findById(usuarioId).orElse(null);
         if (usuario == null) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Usuário não encontrado."));
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Usuario nao encontrado."));
         }
 
         double saldoAtual = carteiraService.obterSaldoAtual(usuarioId);
         if (saldoAtual < request.getValor()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Saldo insuficiente."));
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", "Saldo insuficiente."));
         }
 
         try {
             carteiraService.removerValor(usuario, request.getValor(), request.getDescricao());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", e.getMessage()));
         }
 
         return obterCarteira(usuarioId);
