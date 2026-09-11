@@ -60,12 +60,15 @@ export class AuthService {
     };
   }
 
-  // Atualiza a foto do usuário: persiste no backend e reflete no front
-  updateUserPhoto(fotoBase64: string, dataUrl?: string): void {
+  // Atualiza a foto do usuário: persiste no backend e reflete no front.
+  // Retorna um Observable para que o chamador possa saber se a persistência
+  // no servidor teve sucesso (evita a foto "sumir" ao relogar quando o
+  // salvamento no backend falha silenciosamente).
+  updateUserPhoto(fotoBase64: string, dataUrl?: string): Observable<any> {
     const current = this.getCurrentUser();
     if (!current || !current.id) {
       console.error('Nenhum usuário logado para atualizar a foto.');
-      return;
+      return throwError(() => new Error('Nenhum usuário logado para atualizar a foto.'));
     }
 
     // Atualização otimista no front para feedback imediato
@@ -73,18 +76,21 @@ export class AuthService {
     this.setCurrentUser(optimistic);
 
     // Persiste no backend
-    this.http.put<any>(`${this.apiUrl}/${current.id}/foto`, { fotoBase64 })
-      .pipe(catchError(this.handleError))
-      .subscribe({
-        next: (resp) => {
+    return this.http.put<any>(`${this.apiUrl}/${current.id}/foto`, { fotoBase64 })
+      .pipe(
+        map((resp) => {
           const updated = { ...this.getCurrentUser(), fotoBase64: resp?.fotoBase64 ?? fotoBase64 };
           this.setCurrentUser(updated);
-        },
-        error: (err) => {
-          console.error('Falha ao salvar foto no servidor:', err);
-          // Em caso de erro, podemos manter a foto localmente ou desfazer. Aqui manteremos a foto local.
-        }
-      });
+          return resp;
+        }),
+        catchError((err) => {
+          // Reverte a atualização otimista, pois a foto não foi persistida no servidor
+          // e seria perdida no próximo login/refresh de qualquer forma.
+          const reverted = { ...current };
+          this.setCurrentUser(reverted);
+          return this.handleError(err);
+        })
+      );
   }
 
   // Registro de usuário (opcional, conforme necessário)

@@ -75,10 +75,21 @@ export class UserProfileComponent implements OnInit {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      const dataUrl = reader.result as string;
-      const base64 = dataUrl.split(',')[1];
-      this.previewPhotoUrl = dataUrl; // data URL
-      this.savePhoto(base64, dataUrl);
+      const originalDataUrl = reader.result as string;
+      // Redimensiona/comprime a imagem antes de enviar, pois fotos de câmera em
+      // alta resolução geram um base64 muito grande e podem falhar ao salvar.
+      this.resizeImage(originalDataUrl, 800, 0.7)
+        .then((dataUrl) => {
+          const base64 = dataUrl.split(',')[1];
+          this.previewPhotoUrl = dataUrl;
+          this.savePhoto(base64, dataUrl);
+        })
+        .catch(() => {
+          // Se a compressão falhar por algum motivo, usa a imagem original como fallback.
+          const base64 = originalDataUrl.split(',')[1];
+          this.previewPhotoUrl = originalDataUrl;
+          this.savePhoto(base64, originalDataUrl);
+        });
     };
     reader.onerror = () => {
       this.snackBar.open('Falha ao ler a imagem. Tente novamente.', 'Fechar', { duration: 3000 });
@@ -86,19 +97,60 @@ export class UserProfileComponent implements OnInit {
     reader.readAsDataURL(file);
   }
 
+  // Redimensiona a imagem para no máximo `maxSize` px no maior lado e comprime como JPEG,
+  // reduzindo drasticamente o tamanho do base64 enviado ao backend.
+  private resizeImage(dataUrl: string, maxSize: number, quality: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = Math.round((height * maxSize) / width);
+              width = maxSize;
+            } else {
+              width = Math.round((width * maxSize) / height);
+              height = maxSize;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Canvas não suportado'));
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      img.onerror = () => reject(new Error('Falha ao carregar imagem'));
+      img.src = dataUrl;
+    });
+  }
+
   private savePhoto(fotoBase64: string, dataUrl?: string): void {
-    try {
-      this.isUpdatingPhoto = true;
-      // Atualiza localmente; se houver API no futuro, substituir por chamada HTTP
-      this.authService.updateUserPhoto(fotoBase64, dataUrl);
-      // Atualiza dados locais para refletir imediatamente
-      this.userData = this.authService.getCurrentUser();
-      this.snackBar.open('Foto atualizada com sucesso!', 'Fechar', { duration: 2500 });
-    } catch (e) {
-      console.error(e);
-      this.snackBar.open('Não foi possível atualizar a foto.', 'Fechar', { duration: 3000 });
-    } finally {
-      this.isUpdatingPhoto = false;
-    }
+    this.isUpdatingPhoto = true;
+    this.authService.updateUserPhoto(fotoBase64, dataUrl).subscribe({
+      next: () => {
+        this.userData = this.authService.getCurrentUser();
+        this.snackBar.open('Foto atualizada com sucesso!', 'Fechar', { duration: 2500 });
+        this.isUpdatingPhoto = false;
+      },
+      error: (err) => {
+        console.error('Falha ao salvar foto no servidor:', err);
+        this.userData = this.authService.getCurrentUser();
+        this.snackBar.open(
+          'Não foi possível salvar a foto no servidor. Ela pode desaparecer ao sair do app.',
+          'Fechar',
+          { duration: 5000 }
+        );
+        this.isUpdatingPhoto = false;
+      }
+    });
   }
 }
