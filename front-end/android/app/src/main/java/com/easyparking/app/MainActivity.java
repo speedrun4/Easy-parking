@@ -1,11 +1,16 @@
 package com.easyparking.app;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
@@ -16,10 +21,41 @@ public class MainActivity extends BridgeActivity {
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1002;
 
+    private ValueCallback<Uri[]> filePathCallback;
+    private ActivityResultLauncher<Intent> fileChooserLauncher;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         registerPlugin(FilePickerPermissionPlugin.class);
+
+        // Registra o launcher que trata o resultado do seletor de arquivo/câmera
+        // aberto por onShowFileChooser (necessário para <input type="file"> na WebView).
+        fileChooserLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (filePathCallback == null) {
+                        return;
+                    }
+
+                    Uri[] resultUris = null;
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Intent data = result.getData();
+                        if (data.getClipData() != null) {
+                            int count = data.getClipData().getItemCount();
+                            resultUris = new Uri[count];
+                            for (int i = 0; i < count; i++) {
+                                resultUris[i] = data.getClipData().getItemAt(i).getUri();
+                            }
+                        } else if (data.getData() != null) {
+                            resultUris = new Uri[]{data.getData()};
+                        }
+                    }
+
+                    filePathCallback.onReceiveValue(resultUris);
+                    filePathCallback = null;
+                }
+        );
 
         // Pede a permissão de câmera do sistema (popup nativo do Android) assim que o app abre,
         // para que o navegador dentro do app (WebView) consiga usar getUserMedia() sem bloquear.
@@ -65,6 +101,26 @@ public class MainActivity extends BridgeActivity {
                     callback.invoke(origin, false, false);
                     requestLocationPermissionIfNeeded();
                 }
+            }
+
+            @Override
+            public boolean onShowFileChooser(
+                    android.webkit.WebView webView,
+                    ValueCallback<Uri[]> callback,
+                    WebChromeClient.FileChooserParams fileChooserParams) {
+                if (filePathCallback != null) {
+                    filePathCallback.onReceiveValue(null);
+                }
+                filePathCallback = callback;
+
+                Intent intent = fileChooserParams.createIntent();
+                try {
+                    fileChooserLauncher.launch(intent);
+                } catch (Exception e) {
+                    filePathCallback = null;
+                    return false;
+                }
+                return true;
             }
         });
     }
