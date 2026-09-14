@@ -20,8 +20,11 @@ export class EsqueciSenhaComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const currentUser = this.authService.getCurrentUser();
+    const registeredEmail = currentUser?.email || '';
+
     this.forgotPasswordForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]]
+      email: [registeredEmail, [Validators.required, Validators.email]]
     });
   }
 
