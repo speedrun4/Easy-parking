@@ -39,12 +39,15 @@ export class FinancasComponent implements OnInit {
     }
     this.paymentHistoryService.getPaymentHistory(currentUser.id).subscribe({
       next: (pagamentos: any[]) => {
+        // Considera apenas pagamentos efetivamente concluídos, evitando exibir
+        // cobranças PIX abandonadas/pendentes (status "aguardando_pagamento") como se fossem pagas
+        const pagos = (pagamentos || []).filter(p => (p.status || '').toLowerCase() === 'pago');
         // Mapeia os dados do backend para o formato da tabela
-        this.dataSource.data = (pagamentos || []).map(p => ({
+        this.dataSource.data = pagos.map(p => ({
           descricao: p.estacionamento || p.nome || 'Pagamento',
           valor: p.valorPago,
           dataPagamento: p.data || p.dataPagamento,
-          status: 'Pago', // Ajuste conforme status real se houver
+          status: 'Pago',
           estacionamento: p.estacionamento
         }));
         this.dataSource.paginator = this.paginator;
