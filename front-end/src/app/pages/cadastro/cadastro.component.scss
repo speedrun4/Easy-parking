@@ -23,6 +23,19 @@
   font-weight: 600;
 }
 
+.section-subtitle {
+  margin: 20px 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.section-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #666;
+}
+
 .toggle-buttons {
   display: flex;
   justify-content: space-around;

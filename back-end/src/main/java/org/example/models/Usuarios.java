@@ -18,6 +18,10 @@ public class Usuarios {
     @Column(name = "foto", columnDefinition = "TEXT")
     private String fotoBase64; // Foto em base64
     private String codigoConfirmacao;
+    // Dados bancários do parceiro (dono de estacionamento), usados para repasses futuros
+    private String banco;
+    private String agencia;
+    private String conta;
     // Construtores
     public Usuarios() {}
 
@@ -101,6 +105,30 @@ public class Usuarios {
 
     public void setCodigoConfirmacao(String codigoConfirmacao) {
         this.codigoConfirmacao = codigoConfirmacao;
+    }
+
+    public String getBanco() {
+        return banco;
+    }
+
+    public void setBanco(String banco) {
+        this.banco = banco;
+    }
+
+    public String getAgencia() {
+        return agencia;
+    }
+
+    public void setAgencia(String agencia) {
+        this.agencia = agencia;
+    }
+
+    public String getConta() {
+        return conta;
+    }
+
+    public void setConta(String conta) {
+        this.conta = conta;
     }
 
 }

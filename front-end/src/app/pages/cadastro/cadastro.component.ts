@@ -131,6 +131,7 @@ export class CadastroComponent implements OnInit, OnDestroy {
       ? 'Promocao ativa: 10% OFF na primeira reserva. Cadastre-se como usuario para liberar a oferta no pagamento.'
       : '';
     this.initializeUserForm();
+    this.updateBankFieldsValidators();
   }
 
   ngOnDestroy(): void {
@@ -151,6 +152,26 @@ export class CadastroComponent implements OnInit, OnDestroy {
         ]
       ],
       cpf: ['', [Validators.required, this.cpfValidator]],  // Aceita CPF com máscara
+      banco: [''],
+      agencia: [''],
+      conta: [''],
+    });
+  }
+
+  // Ativa/desativa a obrigatoriedade dos dados bancários conforme o formulário exibido
+  updateBankFieldsValidators(): void {
+    const bankControls = ['banco', 'agencia', 'conta'];
+    bankControls.forEach((controlName) => {
+      const control = this.userForm.get(controlName);
+      if (!control) {
+        return;
+      }
+      if (!this.showUserForm) {
+        control.setValidators([Validators.required]);
+      } else {
+        control.clearValidators();
+      }
+      control.updateValueAndValidity({ emitEvent: false });
     });
   }
 
@@ -161,7 +182,7 @@ export class CadastroComponent implements OnInit, OnDestroy {
   }
   onUserSubmit(perfil: string) {
     if (this.userForm.valid) {
-      const usuario = {
+      const usuario: any = {
         nomeCompleto: this.userForm.get('name')?.value,
         email: this.userForm.get('email')?.value,
         telefone: this.userForm.get('phone')?.value,
@@ -170,6 +191,12 @@ export class CadastroComponent implements OnInit, OnDestroy {
         perfil: perfil,
         fotoBase64: this.fotoBase64
       };
+
+      if (perfil === 'cliente') {
+        usuario.banco = this.userForm.get('banco')?.value;
+        usuario.agencia = this.userForm.get('agencia')?.value;
+        usuario.conta = this.userForm.get('conta')?.value;
+      }
 
       this.authService.register(usuario).subscribe({
         next: (response: any) => {

@@ -9,10 +9,10 @@
   </div>
 
   <div class="toggle-buttons">
-    <button mat-raised-button (click)="showUserForm = true" [color]="showUserForm ? 'primary' : ''">
+    <button mat-raised-button (click)="showUserForm = true; updateBankFieldsValidators()" [color]="showUserForm ? 'primary' : ''">
       Cadastro de Usuário
     </button>
-    <button *ngIf="!hideClientRegistrationOption" mat-raised-button (click)="showUserForm = false" [color]="!showUserForm ? 'primary' : ''">
+    <button *ngIf="!hideClientRegistrationOption" mat-raised-button (click)="showUserForm = false; updateBankFieldsValidators()" [color]="!showUserForm ? 'primary' : ''">
       Cadastro de Parceiros
     </button>
   </div>
@@ -151,6 +151,27 @@
           <span *ngIf="userForm.get('password')?.errors?.required">Senha é obrigatória.</span>
           <span *ngIf="userForm.get('password')?.errors?.pattern">Senha deve ter entre 8 e 11 caracteres e conter letras, números e caracteres especiais.</span>
         </mat-error>
+      </mat-form-field>
+
+      <h3 class="section-subtitle">Dados bancários para recebimento</h3>
+      <p class="section-hint">Essas informações serão usadas futuramente pelo administrador do app para realizar o repasse dos valores recebidos.</p>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Banco</mat-label>
+        <input matInput formControlName="banco" required>
+        <mat-error *ngIf="userForm.get('banco')?.invalid && userForm.get('banco')?.touched">Banco é obrigatório.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Agência</mat-label>
+        <input matInput formControlName="agencia" required>
+        <mat-error *ngIf="userForm.get('agencia')?.invalid && userForm.get('agencia')?.touched">Agência é obrigatória.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Conta</mat-label>
+        <input matInput formControlName="conta" required>
+        <mat-error *ngIf="userForm.get('conta')?.invalid && userForm.get('conta')?.touched">Conta é obrigatória.</mat-error>
       </mat-form-field>
 
       <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">Cadastrar</button>
