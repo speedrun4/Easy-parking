@@ -153,6 +153,36 @@
         </mat-error>
       </mat-form-field>
 
+      <div class="foto-upload">
+        <label for="fotoParceiro">Foto:</label>
+        <input #fileInput id="arquivoFotoParceiro" type="file" accept="image/*" (change)="onFileSelected($event)" style="display:none">
+      </div>
+
+      <div class="foto-actions">
+        <button mat-raised-button type="button" (click)="openDeviceCamera()">Tirar Foto</button>
+        <button mat-stroked-button type="button" (click)="openFilePicker()">Escolher Arquivo</button>
+      </div>
+
+      <p class="camera-error" *ngIf="cameraUnavailableMessage">{{ cameraUnavailableMessage }}</p>
+      <p class="camera-error" *ngIf="filePermissionMessage">{{ filePermissionMessage }}</p>
+
+      <div class="camera-panel" [class.camera-panel-open]="cameraPreviewOpen">
+        <div class="camera-video-wrapper">
+          <video #videoElement width="280" height="210" autoplay playsinline></video>
+          <button mat-mini-fab color="basic" type="button" class="camera-switch-btn" *ngIf="canSwitchCamera"
+                  (click)="switchCamera()" aria-label="Alternar câmera" title="Alternar câmera">
+            <mat-icon>flip_camera_ios</mat-icon>
+          </button>
+        </div>
+        <div class="camera-panel-actions">
+          <button mat-raised-button color="primary" type="button" (click)="capturePhotoFromPreview()">Capturar Foto</button>
+          <button mat-stroked-button color="warn" type="button" (click)="closeCameraPreview()">Cancelar</button>
+        </div>
+      </div>
+
+      <img *ngIf="previewUrl" [src]="previewUrl" alt="Prévia da Foto" width="120" style="margin-top:10px;">
+      <canvas #canvasElement width="280" height="210" style="display:none"></canvas>
+
       <h3 class="section-subtitle">Dados bancários para recebimento</h3>
       <p class="section-hint">Essas informações serão usadas futuramente pelo administrador do app para realizar o repasse dos valores recebidos.</p>
 
