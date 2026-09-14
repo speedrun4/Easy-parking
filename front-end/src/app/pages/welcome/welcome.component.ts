@@ -82,6 +82,10 @@ export class WelcomeComponent implements OnInit {
   ngOnInit(): void {
     this.applyPromotionFromRoute();
 
+    this.estacionamentoService.isLoading$.subscribe((loading) => {
+      this.isMapLoading = loading;
+    });
+
     this.estacionamentoService.carregarEstacionamentos();
 
     this.estacionamentoService.estacionamentos$.subscribe((data) => {
@@ -115,7 +119,6 @@ export class WelcomeComponent implements OnInit {
 
       this.updateMapMarkers();
       this.applyRenewalSelectionIfNeeded();
-      this.isMapLoading = false;
     });
 
     this.timeOptions = this.generateTimeOptions();

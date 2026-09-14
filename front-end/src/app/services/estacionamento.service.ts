@@ -24,6 +24,8 @@ export class EstacionamentoService {
 
   private estacionamentosSubject = new BehaviorSubject<any[]>([]);
   estacionamentos$ = this.estacionamentosSubject.asObservable();
+  private isLoadingSubject = new BehaviorSubject<boolean>(false);
+  isLoading$ = this.isLoadingSubject.asObservable();
   private geoapifyApiKey = 'ace82b241e56461bba40b0cfac707318';
 
   private apiUrl = `${environment.apiBaseUrl}/api/clientes`; // URL da API
@@ -57,8 +59,15 @@ export class EstacionamentoService {
   }
   // Método para carregar os dados no BehaviorSubject
   carregarEstacionamentos() {
-    this.fetchEstacionamentos().subscribe((estacionamentos) => {
-      this.estacionamentosSubject.next(estacionamentos);
+    this.isLoadingSubject.next(true);
+    this.fetchEstacionamentos().subscribe({
+      next: (estacionamentos) => {
+        this.estacionamentosSubject.next(estacionamentos);
+        this.isLoadingSubject.next(false);
+      },
+      error: () => {
+        this.isLoadingSubject.next(false);
+      }
     });
   }
   getAddressByCep(cep: string): Observable<any> {
