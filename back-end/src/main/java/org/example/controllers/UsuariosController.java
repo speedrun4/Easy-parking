@@ -203,22 +203,36 @@ public class UsuariosController {
     @PostMapping("/forgot-password")
     public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-        Optional<Usuarios> usuarioOpt = usuariosService.findByEmail(email);
-
         Map<String, String> response = new HashMap<>();
+        if (email == null || email.trim().isEmpty()) {
+            response.put("message", "Email é obrigatório.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+
+        String emailNormalizado = email.trim();
+        Optional<Usuarios> usuarioOpt = usuariosService.findByEmailIgnoreCase(emailNormalizado);
+
         if (usuarioOpt.isPresent()) {
-            // Conteúdo do e-mail
+            if (!mailEnabled) {
+                response.put("message", "O envio de email está desabilitado neste ambiente. Verifique a configuração do servidor de email.");
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+            }
+
             String token = UUID.randomUUID().toString(); // Gera um token único
-            String resetLink = "http://localhost:4200/reset-password?email=" + email + "&token=" + token;
+            String resetLink = "http://localhost:4200/reset-password?email=" + emailNormalizado + "&token=" + token;
 
             String body = "Clique no link para redefinir sua senha: " + resetLink;
             String subject = "Recuperação de Senha";
 
-            // Envia o e-mail de recuperação
-            emailService.sendEmail(email, subject, body);
-
-            response.put("message", "Email de recuperação enviado.");
-            return ResponseEntity.ok(response);
+            try {
+                emailService.sendEmail(emailNormalizado, subject, body);
+                response.put("message", "Email de recuperação enviado.");
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                logger.error("Falha ao enviar email de recuperação para {}: {}", emailNormalizado, e.getMessage());
+                response.put("message", "Não foi possível enviar o email de recuperação no momento. Verifique a configuração do servidor de email.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
         } else {
             response.put("message", "Usuário não encontrado.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
@@ -272,5 +286,4 @@ public class UsuariosController {
         }
     }
 }
-
 

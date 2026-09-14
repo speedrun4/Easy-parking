@@ -41,14 +41,14 @@ export class EsqueciSenhaComponent implements OnInit {
 
   onSubmit() {
     if (this.forgotPasswordForm.valid) {
-      const email = this.forgotPasswordForm.value.email;
+      const email = (this.forgotPasswordForm.value.email || '').trim();
   
       this.authService.requestPasswordReset(email).subscribe(
         (response) => {
           this.snackBar.open(response.message, 'Fechar', { duration: 3000 });
         },
         (error) => {
-          this.snackBar.open('Erro ao enviar o email de recuperação. Tente novamente.', 'Fechar', {
+          this.snackBar.open(error?.message || 'Erro ao enviar o email de recuperação. Tente novamente.', 'Fechar', {
             duration: 3000
           });
           console.error('Erro ao solicitar recuperação de senha:', error);

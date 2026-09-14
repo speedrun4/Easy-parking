@@ -49,6 +49,10 @@ public class UsuariosService {
     public Optional<Usuarios> findByEmail(String email) {
         return usuariosRepository.findByEmail(email);
     }
+
+    public Optional<Usuarios> findByEmailIgnoreCase(String email) {
+        return usuariosRepository.findByEmailIgnoreCase(email);
+    }
     public Usuarios getUsuarioById(int id) {
         return usuariosRepository.findById(id).orElse(null);
     }

@@ -180,7 +180,9 @@ sendPasswordToEmail(email: string): Observable < any > {
   );
 }
 requestPasswordReset(email: string): Observable < any > {
-  return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  return this.http.post(`${this.apiUrl}/forgot-password`, { email: email.trim() }).pipe(
+    catchError(this.handleError)
+  );
 }
 
 autoLogin(): void {
