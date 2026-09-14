@@ -78,6 +78,16 @@
         background-color: linear-gradient(to right, rgb(43, 250, 185), rgb(0, 128, 128));;
       }
     }
+
+    .submit-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ::ng-deep mat-spinner circle {
+        stroke: #fff;
+      }
+    }
   }
 
   .login-options {

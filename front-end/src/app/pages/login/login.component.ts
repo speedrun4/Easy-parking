@@ -21,6 +21,7 @@ export class LoginComponent implements OnInit {
   hideClientLoginOption: boolean = false;
   promoBannerMessage: string = '';
   registrationQueryParams: { [key: string]: string } | null = null;
+  isLoading: boolean = false;
 
   // Variável para controlar a exibição dos formulários
   showUserForm: boolean = true;
@@ -42,10 +43,12 @@ export class LoginComponent implements OnInit {
   onSubmit(type: string) {
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-  
+      this.isLoading = true;
+
       this.authService.login(email, password).subscribe({
         next: (response) => {
           if (!response) {
+            this.isLoading = false;
             this.openErrorDialog("Erro ao processar o login.");
             return;
           }
@@ -62,6 +65,7 @@ export class LoginComponent implements OnInit {
               localStorage.setItem('token', token);
               this.redirectAfterLogin('/welcome');
             } else {
+              this.isLoading = false;
               this.openErrorDialog('Perfil não autorizado para login de usuário.');
             }
           } else if (type === 'client') {
@@ -73,11 +77,13 @@ export class LoginComponent implements OnInit {
               localStorage.setItem('token', token);
               this.redirectAfterLogin('/cliente');
             } else {
+              this.isLoading = false;
               this.openErrorDialog('Apenas parceiros podem acessar esta seção.');
             }
           }
         },
         error: (error) => {
+          this.isLoading = false;
           if (error.status === 401) {
             this.openErrorDialog("Email ou senha não conferem, por favor tentar novamente.");
           } else {

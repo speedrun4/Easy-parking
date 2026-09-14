@@ -48,7 +48,10 @@
     </mat-form-field>
 
     <div class="form-actions">
-      <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">Entrar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || isLoading" class="submit-button">
+        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        <span *ngIf="!isLoading">Entrar</span>
+      </button>
     </div>
   </form>
 
@@ -80,7 +83,10 @@
     </mat-form-field>
 
     <div class="form-actions">
-      <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">Entrar</button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || isLoading" class="submit-button">
+        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        <span *ngIf="!isLoading">Entrar</span>
+      </button>
     </div>
   </form>
 
