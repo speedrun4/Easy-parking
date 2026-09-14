@@ -24,16 +24,24 @@
   </div>
 
   <div class="controls">
-    <button (click)="resume()" [disabled]="loading">Escanear novamente</button>
+    <button class="control-btn" (click)="resume()" [disabled]="loading" title="Escanear novamente">
+      <mat-icon>refresh</mat-icon>
+      <span>Escanear novamente</span>
+    </button>
+
     <div class="camera-select" *ngIf="availableDevices.length > 1">
-      <label for="camera">Câmera:</label>
+      <mat-icon>videocam</mat-icon>
       <select id="camera" [ngModel]="selectedDevice?.deviceId" (ngModelChange)="onDeviceSelect($event)">
         <option *ngFor="let dev of availableDevices; let i = index" [value]="dev.deviceId">
           {{ dev.label || ('Câmera ' + (i+1)) }}
         </option>
       </select>
     </div>
-    <button *ngIf="torchAvailable" (click)="toggleTorch()">{{ torchEnabled ? 'Desligar Flash' : 'Ligar Flash' }}</button>
+
+    <button class="control-btn" *ngIf="torchAvailable" (click)="toggleTorch()" [class.active]="torchEnabled" [title]="torchEnabled ? 'Desligar Flash' : 'Ligar Flash'">
+      <mat-icon>{{ torchEnabled ? 'flash_off' : 'flash_on' }}</mat-icon>
+      <span>{{ torchEnabled ? 'Desligar Flash' : 'Ligar Flash' }}</span>
+    </button>
   </div>
 
   <hr style="margin: 20px 0;">

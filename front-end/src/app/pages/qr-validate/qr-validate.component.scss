@@ -3,4 +3,72 @@
 .scanner { width: 320px; height: 320px; border: 2px dashed #0aa; border-radius: 8px; }
 .status .ok { color: #0a7f2e; font-weight: 600; }
 .status .err { color: #b00020; font-weight: 600; }
-.controls button { margin-top: 12px; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.control-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 24px;
+  border: 1px solid #0aa;
+  background: #fff;
+  color: #0aa;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #0aa;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.active {
+    background: #0aa;
+    color: #fff;
+  }
+}
+
+.camera-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 24px;
+  border: 1px solid #ccc;
+  background: #fff;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #666;
+  }
+
+  select {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-weight: 500;
+    color: #333;
+  }
+}
