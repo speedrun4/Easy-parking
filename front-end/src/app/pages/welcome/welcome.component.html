@@ -28,6 +28,9 @@
 
 <div class="card">
   <div id="map" class="map-container" style="height: 400px; width: 100%;"></div>
+  <div *ngIf="isMapLoading" class="map-loading-overlay">
+    <mat-spinner diameter="48"></mat-spinner>
+  </div>
 </div>
 
 <div *ngIf="selectedParkings.length > 0" class="selected-parkings-list">

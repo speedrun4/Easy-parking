@@ -52,6 +52,7 @@ export class WelcomeComponent implements OnInit {
 
   minDate: Date;
   maxDate: Date;
+  isMapLoading: boolean = true;
 
   constructor(
     private fb: FormBuilder,
@@ -114,6 +115,7 @@ export class WelcomeComponent implements OnInit {
 
       this.updateMapMarkers();
       this.applyRenewalSelectionIfNeeded();
+      this.isMapLoading = false;
     });
 
     this.timeOptions = this.generateTimeOptions();
@@ -435,6 +437,7 @@ export class WelcomeComponent implements OnInit {
   // Função de busca
   onSearch() {
     const query = this.searchForm.get('search')?.value?.trim().toLowerCase();
+    this.isMapLoading = true;
 
     if (!query) {
       this.estacionamentoService.fetchEstacionamentos().subscribe(estacionamentos => {
@@ -464,6 +467,7 @@ export class WelcomeComponent implements OnInit {
           this.zoom = 15;
         }
         this.updateMapMarkers();
+        this.isMapLoading = false;
       });
       return;
     }
@@ -518,6 +522,7 @@ export class WelcomeComponent implements OnInit {
         this.zoom = 15;
       }
       this.updateMapMarkers();
+      this.isMapLoading = false;
     });
   }
 

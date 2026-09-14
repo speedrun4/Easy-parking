@@ -23,13 +23,27 @@
   margin-left: 10px;
   margin-right: 10px;
   height: 60vh;
-  margin-bottom: 14px
+  margin-bottom: 14px;
+  position: relative;
 }
 
 .map-container {
   height: 400px;  // Altura fixa para garantir que o mapa ocupe espaço suficiente
   width: 100%;
   max-width: 100%;
+}
+
+.map-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 1000;
 }
 
 mat-form-field{
