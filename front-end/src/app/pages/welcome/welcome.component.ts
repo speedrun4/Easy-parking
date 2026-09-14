@@ -84,18 +84,24 @@ export class WelcomeComponent implements OnInit {
     this.estacionamentoService.carregarEstacionamentos();
 
     this.estacionamentoService.estacionamentos$.subscribe((data) => {
-      this.filteredMarkers = data.map(est => ({
-        title: est.companyName,
-        label: `R$${this.getHourlyRateWithFee(est.hourlyRate).toFixed(2)}/h`,
-        hourlyRate: est.hourlyRate,
-        registeredHourlyRate: est.hourlyRate,
-        dailyRate12h: est.dailyRate12h,
-        address: est.address,
-        latitude: est.latitude,
-        longitude: est.longitude,
-        horarioAbertura: est.horarioAbertura,
-        horarioFechamento: est.horarioFechamento
-      }));
+      this.filteredMarkers = data.map(est => {
+        const defaultRate = est.hourlyRateCarro ?? est.hourlyRate;
+        return {
+          title: est.companyName,
+          label: `R$${this.getHourlyRateWithFee(defaultRate).toFixed(2)}/h`,
+          hourlyRate: defaultRate,
+          registeredHourlyRate: defaultRate,
+          hourlyRateMoto: est.hourlyRateMoto,
+          hourlyRateCarro: est.hourlyRateCarro,
+          vehicleType: 'carro',
+          dailyRate12h: est.dailyRate12h,
+          address: est.address,
+          latitude: est.latitude,
+          longitude: est.longitude,
+          horarioAbertura: est.horarioAbertura,
+          horarioFechamento: est.horarioFechamento
+        };
+      });
 
       this.markers = [...this.filteredMarkers];
 
@@ -291,6 +297,7 @@ export class WelcomeComponent implements OnInit {
     if (!exists) {
       this.selectedParkings.push({
         ...selected,
+        vehicleType: selected.vehicleType || 'carro',
         useDaily12h: false,
         selectedDate: '',
         selectedTime: '',
@@ -431,17 +438,23 @@ export class WelcomeComponent implements OnInit {
 
     if (!query) {
       this.estacionamentoService.fetchEstacionamentos().subscribe(estacionamentos => {
-        this.markers = estacionamentos.map((estacionamento: any) => ({
-          latitude: estacionamento.latitude,
-          longitude: estacionamento.longitude,
-          label: `R$ ${this.getHourlyRateWithFee(estacionamento.hourlyRate).toFixed(2)}/h`,
-          hourlyRate: estacionamento.hourlyRate,
-          registeredHourlyRate: estacionamento.hourlyRate,
-          dailyRate12h: estacionamento.dailyRate12h,
-          title: estacionamento.companyName,
-          address: estacionamento.address,
-          // iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
-        }));
+        this.markers = estacionamentos.map((estacionamento: any) => {
+          const defaultRate = estacionamento.hourlyRateCarro ?? estacionamento.hourlyRate;
+          return {
+            latitude: estacionamento.latitude,
+            longitude: estacionamento.longitude,
+            label: `R$ ${this.getHourlyRateWithFee(defaultRate).toFixed(2)}/h`,
+            hourlyRate: defaultRate,
+            registeredHourlyRate: defaultRate,
+            hourlyRateMoto: estacionamento.hourlyRateMoto,
+            hourlyRateCarro: estacionamento.hourlyRateCarro,
+            vehicleType: 'carro',
+            dailyRate12h: estacionamento.dailyRate12h,
+            title: estacionamento.companyName,
+            address: estacionamento.address,
+            // iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
+          };
+        });
 
         this.filteredMarkers = [...this.markers];
 
@@ -479,17 +492,23 @@ export class WelcomeComponent implements OnInit {
         );
       });
 
-      this.markers = filtrados.map((estacionamento: any) => ({
-        latitude: estacionamento.latitude,
-        longitude: estacionamento.longitude,
-        label: `R$ ${this.getHourlyRateWithFee(estacionamento.hourlyRate).toFixed(2)}/h`,
-        hourlyRate: estacionamento.hourlyRate,
-         registeredHourlyRate: estacionamento.hourlyRate,
-        dailyRate12h: estacionamento.dailyRate12h,
-        title: estacionamento.companyName,
-        address: estacionamento.address,
-        iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
-      }));
+      this.markers = filtrados.map((estacionamento: any) => {
+        const defaultRate = estacionamento.hourlyRateCarro ?? estacionamento.hourlyRate;
+        return {
+          latitude: estacionamento.latitude,
+          longitude: estacionamento.longitude,
+          label: `R$ ${this.getHourlyRateWithFee(defaultRate).toFixed(2)}/h`,
+          hourlyRate: defaultRate,
+          registeredHourlyRate: defaultRate,
+          hourlyRateMoto: estacionamento.hourlyRateMoto,
+          hourlyRateCarro: estacionamento.hourlyRateCarro,
+          vehicleType: 'carro',
+          dailyRate12h: estacionamento.dailyRate12h,
+          title: estacionamento.companyName,
+          address: estacionamento.address,
+          iconUrl: 'https://maps.google.com/mapfiles/kml/shapes/parking_lot_maps.png',
+        };
+      });
 
       this.filteredMarkers = [...this.markers];
 
@@ -531,6 +550,7 @@ export class WelcomeComponent implements OnInit {
     if (index === -1) {
       this.selectedParkings.push({
         ...marker,
+        vehicleType: marker.vehicleType || 'carro',
         useDaily12h: false,
         selectedDate: '',
         selectedTime: '',
@@ -571,6 +591,33 @@ export class WelcomeComponent implements OnInit {
     if (parking) {
       parking.selectedExitTime = time;
     }
+  }
+
+  updateVehicleType(marker: any, vehicleType: 'carro' | 'moto') {
+    const parking = this.selectedParkings.find(
+      (selectedMarker) =>
+        selectedMarker.latitude === marker.latitude &&
+        selectedMarker.longitude === marker.longitude
+    );
+    if (!parking) {
+      return;
+    }
+
+    parking.vehicleType = vehicleType;
+    const rate = this.getVehicleRate(parking);
+    parking.hourlyRate = rate;
+    parking.registeredHourlyRate = rate;
+    parking.label = `R$${this.getHourlyRateWithFee(rate).toFixed(2)}/h`;
+  }
+
+  getVehicleRate(marker: any): number {
+    if (marker?.vehicleType === 'moto' && marker?.hourlyRateMoto !== undefined && marker?.hourlyRateMoto !== null) {
+      return Number(marker.hourlyRateMoto);
+    }
+    if (marker?.hourlyRateCarro !== undefined && marker?.hourlyRateCarro !== null) {
+      return Number(marker.hourlyRateCarro);
+    }
+    return Number(marker?.hourlyRate || 0);
   }
 
   updatePricingMode(marker: any, useDaily12h: boolean) {
@@ -747,9 +794,7 @@ formatDate(date: Date): string {
 
   const diffHours = diffMs / (1000 * 60 * 60);
 
-  const hourlyRate = Number(
-    marker.registeredHourlyRate ?? marker.hourlyRate ?? marker.label.replace(/[^\d.-]/g, '')
-  );
+  const hourlyRate = this.getVehicleRate(marker) || Number(marker.label.replace(/[^\d.-]/g, ''));
 
   const total = diffHours * hourlyRate;
   return Math.ceil(total * 100) / 100; // Arredonda para 2 casas decimais
@@ -813,6 +858,9 @@ formatDate(date: Date): string {
             useDaily12h: !!parking.useDaily12h,
             dailyRate12h: parking.dailyRate12h || 0,
             hourlyRate: parking.hourlyRate || 0,
+            vehicleType: parking.vehicleType || 'carro',
+            hourlyRateMoto: parking.hourlyRateMoto,
+            hourlyRateCarro: parking.hourlyRateCarro,
             total: this.calculateTotal(parking),
           })),
           clienteName: clienteName,

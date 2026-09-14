@@ -59,6 +59,14 @@
       </mat-select>
     </mat-form-field>
 
+      <mat-form-field appearance="outline" class="time" *ngIf="marker.hourlyRateCarro !== undefined || marker.hourlyRateMoto !== undefined">
+        <mat-label>Tipo de Veículo</mat-label>
+        <mat-select [value]="marker.vehicleType || 'carro'" (selectionChange)="updateVehicleType(marker, $event.value)">
+          <mat-option value="carro">Carro ({{ marker.hourlyRateCarro ? ('R$ ' + (getHourlyRateWithFee(marker.hourlyRateCarro) | number:'1.2-2')) : 'indisponivel' }}/h)</mat-option>
+          <mat-option value="moto">Moto ({{ marker.hourlyRateMoto ? ('R$ ' + (getHourlyRateWithFee(marker.hourlyRateMoto) | number:'1.2-2')) : 'indisponivel' }}/h)</mat-option>
+        </mat-select>
+      </mat-form-field>
+
       <mat-form-field appearance="outline" class="time">
         <mat-label>Tipo de Cobranca</mat-label>
         <mat-select [value]="marker.useDaily12h ? 'daily' : 'hourly'" (selectionChange)="updatePricingMode(marker, $event.value === 'daily')">
