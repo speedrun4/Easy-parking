@@ -14,7 +14,8 @@
         <h3>{{ estacionamento.nomeEmpresa || 'Sem nome' }}</h3>
         <p><strong>Endereco:</strong> {{ estacionamento.enderecoCompleto || '-' }}</p>
         <p><strong>CEP:</strong> {{ estacionamento.cep || '-' }}</p>
-        <p><strong>Valor/hora:</strong> {{ estacionamento.valorPorHora || '-' }}</p>
+        <p><strong>Valor/hora moto:</strong> {{ estacionamento.valorPorHoraMoto || '-' }}</p>
+        <p><strong>Valor/hora carro:</strong> {{ estacionamento.valorPorHoraCarro || estacionamento.valorPorHora || '-' }}</p>
         <p><strong>Diaria (12h):</strong> {{ estacionamento.valorDiaria12h || '-' }}</p>
       </div>
 

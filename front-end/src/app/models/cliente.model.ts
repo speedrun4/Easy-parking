@@ -5,6 +5,8 @@ export interface Cliente {
     nome_empresa: string;
     cnpj: string;
     valorPorHora: number;
+    valorPorHoraMoto: number;
+    valorPorHoraCarro: number;
     enderecoCompleto: string;
     cep: string;
     cepFiliais: string;

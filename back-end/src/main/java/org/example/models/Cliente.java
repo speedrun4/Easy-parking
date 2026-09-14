@@ -26,6 +26,12 @@ public class Cliente {
     @Column(name = "valor_por_hora", nullable = false)
     private BigDecimal valorPorHora;
 
+    @Column(name = "valor_por_hora_moto")
+    private BigDecimal valorPorHoraMoto;
+
+    @Column(name = "valor_por_hora_carro")
+    private BigDecimal valorPorHoraCarro;
+
     @Column(name = "valor_diaria_12h")
     private BigDecimal valorDiaria12h;
 
@@ -92,6 +98,22 @@ public class Cliente {
 
     public void setValorPorHora(BigDecimal valorPorHora) {
         this.valorPorHora = valorPorHora;
+    }
+
+    public BigDecimal getValorPorHoraMoto() {
+        return valorPorHoraMoto;
+    }
+
+    public void setValorPorHoraMoto(BigDecimal valorPorHoraMoto) {
+        this.valorPorHoraMoto = valorPorHoraMoto;
+    }
+
+    public BigDecimal getValorPorHoraCarro() {
+        return valorPorHoraCarro;
+    }
+
+    public void setValorPorHoraCarro(BigDecimal valorPorHoraCarro) {
+        this.valorPorHoraCarro = valorPorHoraCarro;
     }
 
     public BigDecimal getValorDiaria12h() {

@@ -22,10 +22,18 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="form-field">
-        <mat-label>Valor por Hora</mat-label>
-  <input matInput id="hourlyRate" formControlName="hourlyRate" (input)="onHourlyRateInput($event)">
-        <mat-error *ngIf="parkingForm.get('hourlyRate')?.invalid && parkingForm.get('hourlyRate')?.touched">
-          Valor por hora é obrigatório.
+        <mat-label>Valor por Hora - Moto</mat-label>
+  <input matInput id="hourlyRateMoto" formControlName="hourlyRateMoto" (input)="onHourlyRateMotoInput($event)">
+        <mat-error *ngIf="parkingForm.get('hourlyRateMoto')?.invalid && parkingForm.get('hourlyRateMoto')?.touched">
+          Valor por hora para moto é obrigatório.
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Valor por Hora - Carro</mat-label>
+  <input matInput id="hourlyRateCarro" formControlName="hourlyRateCarro" (input)="onHourlyRateCarroInput($event)">
+        <mat-error *ngIf="parkingForm.get('hourlyRateCarro')?.invalid && parkingForm.get('hourlyRateCarro')?.touched">
+          Valor por hora para carro é obrigatório.
         </mat-error>
       </mat-form-field>
 

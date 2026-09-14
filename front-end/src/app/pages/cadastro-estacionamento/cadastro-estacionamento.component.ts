@@ -75,7 +75,8 @@ export class CadastroEstacionamentoComponent implements OnInit {
     this.parkingForm = this.fb.group({
       companyName: ['', Validators.required],
       cnpj: ['', Validators.required],
-      hourlyRate: ['', Validators.required],
+      hourlyRateMoto: ['', Validators.required],
+      hourlyRateCarro: ['', Validators.required],
       dailyRate12h: ['', Validators.required],
       address: ['', Validators.required],
       cep: ['', Validators.required],
@@ -94,7 +95,8 @@ export class CadastroEstacionamentoComponent implements OnInit {
     this.parkingForm = this.fb.group({
       companyName: ['', Validators.required],
       cnpj: ['', [Validators.required, cnpjValidator]],  // Validação de CNPJ com dígitos verificadores
-      hourlyRate: ['', Validators.required],
+      hourlyRateMoto: ['', Validators.required],
+      hourlyRateCarro: ['', Validators.required],
       dailyRate12h: ['', Validators.required],
       address: ['', Validators.required],
       cep: ['', [Validators.required, cepValidator]],
@@ -122,7 +124,9 @@ export class CadastroEstacionamentoComponent implements OnInit {
     const estacionamento = {
       nomeEmpresa: this.parkingForm.get('companyName')?.value,
       cnpj: this.parkingForm.get('cnpj')?.value.replace(/\D/g, ''),
-      valorPorHora: this.parkingForm.get('hourlyRate')?.value.replace(/[^\d,]/g, '').replace(',', '.'),
+      valorPorHora: this.parkingForm.get('hourlyRateCarro')?.value.replace(/[^\d,]/g, '').replace(',', '.'),
+      valorPorHoraMoto: this.parkingForm.get('hourlyRateMoto')?.value.replace(/[^\d,]/g, '').replace(',', '.'),
+      valorPorHoraCarro: this.parkingForm.get('hourlyRateCarro')?.value.replace(/[^\d,]/g, '').replace(',', '.'),
       valorDiaria12h: this.parkingForm.get('dailyRate12h')?.value.replace(/[^\d,]/g, '').replace(',', '.'),
       enderecoCompleto: this.parkingForm.get('address')?.value,
       cep: this.parkingForm.get('cep')?.value.replace(/\D/g, ''),
@@ -283,7 +287,15 @@ export class CadastroEstacionamentoComponent implements OnInit {
   }
 
   onHourlyRateInput(event: Event): void {
-    this.onCurrencyInput(event, 'hourlyRate');
+    this.onCurrencyInput(event, 'hourlyRateCarro');
+  }
+
+  onHourlyRateMotoInput(event: Event): void {
+    this.onCurrencyInput(event, 'hourlyRateMoto');
+  }
+
+  onHourlyRateCarroInput(event: Event): void {
+    this.onCurrencyInput(event, 'hourlyRateCarro');
   }
 
   onDailyRateInput(event: Event): void {

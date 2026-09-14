@@ -39,6 +39,12 @@ public class ClienteDTO {
     @NotNull(message = "Valor por hora é obrigatório")
     private BigDecimal valorPorHora;
 
+    @NotNull(message = "Valor por hora para moto é obrigatório")
+    private BigDecimal valorPorHoraMoto;
+
+    @NotNull(message = "Valor por hora para carro é obrigatório")
+    private BigDecimal valorPorHoraCarro;
+
     @NotNull(message = "Valor da diária (12h) é obrigatório")
     private BigDecimal valorDiaria12h;
 
@@ -97,6 +103,22 @@ public class ClienteDTO {
 
     public void setValorPorHora(BigDecimal valorPorHora) {
         this.valorPorHora = valorPorHora;
+    }
+
+    public BigDecimal getValorPorHoraMoto() {
+        return valorPorHoraMoto;
+    }
+
+    public void setValorPorHoraMoto(BigDecimal valorPorHoraMoto) {
+        this.valorPorHoraMoto = valorPorHoraMoto;
+    }
+
+    public BigDecimal getValorPorHoraCarro() {
+        return valorPorHoraCarro;
+    }
+
+    public void setValorPorHoraCarro(BigDecimal valorPorHoraCarro) {
+        this.valorPorHoraCarro = valorPorHoraCarro;
     }
 
     public BigDecimal getValorDiaria12h() {
