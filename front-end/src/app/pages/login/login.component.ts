@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
               localStorage.setItem('token', token);
               this.redirectAfterLogin('/cliente');
             } else {
-              this.openErrorDialog('Apenas clientes podem acessar esta seção.');
+              this.openErrorDialog('Apenas parceiros podem acessar esta seção.');
             }
           }
         },

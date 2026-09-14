@@ -49,7 +49,7 @@
     </ul>
   </div>
 
-  <!-- Menu do Cliente -->
+  <!-- Menu do Parceiro -->
   <div *ngIf="isLoggedIn && isClient && !loginAsUser" [ngClass]="{'menu-open': menuOpen}" class="menu-list">
     <ul>
       <li><a (click)="closeMenu()" [routerLink]="['/cadastro-estacionamento']">Cadastrar Estacionamento</a></li>

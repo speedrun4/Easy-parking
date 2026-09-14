@@ -13,7 +13,7 @@
       Cadastro de Usuário
     </button>
     <button *ngIf="!hideClientRegistrationOption" mat-raised-button (click)="showUserForm = false" [color]="!showUserForm ? 'primary' : ''">
-      Cadastro de Clientes
+      Cadastro de Parceiros
     </button>
   </div>
 
@@ -103,12 +103,12 @@
     </form>
   </mat-card>
 
-  <!-- Formulário de Cadastro de Clientes -->
+  <!-- Formulário de Cadastro de Parceiros -->
   <mat-card *ngIf="!showUserForm && !hideClientRegistrationOption" class="form-container">
-    <h2>Cadastro de Clientes</h2>
+    <h2>Cadastro de Parceiros</h2>
     <form [formGroup]="userForm" (ngSubmit)="onUserSubmit('cliente')">
       <mat-form-field appearance="fill">
-        <mat-label>Nome Completo do Cliente</mat-label>
+        <mat-label>Nome Completo do Parceiro</mat-label>
         <input matInput formControlName="name" required>
         <mat-error *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">Nome completo é obrigatório.</mat-error>
       </mat-form-field>

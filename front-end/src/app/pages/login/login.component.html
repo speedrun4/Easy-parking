@@ -10,13 +10,13 @@
 
   <h2 class="login-title">Login</h2>
 
-  <!-- Botões para alternar entre o login de Usuário e Cliente -->
+  <!-- Botões para alternar entre o login de Usuário e Parceiro -->
   <div class="toggle-buttons">
     <button mat-button (click)="showUserForm = true" [class.active]="showUserForm">
       Login de Usuário
     </button>
     <button *ngIf="!hideClientLoginOption" mat-button (click)="showUserForm = false" [class.active]="!showUserForm">
-      Login de Cliente
+      Login de Parceiro
     </button>
   </div>
 
@@ -52,11 +52,11 @@
     </div>
   </form>
 
-  <!-- Formulário de Login de Cliente -->
+  <!-- Formulário de Login de Parceiro -->
   <form *ngIf="!showUserForm && !hideClientLoginOption" [formGroup]="loginForm" (ngSubmit)="onSubmit('client')">
     <mat-form-field appearance="fill" class="form-group">
-      <mat-label>Email Cliente</mat-label>
-      <input matInput type="email" formControlName="email" placeholder="Digite o email do cliente" />
+      <mat-label>Email Parceiro</mat-label>
+      <input matInput type="email" formControlName="email" placeholder="Digite o email do parceiro" />
       <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
         Email inválido
       </mat-error>
@@ -64,7 +64,7 @@
 
     <mat-form-field appearance="fill" class="form-group">
       <mat-label>Senha</mat-label>
-      <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Digite a senha do cliente" />
+      <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Digite a senha do parceiro" />
       <button
         mat-icon-button
         matSuffix
